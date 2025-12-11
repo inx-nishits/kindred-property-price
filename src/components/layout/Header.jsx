@@ -64,7 +64,7 @@ function Header() {
       transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
       <nav className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-14 md:h-20">
           {/* Logo */}
           <motion.div
             whileHover={{ scale: 1.02 }}
@@ -75,7 +75,7 @@ function Header() {
               <img
                 src={logoImage}
                 alt="Kindred Logo"
-                className="h-10 w-auto object-contain"
+                className="h-8 md:h-10 w-auto object-contain"
               />
             </Link>
           </motion.div>
@@ -113,12 +113,12 @@ function Header() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+              className="lg:hidden p-1.5 md:p-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? (
                 <svg
-                  className="w-6 h-6"
+                  className="w-5 h-5 md:w-6 md:h-6"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -132,7 +132,7 @@ function Header() {
                 </svg>
               ) : (
                 <svg
-                  className="w-6 h-6"
+                  className="w-5 h-5 md:w-6 md:h-6"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -177,7 +177,7 @@ function Header() {
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Sidebar Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between h-14 md:h-20 px-4 md:px-6 border-b border-gray-200">
                   <Link 
                     to="/" 
                     onClick={closeSidebar}
@@ -186,16 +186,16 @@ function Header() {
                     <img
                       src={logoImage}
                       alt="Kindred Logo"
-                      className="h-8 w-auto object-contain"
+                      className="h-8 md:h-10 w-auto object-contain"
                     />
                   </Link>
                   <button
                     onClick={closeSidebar}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-1.5 md:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
                     aria-label="Close menu"
                   >
                     <svg
-                      className="w-6 h-6"
+                      className="w-5 h-5 md:w-6 md:h-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -211,7 +211,7 @@ function Header() {
                 </div>
 
                 {/* Sidebar Navigation Links */}
-                <nav className="flex flex-col p-6 gap-2">
+                <nav className="flex flex-col p-4 md:p-6 gap-2">
                   {navLinks.map((link, index) => (
                     <motion.div
                       key={index}
@@ -223,7 +223,7 @@ function Header() {
                         to={link.path}
                         onClick={closeSidebar}
                         className={({ isActive }) =>
-                          `flex items-center px-4 py-3 text-lg font-medium rounded-lg transition-all duration-200 ${
+                          `flex items-center px-4 py-2.5 md:py-3 text-base md:text-lg font-medium rounded-lg transition-all duration-200 ${
                             isActive
                               ? 'text-primary-800 bg-primary-50 border-l-4 border-primary-800'
                               : 'text-gray-700 hover:text-primary-500 hover:bg-gray-50'
