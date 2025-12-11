@@ -541,7 +541,7 @@ function Home() {
         </section>
 
         {/* Features Section */}
-        <section id="features-section" className="py-20 md:py-24 bg-gradient-to-b from-white via-primary-50/30 to-white relative overflow-hidden">
+        <section id="features-section" className="py-16 md:py-24 bg-gradient-to-b from-white via-primary-50/30 to-white relative overflow-hidden">
           {/* Decorative Background Elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-10 right-20 w-96 h-96 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-blob" />
@@ -649,7 +649,7 @@ function Home() {
         </section>
 
         {/* How It Works */}
-        <section className="py-24 md:py-32 bg-gradient-to-b from-white via-primary-50/20 to-white relative overflow-hidden">
+        <section className="py-10 md:py-32 bg-gradient-to-b from-white via-primary-50/20 to-white relative overflow-hidden">
           {/* Decorative Background Elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-20 left-10 w-72 h-72 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
@@ -696,7 +696,7 @@ function Home() {
             </ScrollReveal>
 
             <div className="max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-12 relative w-full">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 lg:gap-12 relative w-full">
                 {/* Animated Connecting Arrows - Desktop Only */}
                 <div className="hidden md:block absolute top-32 left-0 right-0 h-0.5">
                   <div className="absolute top-0 left-[16.66%] right-[16.66%] h-full bg-gradient-to-r from-transparent via-primary-300 to-transparent opacity-60" />

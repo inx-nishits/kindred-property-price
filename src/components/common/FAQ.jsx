@@ -19,7 +19,7 @@ function FAQ({
   const isCompact = variant === 'compact'
   const sectionClass = isCompact 
     ? 'py-12 md:py-16 bg-white'
-    : 'py-20 md:py-24 bg-gradient-to-b from-white via-primary-50/30 to-white relative overflow-hidden'
+    : 'py-16 md:py-24 bg-gradient-to-b from-white via-primary-50/30 to-white relative overflow-hidden'
 
   return (
     <section className={sectionClass}>
