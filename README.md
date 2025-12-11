@@ -15,7 +15,6 @@ A modern, production-ready React application built with Vite, Tailwind CSS, and 
 - 🛡️ **Error Boundary** - Graceful error handling
 - 📱 **Responsive Design** - Mobile-first approach
 - 🔍 **SEO Ready** - React Helmet for meta tags
-- 📧 **Brevo Email Integration** - Contact forms and lead capture via Brevo API
 
 ## Project Structure
 
@@ -96,25 +95,6 @@ Use `import.meta.env.VITE_*` for environment variables:
 ```jsx
 const apiUrl = import.meta.env.VITE_API_BASE_URL
 ```
-
-### Email Service (Brevo)
-
-The project includes Brevo email integration for contact forms and lead capture.
-
-**Quick Testing:**
-- See [QUICK_TEST_GUIDE.md](./QUICK_TEST_GUIDE.md) for 5-minute test setup
-- Use the test page at `/test-email.html` once dev server is running
-
-**Setup & Documentation:**
-- [BREVO_SETUP.md](./docs/BREVO_SETUP.md) - Complete setup instructions
-- [TESTING_EMAIL.md](./docs/TESTING_EMAIL.md) - Comprehensive testing guide
-
-**Required Environment Variables:**
-- `BREVO_API_KEY` - Your Brevo API key
-- `ADMIN_EMAIL` - Email to receive contact form submissions
-- `FROM_EMAIL` - Verified sender email in Brevo
-- `FROM_NAME` - Display name for emails
-- `SITE_URL` - Your website URL (for email links)
 
 ## Technologies
 

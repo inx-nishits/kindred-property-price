@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import SEO from '../components/common/SEO'
-import { sendContactEmail } from '../services/emailService'
 
 function Contact() {
   const [formData, setFormData] = useState({
@@ -13,7 +12,6 @@ function Contact() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState(null)
 
   const handleChange = (e) => {
     setFormData({
@@ -25,18 +23,11 @@ function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    setError(null)
-    
-    try {
-      await sendContactEmail(formData)
+    setTimeout(() => {
       setSubmitted(true)
       setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' })
-    } catch (err) {
-      console.error('Error submitting contact form:', err)
-      setError(err.message || 'Failed to send message. Please try again.')
-    } finally {
       setIsSubmitting(false)
-    }
+    }, 1000)
   }
 
   const containerVariants = {
@@ -282,15 +273,6 @@ function Contact() {
                     </motion.div>
                   ) : (
                     <form onSubmit={handleSubmit} className="space-y-5">
-                      {error && (
-                        <motion.div
-                          className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm"
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                        >
-                          {error}
-                        </motion.div>
-                      )}
                       <div className="grid sm:grid-cols-2 gap-5">
                         <div>
                           <label htmlFor="firstName" className="block text-sm font-medium text-dark-green mb-2">

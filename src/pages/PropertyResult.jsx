@@ -84,12 +84,14 @@ function PropertyResult() {
   const handleFormSubmit = async (formData) => {
     setIsSubmitting(true)
     try {
-      const result = await submitLeadForm(formData, property)
+      await submitLeadForm(formData)
       setIsUnlocked(true)
       setUserEmail(formData.email)
       setIsModalOpen(false)
       // Show success message
-      alert(result.message || 'Thank you! Your comprehensive property report will be sent to your email shortly.')
+      alert(
+        'Thank you! Your comprehensive property report will be sent to your email shortly.'
+      )
     } catch (error) {
       console.error('Error submitting form:', error)
       alert('There was an error. Please try again.')

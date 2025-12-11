@@ -1,24 +1,9 @@
 import axios from 'axios'
 
 // Create axios instance with default config
-// For serverless functions, use relative path in production or local dev server
-const getBaseURL = () => {
-  // In production, use relative path for serverless functions
-  if (import.meta.env.PROD) {
-    return '' // Relative path works for Vercel/Netlify
-  }
-  // In development, use Vite dev server or local serverless function
-  // Check if VITE_API_BASE_URL is set, otherwise use default for Netlify dev
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL
-  }
-  // Default to empty string for relative paths (works with both Vercel and Netlify)
-  return ''
-}
-
 const api = axios.create({
-  baseURL: getBaseURL(),
-  timeout: 30000, // Increased timeout for email sending
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.example.com',
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },

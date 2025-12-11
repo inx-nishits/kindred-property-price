@@ -68,32 +68,16 @@ export const getPropertyByAddressQuery = async (address) => {
 /**
  * Submit lead form and unlock content
  * @param {Object} formData - { name, email }
- * @param {Object} propertyData - Property information (optional)
  * @returns {Promise<Object>} Success response
  */
-export const submitLeadForm = async (formData, propertyData = null) => {
-  // Import email service dynamically to avoid circular dependencies
-  const { sendLeadCaptureEmail } = await import('./emailService')
-  
-  try {
-    // Send email notification
-    await sendLeadCaptureEmail(formData, propertyData)
-    
-    return {
-      success: true,
-      message: 'Report will be sent to your email shortly',
-      reportId: `RPT-${Date.now()}`,
-    }
-  } catch (error) {
-    console.error('Error sending lead capture email:', error)
-    // Still return success to unlock content, but log the error
-    // In production, you might want to handle this differently
-    return {
-      success: true,
-      message: 'Content unlocked. Report will be sent to your email shortly.',
-      reportId: `RPT-${Date.now()}`,
-      warning: 'Email notification may have failed, but your content is now unlocked.',
-    }
+export const submitLeadForm = async (formData) => {
+  await delay(800) // Simulate API call
+  // In a real app, this would send to backend
+  // For now, we just store locally and return success
+  return {
+    success: true,
+    message: 'Report will be sent to your email shortly',
+    reportId: `RPT-${Date.now()}`,
   }
 }
 
