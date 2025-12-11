@@ -1,0 +1,289 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand Colors */
+    --color-soft-white: #F5F3EB;
+    --color-pure-white: #F5F3EB;
+    --color-dark-green: #163B2A;
+    --color-deepest-green: #0A1C13;
+    --color-primary-green: #34BF77;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    background-color: #ffffff;
+    color: var(--color-dark-green);
+    @apply font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-dark-green);
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  /* Button variants with enhanced animations */
+  .btn {
+    @apply px-4 py-2 rounded-full font-medium;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply transition-all duration-300 ease-out;
+    @apply transform active:scale-95;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .btn:hover::before {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+  /* Ensure button content stays above the animation overlay */
+  .btn > *,
+  .btn > span,
+  .btn > div,
+  .btn > svg {
+    position: relative;
+    z-index: 1;
+  }
+  .btn-primary {
+    @apply bg-primary-500 text-white hover:bg-primary-600;
+    @apply focus:ring-primary-500;
+    @apply shadow-md hover:shadow-lg;
+  }
+  .btn-secondary {
+    background-color: var(--color-dark-green);
+    color: white;
+    @apply hover:opacity-90 focus:ring-primary-500;
+    @apply shadow-md hover:shadow-lg;
+  }
+  .btn-secondary:hover {
+    background-color: var(--color-deepest-green);
+  }
+  .btn-outline {
+    @apply border-2 border-primary-500 text-primary-500;
+    @apply hover:bg-primary-50 hover:text-primary-600;
+    @apply focus:ring-primary-500;
+    @apply hover:border-primary-600;
+  }
+
+  /* Card component with animation support */
+  .card {
+    background-color: var(--color-pure-white);
+    @apply rounded-lg shadow-md;
+    @apply border border-gray-200;
+    @apply p-6;
+    @apply transition-shadow duration-300 ease-out;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  .card-hover:hover {
+    @apply shadow-lg;
+    /* Shadow animation is handled by CSS, transform by framer-motion */
+  }
+
+  /* Input styles with enhanced focus animations */
+  .input {
+    @apply w-full px-4 py-2 rounded-lg border border-gray-300;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500;
+    @apply transition-all duration-300 ease-out;
+    @apply bg-white;
+    /* GPU acceleration */
+    transform: translateZ(0);
+  }
+  .input:focus {
+    @apply border-primary-500 shadow-sm;
+    transform: translateY(-1px) translateZ(0);
+  }
+  .input::placeholder {
+    @apply text-gray-400;
+    transition: opacity 0.3s ease;
+  }
+  .input:focus::placeholder {
+    opacity: 0.6;
+  }
+
+  /* Link styles with smooth transitions */
+  .link {
+    @apply text-primary-500 hover:text-primary-600;
+    @apply transition-all duration-300 ease-out;
+    @apply relative;
+  }
+  .link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    @apply bg-primary-500;
+    transition: width 0.3s ease-out;
+  }
+  .link:hover::after {
+    width: 100%;
+  }
+}
+
+@layer utilities {
+  /* Container utilities - ensure 100% width below 1024px */
+  .container {
+    width: 100%;
+    max-width: 100%; /* Force 100% width below 1024px */
+  }
+  
+  @media (min-width: 1024px) {
+    .container {
+      max-width: 1280px; /* Default max-width for lg screens */
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .container {
+      max-width: 1280px;
+    }
+  }
+  
+  @media (min-width: 1536px) {
+    .container {
+      max-width: 1536px;
+    }
+  }
+
+  /* Text utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Scrollbar styles */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-primary-300 rounded-full;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-400;
+  }
+
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out;
+  }
+  .animate-scale-in {
+    animation: scaleIn 0.4s ease-out;
+  }
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+}
+
+/* Keyframe animations - GPU optimized */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale3d(0.9, 0.9, 1);
+  }
+  to {
+    opacity: 1;
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Blur utility for locked content */
+.blur-sm {
+  filter: blur(8px);
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

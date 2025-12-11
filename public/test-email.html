@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Integration Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: none;
+        }
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        .result.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 30px;
+            font-size: 13px;
+            color: #856404;
+        }
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #856404;
+        }
+        .instructions ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+        .instructions li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Email Integration Test</h1>
+        <p class="subtitle">Test your Brevo email integration</p>
+
+        <div class="instructions">
+            <h3>📋 Before Testing:</h3>
+            <ul>
+                <li>Make sure your serverless function is running (vercel dev or netlify dev)</li>
+                <li>Environment variables are set (BREVO_API_KEY, ADMIN_EMAIL, etc.)</li>
+                <li>Sender email is verified in Brevo dashboard</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>1. Test Contact Form Email</h2>
+            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">
+                Sends a test contact form submission to your admin email.
+            </p>
+            <button id="testContact" onclick="testContactEmail()">
+                Send Test Contact Email
+            </button>
+            <div id="contactResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Test Lead Capture Email</h2>
+            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">
+                Sends a test property report request to your admin email.
+            </p>
+            <button id="testLead" onclick="testLeadCaptureEmail()">
+                Send Test Lead Capture Email
+            </button>
+            <div id="leadResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Check Email Activity</h2>
+            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">
+                View sent emails in your Brevo dashboard.
+            </p>
+            <button onclick="window.open('https://app.brevo.com/statistics/email-activity', '_blank')" style="background: #28a745;">
+                Open Brevo Dashboard
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/send-email';
+        const NETLIFY_URL = '/.netlify/functions/send-email';
+
+        // Try to detect which platform
+        const getApiUrl = () => {
+            // Try Vercel first, then Netlify
+            return API_URL;
+        };
+
+        const showResult = (elementId, message, type = 'info') => {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = message;
+            element.style.display = 'block';
+        };
+
+        const setLoading = (buttonId, loading) => {
+            const button = document.getElementById(buttonId);
+            if (loading) {
+                button.disabled = true;
+                button.innerHTML = '<span class="loading"></span>Sending...';
+            } else {
+                button.disabled = false;
+                button.innerHTML = buttonId === 'testContact' 
+                    ? 'Send Test Contact Email' 
+                    : 'Send Test Lead Capture Email';
+            }
+        };
+
+        async function testContactEmail() {
+            setLoading('testContact', true);
+            showResult('contactResult', 'Sending test email...', 'info');
+
+            const testData = {
+                type: 'contact',
+                data: {
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    email: 'john.doe@example.com',
+                    phone: '0412345678',
+                    message: 'This is a test message from the email integration test page. Please ignore this email.',
+                },
+            };
+
+            try {
+                // Try Vercel endpoint first
+                let response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData),
+                });
+
+                // If that fails, try Netlify endpoint
+                if (!response.ok && response.status === 404) {
+                    response = await fetch(NETLIFY_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(testData),
+                    });
+                }
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResult(
+                        'contactResult',
+                        `✅ Success! Email sent successfully.\n\nMessage ID: ${result.messageId}\n\nCheck your inbox at the ADMIN_EMAIL address configured in your environment variables.`,
+                        'success'
+                    );
+                } else {
+                    showResult(
+                        'contactResult',
+                        `❌ Error: ${result.message || 'Failed to send email'}\n\nStatus: ${response.status}\n\nCheck your serverless function logs and environment variables.`,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult(
+                    'contactResult',
+                    `❌ Network Error: ${error.message}\n\nMake sure your serverless function is running:\n• Vercel: vercel dev\n• Netlify: netlify dev`,
+                    'error'
+                );
+            } finally {
+                setLoading('testContact', false);
+            }
+        }
+
+        async function testLeadCaptureEmail() {
+            setLoading('testLead', true);
+            showResult('leadResult', 'Sending test email...', 'info');
+
+            const testData = {
+                type: 'lead',
+                data: {
+                    name: 'Jane Smith',
+                    email: 'jane.smith@example.com',
+                    propertyAddress: '123 Test Street',
+                    propertySuburb: 'Brisbane',
+                    propertyId: 'test-123',
+                },
+            };
+
+            try {
+                // Try Vercel endpoint first
+                let response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData),
+                });
+
+                // If that fails, try Netlify endpoint
+                if (!response.ok && response.status === 404) {
+                    response = await fetch(NETLIFY_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(testData),
+                    });
+                }
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResult(
+                        'leadResult',
+                        `✅ Success! Email sent successfully.\n\nMessage ID: ${result.messageId}\n\nCheck your inbox at the ADMIN_EMAIL address configured in your environment variables.`,
+                        'success'
+                    );
+                } else {
+                    showResult(
+                        'leadResult',
+                        `❌ Error: ${result.message || 'Failed to send email'}\n\nStatus: ${response.status}\n\nCheck your serverless function logs and environment variables.`,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult(
+                    'leadResult',
+                    `❌ Network Error: ${error.message}\n\nMake sure your serverless function is running:\n• Vercel: vercel dev\n• Netlify: netlify dev`,
+                    'error'
+                );
+            } finally {
+                setLoading('testLead', false);
+            }
+        }
+    </script>
+</body>
+</html>
+

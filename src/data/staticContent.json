@@ -1,0 +1,129 @@
+{
+  "about": {
+    "title": "About Us",
+    "sections": [
+      {
+        "heading": "Who We Are",
+        "content": "Property Insights Australia is the leading platform for comprehensive property data and insights across Australia. We empower property buyers, sellers, investors, and real estate professionals with accurate, up-to-date information to make informed decisions."
+      },
+      {
+        "heading": "Our Mission",
+        "content": "Our mission is to democratize access to property information. We believe everyone deserves transparent, reliable data when making one of life's most significant financial decisions. We combine cutting-edge technology with comprehensive data sources to deliver insights you can trust."
+      },
+      {
+        "heading": "What We Offer",
+        "content": "We provide detailed property estimates, comparable sales data, suburb insights, rental information, school ratings, and historical sales data. Our platform is designed to give you a complete picture of any Australian property, helping you understand market trends, property values, and investment potential."
+      },
+      {
+        "heading": "Our Commitment",
+        "content": "We are committed to accuracy, privacy, and user experience. Your data is protected, our estimates are based on comprehensive market analysis, and our platform is built for ease of use. We continuously update our data sources and refine our algorithms to provide the most accurate insights possible."
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "2024-01-15",
+    "sections": [
+      {
+        "heading": "Introduction",
+        "content": "Property Insights Australia ('we', 'our', or 'us') is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services."
+      },
+      {
+        "heading": "Information We Collect",
+        "content": "We collect information that you provide directly to us, including your name, email address, and any property search queries. We also automatically collect certain information about your device and how you interact with our website, such as IP address, browser type, and usage patterns."
+      },
+      {
+        "heading": "How We Use Your Information",
+        "content": "We use the information we collect to provide, maintain, and improve our services, process your requests, send you property reports, communicate with you about our services, and analyze usage patterns to enhance user experience."
+      },
+      {
+        "heading": "Data Security",
+        "content": "We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the Internet is 100% secure."
+      },
+      {
+        "heading": "Your Rights",
+        "content": "You have the right to access, update, or delete your personal information at any time. You can also opt-out of marketing communications. To exercise these rights, please contact us using the information provided in our Contact page."
+      },
+      {
+        "heading": "Cookies and Tracking",
+        "content": "We use cookies and similar tracking technologies to track activity on our website and store certain information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent."
+      },
+      {
+        "heading": "Changes to This Policy",
+        "content": "We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the 'Last Updated' date."
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms and Conditions",
+    "lastUpdated": "2024-01-15",
+    "sections": [
+      {
+        "heading": "Acceptance of Terms",
+        "content": "By accessing and using Property Insights Australia, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to these terms, please do not use our service."
+      },
+      {
+        "heading": "Use License",
+        "content": "Permission is granted to temporarily access the materials on Property Insights Australia for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not modify or copy the materials, use the materials for any commercial purpose, or remove any copyright or other proprietary notations from the materials."
+      },
+      {
+        "heading": "Property Estimates and Data",
+        "content": "All property estimates, valuations, and data provided on this platform are for informational purposes only and should not be considered as professional property valuations or financial advice. We do not guarantee the accuracy, completeness, or timeliness of any information provided."
+      },
+      {
+        "heading": "Limitation of Liability",
+        "content": "In no event shall Property Insights Australia or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on our website."
+      },
+      {
+        "heading": "Accuracy of Materials",
+        "content": "The materials appearing on Property Insights Australia could include technical, typographical, or photographic errors. We do not warrant that any of the materials on its website are accurate, complete, or current. We may make changes to the materials contained on its website at any time without notice."
+      },
+      {
+        "heading": "Links",
+        "content": "Property Insights Australia has not reviewed all of the sites linked to our website and is not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by Property Insights Australia of the site."
+      },
+      {
+        "heading": "Modifications",
+        "content": "Property Insights Australia may revise these terms of service for its website at any time without notice. By using this website you are agreeing to be bound by the then current version of these terms of service."
+      }
+    ]
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "questions": [
+      {
+        "question": "How accurate are your property estimates?",
+        "answer": "Our property estimates are based on comprehensive market data, comparable sales, and advanced algorithms. While we strive for accuracy, these estimates are for informational purposes only and should not replace a professional property valuation. Actual property values may vary based on condition, market conditions, and other factors."
+      },
+      {
+        "question": "How often is the data updated?",
+        "answer": "We update our property data regularly, with sales data typically updated within 24-48 hours of public records becoming available. Suburb insights and market trends are updated monthly to reflect the latest market conditions."
+      },
+      {
+        "question": "Is my personal information secure?",
+        "answer": "Yes, we take your privacy seriously. We use industry-standard encryption and security measures to protect your personal information. We never sell your data to third parties. For more details, please see our Privacy Policy."
+      },
+      {
+        "question": "Do I need to pay to view property information?",
+        "answer": "Basic property information is available for free. To access detailed reports including price estimates, comparable sales, and comprehensive insights, you'll need to provide your contact information to receive a free report via email."
+      },
+      {
+        "question": "Can I use this data for commercial purposes?",
+        "answer": "Our data is intended for personal use only. Commercial use, including real estate agent services, property investment analysis for clients, or data resale, requires a commercial license. Please contact us for commercial licensing options."
+      },
+      {
+        "question": "What areas of Australia do you cover?",
+        "answer": "We currently cover all major metropolitan areas and regional centers across Australia, including Sydney, Melbourne, Brisbane, Perth, Adelaide, Canberra, Hobart, and Darwin, as well as surrounding suburbs and regions."
+      },
+      {
+        "question": "How do you calculate rental yields?",
+        "answer": "Rental yields are calculated by dividing the annual rental income by the property's estimated value, expressed as a percentage. Our estimates are based on current market rental rates for similar properties in the area."
+      },
+      {
+        "question": "Can I download property reports?",
+        "answer": "Yes, when you submit your contact information, we'll send you a comprehensive PDF report via email that includes all the property insights, estimates, and data you viewed on the platform."
+      }
+    ]
+  }
+}
+

@@ -1,0 +1,31 @@
+# Netlify Configuration
+# This file configures Netlify deployment and redirects
+
+[build]
+  # Build command (if needed)
+  command = "npm run build"
+  # Publish directory
+  publish = "dist"
+
+# Redirect rules for API functions
+# This allows /api/* to work with Netlify functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Headers for API functions
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+
+# Environment variables (set these in Netlify dashboard, not here)
+# BREVO_API_KEY = "your-api-key"
+# ADMIN_EMAIL = "customercare@kindred.com.au"
+# FROM_EMAIL = "noreply@kindred.com.au"
+# FROM_NAME = "Property Insights Australia"
+# SITE_URL = "https://yourwebsite.com"
+
