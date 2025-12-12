@@ -10,6 +10,7 @@ import BlurredContent from '../components/property/BlurredContent'
 import { PropertyCardSkeleton } from '../components/common/SkeletonLoader'
 import ScrollReveal from '../components/animations/ScrollReveal'
 import SEO from '../components/common/SEO'
+import SuccessModal from '../components/common/SuccessModal'
 
 function PropertyResult() {
   const { id } = useParams()
@@ -21,6 +22,8 @@ function PropertyResult() {
   const [error, setError] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
+  const [errorModalMessage, setErrorModalMessage] = useState('')
   const [isUnlocked, setIsUnlocked] = useLocalStorage(
     `property_${id}_unlocked`,
     false
@@ -168,13 +171,12 @@ function PropertyResult() {
       setIsUnlocked(true)
       setUserEmail(formData.email)
       setIsModalOpen(false)
-      // Show success message
-      alert(
-        'Thank you! Your comprehensive property report will be sent to your email shortly.'
-      )
+      // Show success modal
+      setIsSuccessModalOpen(true)
     } catch (error) {
       console.error('Error submitting form:', error)
-      alert('There was an error. Please try again.')
+      setErrorModalMessage('There was an error. Please try again.')
+      setIsSuccessModalOpen(true)
     } finally {
       setIsSubmitting(false)
     }
@@ -726,6 +728,21 @@ function PropertyResult() {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleFormSubmit}
         isSubmitting={isSubmitting}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={isSuccessModalOpen}
+        onClose={() => {
+          setIsSuccessModalOpen(false)
+          setErrorModalMessage('')
+        }}
+        title={errorModalMessage ? 'Error' : 'Thank you!'}
+        message={
+          errorModalMessage ||
+          'Thank you! Your comprehensive property report will be sent to your email shortly.'
+        }
+        isError={!!errorModalMessage}
       />
 
       {/* Image Gallery Modal */}
