@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { createPortal } from 'react-dom'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { getPropertyDetails } from '../services/propertyService'
 import { submitLeadForm } from '../services/propertyService'
@@ -28,6 +29,74 @@ function PropertyResult() {
     `property_${id}_email`,
     ''
   )
+  const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [imageLoading, setImageLoading] = useState(true)
+  const [imageError, setImageError] = useState(false)
+
+  // Mock property images - in real app, this would come from property data
+  const propertyImages = [
+    { id: 1, url: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&h=800&fit=crop&q=80', alt: 'Property exterior' },
+    { id: 2, url: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&h=800&fit=crop&q=80', alt: 'Property interior' },
+    { id: 3, url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&h=800&fit=crop&q=80', alt: 'Property kitchen' },
+    { id: 4, url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200&h=800&fit=crop&q=80', alt: 'Property bedroom' },
+  ]
+
+  // Keyboard navigation for image gallery
+  useEffect(() => {
+    if (!isImageGalleryOpen) return
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsImageGalleryOpen(false)
+      } else if (e.key === 'ArrowLeft') {
+        setCurrentImageIndex((prev) => 
+          prev === 0 ? propertyImages.length - 1 : prev - 1
+        )
+      } else if (e.key === 'ArrowRight') {
+        setCurrentImageIndex((prev) => 
+          prev === propertyImages.length - 1 ? 0 : prev + 1
+        )
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isImageGalleryOpen, propertyImages.length])
+
+  // Reset image loading state when image changes
+  useEffect(() => {
+    if (isImageGalleryOpen) {
+      setImageLoading(true)
+      setImageError(false)
+    }
+  }, [currentImageIndex, isImageGalleryOpen])
+
+  // Lock body scroll when gallery is open
+  useEffect(() => {
+    if (isImageGalleryOpen) {
+      const scrollY = window.scrollY
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
+    } else {
+      const scrollY = document.body.style.top
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0', 10) * -1)
+      }
+    }
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+    }
+  }, [isImageGalleryOpen])
 
   // Always fetch full property details to ensure all features are available
   useEffect(() => {
@@ -80,6 +149,17 @@ function PropertyResult() {
     if (isUnlocked) return
     setIsModalOpen(true)
   }
+
+  // Auto-open modal if not unlocked when page loads
+  useEffect(() => {
+    if (!isUnlocked && property && !isLoading) {
+      // Small delay to ensure smooth page load
+      const timer = setTimeout(() => {
+        setIsModalOpen(true)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [isUnlocked, property, isLoading])
 
   const handleFormSubmit = async (formData) => {
     setIsSubmitting(true)
@@ -156,26 +236,20 @@ function PropertyResult() {
         }}
       />
 
-      {/* Background with gradient */}
-      <div className="min-h-screen bg-gradient-to-b from-white via-primary-50/20 to-white relative overflow-hidden">
-        {/* Decorative Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 right-20 w-96 h-96 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-blob" />
-          <div className="absolute bottom-20 left-20 w-96 h-96 bg-primary-200 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-blob animation-delay-2000" />
-        </div>
-
+      {/* Clean Background */}
+      <div className="min-h-screen bg-white relative">
         <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 py-6 md:py-8 relative z-10">
-          {/* Compact Header with Back Button */}
+          {/* Minimal Header with Back to Main Site */}
           <ScrollReveal>
-            <div className="mb-6">
+            <div className="mb-8 flex items-center justify-between">
               <motion.button
                 onClick={() => navigate('/')}
-                className="text-primary-500 hover:text-primary-600 mb-4 flex items-center gap-2 font-semibold transition-colors group"
-                whileHover={{ x: -4 }}
+                className="text-muted-600 hover:text-dark-green text-sm font-medium transition-colors flex items-center gap-2 group"
+                whileHover={{ x: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <svg
-                  className="w-5 h-5 group-hover:-translate-x-1 transition-transform"
+                  className="w-4 h-4 group-hover:-translate-x-1 transition-transform"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -187,497 +261,462 @@ function PropertyResult() {
                     d="M15 19l-7-7 7-7"
                   />
                 </svg>
-                Back to Search
+                BACK TO MAIN SITE
               </motion.button>
-              
-              {/* Compact Header Card */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-primary-100/50 p-5 md:p-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="flex-1">
-                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-heading font-extrabold text-dark-green mb-2 leading-tight">
-                      <span className="bg-gradient-to-r from-dark-green via-primary-600 to-primary-500 bg-clip-text text-transparent">
-                        {property.address}
-                      </span>
-                    </h1>
-                    <div className="flex items-center gap-2 text-muted-600">
-                      <svg
-                        className="w-4 h-4 text-primary-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      <span className="text-sm md:text-base">
-                        {property.suburb}, {property.state} {property.postcode}
-                      </span>
+            </div>
+          </ScrollReveal>
+
+          {/* Prominent Form CTA Banner - Show when locked (Visible, not blurred) */}
+          {!isUnlocked && (
+            <ScrollReveal delay={0.05}>
+              <motion.div
+                className="mb-8 card bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white relative overflow-hidden"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                whileHover={{ scale: 1.01 }}
+              >
+                <div className="relative z-10 p-6 md:p-8">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                    <div className="flex-1">
+                      <h2 className="text-2xl md:text-3xl font-heading font-bold text-white mb-3">
+                        Unlock Complete Property Insights
+                      </h2>
+                      <p className="text-primary-50 text-base md:text-lg leading-relaxed mb-4">
+                        Enter your details to view all property estimates, comparable sales, suburb insights, 
+                        nearby schools, and sales history. Plus, receive a comprehensive PDF report via email.
+                      </p>
                     </div>
-                  </div>
-                  
-                  {/* Quick Stats in Header */}
-                  <div className="flex gap-3 md:gap-4">
-                    <div className="text-center px-4 py-2 bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-xl border border-primary-200/50">
-                      <div className="text-xs text-muted-600 mb-1">Beds</div>
-                      <div className="text-xl font-bold text-dark-green">{property.beds}</div>
-                    </div>
-                    <div className="text-center px-4 py-2 bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-xl border border-primary-200/50">
-                      <div className="text-xs text-muted-600 mb-1">Baths</div>
-                      <div className="text-xl font-bold text-dark-green">{property.baths}</div>
-                    </div>
-                    {property.landSize > 0 && (
-                      <div className="text-center px-4 py-2 bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-xl border border-primary-200/50 hidden sm:block">
-                        <div className="text-xs text-muted-600 mb-1">Land</div>
-                        <div className="text-sm font-bold text-dark-green">{property.landSize}m²</div>
-                      </div>
-                    )}
+                    <motion.button
+                      onClick={handleUnlockClick}
+                      className="btn bg-white text-primary-600 hover:bg-primary-50 px-8 py-4 text-lg font-semibold shadow-xl whitespace-nowrap"
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Get Full Report
+                    </motion.button>
                   </div>
                 </div>
+              </motion.div>
+            </ScrollReveal>
+          )}
+
+          {/* All Content Wrapped in Full Page Blur */}
+          <BlurredContent isLocked={!isUnlocked} className="w-full">
+            {/* Property Overview Section */}
+            <ScrollReveal>
+              <div className="mb-12">
+              {/* Property Title */}
+              <div className="mb-6">
+                <p className="text-sm text-muted-600 mb-2">Property report for</p>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-dark-green mb-4">
+                  {property.address}
+                </h1>
+                {/* Inline Stats */}
+                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-600">
+                  <span>{property.beds} Bed</span>
+                  <span>•</span>
+                  <span>{property.baths} Bath</span>
+                  {(property.parking > 0 || property.cars > 0) && (
+                    <>
+                      <span>•</span>
+                      <span>{property.parking || property.cars || 0} Car</span>
+                    </>
+                  )}
+                  <span>•</span>
+                  <span>{property.propertyType || 'House'}</span>
+                  {property.landSize > 0 && (
+                    <>
+                      <span>•</span>
+                      <span>Land: {property.landSize} m²</span>
+                    </>
+                  )}
+                  {property.buildingSize > 0 && (
+                    <>
+                      <span>•</span>
+                      <span>Building: {property.buildingSize} m²</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Estimated Value and Property Image - Enhanced Design */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                {/* Estimated Value Card - Enhanced Dark Green */}
+                <motion.div
+                  className="bg-dark-green text-white rounded-xl p-8 md:p-10 relative overflow-hidden shadow-2xl"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {/* Subtle gradient overlay for depth */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-dark-green via-dark-green to-deepest-green opacity-90"></div>
+
+                  {/* Decorative elements */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
+
+                  <div className="relative z-10">
+                    <h2 className="text-lg font-heading font-semibold mb-6 text-white/95 uppercase tracking-wider">
+                      Estimated Value
+                    </h2>
+                    {property.priceEstimate ? (
+                        <div className="space-y-6">
+                          {/* Price Range - More Prominent */}
+                          <div>
+                            <div className="text-4xl md:text-5xl font-bold mb-3 leading-tight tracking-tight">
+                              {formatCurrency(property.priceEstimate.low)} - {formatCurrency(property.priceEstimate.high)}
+                            </div>
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/15 backdrop-blur-sm rounded-full">
+                              <div className="w-2 h-2 bg-white/80 rounded-full"></div>
+                              <span className="text-sm font-medium text-white/90">Medium Confidence</span>
+                            </div>
+                          </div>
+
+                          {/* Contact Information - Better Styled */}
+                          <div className="pt-6 border-t border-white/25">
+                            <div className="space-y-3 text-sm">
+                              <div className="font-semibold text-base">Kindred</div>
+                              <div className="text-white/90 flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                C419 888 888
+                              </div>
+                              <div className="text-white/90 flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                hello@kindred.com.au
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Disclaimer - Better Readability */}
+                          <p className="text-xs text-white/70 leading-relaxed pt-2">
+                            This estimate may not include recent renovations or improvements.
+                            For a personal appraisal, please contact us.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="text-3xl md:text-4xl font-bold">Loading...</div>
+                      )}
+                  </div>
+                </motion.div>
+
+                {/* Property Image - Single Image with Gallery Button */}
+                <motion.div
+                  className="relative rounded-xl overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 shadow-2xl group cursor-pointer"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  onClick={() => setIsImageGalleryOpen(true)}
+                >
+                  <div className="aspect-[4/3] relative">
+                    {propertyImages && propertyImages.length > 0 ? (
+                      <img
+                        src={propertyImages[0].url}
+                        alt={propertyImages[0].alt || 'Property image'}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          // Fallback to placeholder if image fails to load
+                          e.target.style.display = 'none'
+                          e.target.nextElementSibling.style.display = 'flex'
+                        }}
+                      />
+                    ) : null}
+                    {/* Fallback placeholder - hidden by default, shown if image fails */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700" style={{ display: propertyImages && propertyImages.length > 0 ? 'none' : 'flex' }}>
+                      <div className="text-center relative z-10">
+                        <div className="mb-4">
+                          <svg
+                            className="w-28 h-28 text-white/90 mx-auto drop-shadow-lg"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                            />
+                          </svg>
+                        </div>
+                        <div className="text-white text-base font-semibold tracking-wide">Property Image</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gallery Button Overlay */}
+                  {propertyImages && propertyImages.length > 1 && (
+                    <div className="absolute bottom-4 right-4 z-20">
+                      <motion.button
+                        className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-md rounded-lg shadow-lg hover:bg-white transition-colors group"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setIsImageGalleryOpen(true)
+                        }}
+                      >
+                        <svg className="w-5 h-5 text-dark-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-sm font-semibold text-dark-green">View Gallery</span>
+                      </motion.button>
+                    </div>
+                  )}
+                </motion.div>
               </div>
             </div>
           </ScrollReveal>
 
-          {/* Two Column Layout for Estimates - More Compact */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Price Estimate - Locked */}
-            <ScrollReveal delay={0.1}>
-              <motion.div
-                className="card relative overflow-hidden group h-full"
-                whileHover={{ y: -2, scale: 1.01 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/0 to-primary-600/0 group-hover:from-primary-500/5 group-hover:to-primary-600/5 transition-all duration-500 rounded-lg" />
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl md:text-2xl font-heading font-bold text-dark-green">Price Estimate</h2>
-                  </div>
-                  <BlurredContent isLocked={!isUnlocked} onUnlock={handleUnlockClick} className="min-h-[200px]">
-                    {property.priceEstimate && (
-                      <div className="space-y-3 min-h-[200px]">
-                        {[
-                          { label: 'Low', value: formatCurrency(property.priceEstimate.low), bg: 'from-primary-50 to-white', textColor: 'text-dark-green' },
-                          { label: 'Mid (Best)', value: formatCurrency(property.priceEstimate.mid), bg: 'from-primary-100 to-primary-50', textColor: 'text-primary-600', highlight: true },
-                          { label: 'High', value: formatCurrency(property.priceEstimate.high), bg: 'from-primary-50 to-white', textColor: 'text-dark-green' },
-                        ].map((estimate, index) => (
-                          <motion.div
-                            key={index}
-                            className={`p-4 bg-gradient-to-br ${estimate.bg} rounded-lg border ${estimate.highlight ? 'border-primary-300 shadow-md' : 'border-primary-100/50'} hover:shadow-lg transition-all`}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.1 + index * 0.1 }}
-                            whileHover={{ scale: 1.02 }}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="text-sm text-muted-600 font-medium">{estimate.label}</div>
-                              {estimate.highlight && (
-                                <span className="px-2 py-0.5 bg-primary-500 text-white text-xs font-bold rounded-full">BEST</span>
-                              )}
-                            </div>
-                            <div className={`text-xl md:text-2xl font-bold ${estimate.textColor} mt-1`}>
-                              {estimate.value}
-                            </div>
-                          </motion.div>
-                        ))}
+            {/* Rental Estimate Section */}
+            {property.rentalEstimate && (
+              <ScrollReveal delay={0.1}>
+                <div className="mb-12">
+                  <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-6">
+                    Rental Estimate
+                  </h2>
+                  <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 md:p-8 border border-primary-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <div className="text-sm text-muted-600 mb-2 uppercase tracking-wide font-medium">
+                          Weekly Rent Range
+                        </div>
+                        <div className="text-3xl md:text-4xl font-bold text-dark-green mb-2">
+                          {formatCurrency(property.rentalEstimate.weekly)}/week
+                        </div>
+                        <div className="text-sm text-muted-600">
+                          Estimated weekly rental income
+                        </div>
                       </div>
-                    )}
-                  </BlurredContent>
-                </div>
-              </motion.div>
-            </ScrollReveal>
-
-            {/* Rental Estimate - Locked */}
-            <ScrollReveal delay={0.15}>
-              <motion.div
-                className="card relative overflow-hidden group h-full"
-                whileHover={{ y: -2, scale: 1.01 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/0 to-primary-600/0 group-hover:from-primary-500/5 group-hover:to-primary-600/5 transition-all duration-500 rounded-lg" />
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl md:text-2xl font-heading font-bold text-dark-green">Rental Estimate</h2>
-                  </div>
-                  <BlurredContent isLocked={!isUnlocked} onUnlock={handleUnlockClick} className="min-h-[200px]">
-                    {property.rentalEstimate && (
-                      <div className="space-y-3 min-h-[200px]">
-                        <motion.div
-                          className="p-4 bg-gradient-to-br from-primary-50 to-white rounded-lg border border-primary-100/50 hover:shadow-lg transition-all"
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.15 }}
-                          whileHover={{ scale: 1.02 }}
-                        >
-                          <div className="text-sm text-muted-600 font-medium mb-1">Weekly Rent</div>
-                          <div className="text-xl md:text-2xl font-bold text-dark-green">
-                            {formatCurrency(property.rentalEstimate.weekly)}<span className="text-sm text-muted-600">/week</span>
-                          </div>
-                        </motion.div>
-                        <motion.div
-                          className="p-4 bg-gradient-to-br from-primary-100 to-primary-50 rounded-lg border border-primary-300 hover:shadow-lg transition-all"
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.2 }}
-                          whileHover={{ scale: 1.02 }}
-                        >
-                          <div className="text-sm text-muted-600 font-medium mb-1">Rental Yield</div>
-                          <div className="text-xl md:text-2xl font-bold text-primary-600">
-                            {property.rentalEstimate.yield}%
-                          </div>
-                        </motion.div>
+                      <div>
+                        <div className="text-sm text-muted-600 mb-2 uppercase tracking-wide font-medium">
+                          Rental Yield
+                        </div>
+                        <div className="text-3xl md:text-4xl font-bold text-dark-green mb-2">
+                          {property.rentalEstimate.yield}%
+                        </div>
+                        <div className="text-sm text-muted-600">
+                          Annual rental yield percentage
+                        </div>
                       </div>
-                    )}
-                  </BlurredContent>
-                </div>
-              </motion.div>
-            </ScrollReveal>
-          </div>
-
-          {/* Two Column Layout: Comparable Sales & Suburb Insights */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Comparable Sales - Locked */}
-            <ScrollReveal delay={0.2}>
-              <motion.div
-                className="card relative overflow-hidden group h-full"
-                whileHover={{ y: -2, scale: 1.01 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/0 to-primary-600/0 group-hover:from-primary-500/5 group-hover:to-primary-600/5 transition-all duration-500 rounded-lg" />
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
                     </div>
-                    <h2 className="text-xl md:text-2xl font-heading font-bold text-dark-green">Comparable Sales</h2>
                   </div>
-                  <BlurredContent isLocked={!isUnlocked} onUnlock={handleUnlockClick} className="min-h-[200px]">
-                    <div className="space-y-3 max-h-[500px] overflow-y-auto scrollbar-thin pr-2 min-h-[200px]">
-                      {property.comparables && property.comparables.length > 0 ? (
-                        property.comparables.map((sale, index) => (
-                          <motion.div
-                            key={index}
-                            className="p-4 bg-gradient-to-br from-white to-primary-50/30 border border-primary-100/50 rounded-lg hover:shadow-md hover:border-primary-300 transition-all"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 + index * 0.03 }}
-                            whileHover={{ scale: 1.01 }}
-                          >
-                            <div className="flex justify-between items-start gap-3 mb-2">
+                </div>
+              </ScrollReveal>
+            )}
+
+            {/* Suburb Insights */}
+            {property.suburbInsights && (
+              <ScrollReveal delay={0.2}>
+                <div className="mb-12">
+                  <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-6">
+                    Suburb Insights
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[
+                      {
+                        value: formatCurrency(property.suburbInsights.medianPrice),
+                        label: 'MEDIAN PRICE',
+                        subtitle: property.suburb
+                      },
+                      {
+                        value: `${property.suburbInsights.growthPercent}%`,
+                        label: 'GROWTH %',
+                        subtitle: 'Annual price growth'
+                      },
+                      {
+                        value: property.suburbInsights.demand || 'N/A',
+                        label: 'DEMAND',
+                        subtitle: 'Market demand level'
+                      },
+                    ].map((stat, index) => (
+                      <motion.div
+                        key={index}
+                        className="bg-gray-100 rounded-lg p-6"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 + index * 0.1 }}
+                      >
+                        <div className="text-2xl md:text-3xl font-bold text-dark-green mb-2">
+                          {stat.value}
+                        </div>
+                        <div className="text-xs text-muted-600 font-medium mb-1 uppercase tracking-wide">
+                          {stat.label}
+                        </div>
+                        {stat.subtitle && (
+                          <div className="text-xs text-muted-500">
+                            {stat.subtitle}
+                          </div>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </ScrollReveal>
+            )}
+
+            {/* Comparable Sales */}
+            {property.comparables && property.comparables.length > 0 && (
+              <ScrollReveal delay={0.3}>
+                <div className="mb-12">
+                  <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-4">
+                    Comparable Sales
+                  </h2>
+                  <p className="text-muted-600 mb-6 max-w-3xl">
+                    Similar properties sold in the last 12 months
+                  </p>
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="divide-y divide-gray-200">
+                      {property.comparables.slice(0, 6).map((sale, index) => (
+                        <motion.div
+                          key={index}
+                          className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.3 + index * 0.03 }}
+                        >
+                          {/* Property Image */}
+                          <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                            <svg className="w-8 h-8 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                          </div>
+
+                          {/* Property Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-4 mb-1">
                               <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-dark-green text-sm mb-1 truncate">
+                                <div className="font-semibold text-dark-green text-sm mb-0.5 line-clamp-1">
                                   {sale.address}
                                 </div>
-                                <div className="flex items-center gap-1.5 text-xs text-muted-600">
-                                  <span>{formatDate(sale.saleDate)}</span>
-                                  <span>•</span>
-                                  <span>{sale.distance}km</span>
+                                <div className="text-xs text-muted-600">
+                                  Sold {formatDate(sale.saleDate)}
                                 </div>
                               </div>
-                              <div className="text-right shrink-0">
-                                <div className="text-lg font-bold text-primary-600">
+                              <div className="text-right flex-shrink-0">
+                                <div className="text-lg font-bold text-dark-green">
                                   {formatCurrency(sale.salePrice)}
                                 </div>
+                                <span className="inline-block px-2 py-0.5 bg-dark-green/10 text-dark-green text-xs font-medium rounded mt-1">
+                                  SOLD
+                                </span>
                               </div>
                             </div>
-                            <div className="flex flex-wrap gap-2 text-xs">
-                              <span className="px-2 py-0.5 bg-primary-100 text-primary-700 rounded-full font-medium">
-                                {sale.beds} bed{sale.beds !== 1 ? 's' : ''}
-                              </span>
-                              <span className="px-2 py-0.5 bg-primary-100 text-primary-700 rounded-full font-medium">
-                                {sale.baths} bath{sale.baths !== 1 ? 's' : ''}
-                              </span>
+                            
+                            {/* Property Stats */}
+                            <div className="flex items-center gap-3 mt-2 text-xs text-muted-600">
+                              {sale.beds > 0 && (
+                                <span className="flex items-center gap-1">
+                                  <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                  </svg>
+                                  {sale.beds}
+                                </span>
+                              )}
+                              {sale.baths > 0 && (
+                                <span className="flex items-center gap-1">
+                                  <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                  </svg>
+                                  {sale.baths}
+                                </span>
+                              )}
+                              {(sale.parking > 0 || sale.cars > 0) && (
+                                <span className="flex items-center gap-1">
+                                  <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                                  </svg>
+                                  {sale.parking || sale.cars || 0}
+                                </span>
+                              )}
                               {sale.landSize > 0 && (
-                                <span className="px-2 py-0.5 bg-primary-100 text-primary-700 rounded-full font-medium">
-                                  {sale.landSize}m²
+                                <span className="flex items-center gap-1 ml-auto">
+                                  <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                  </svg>
+                                  {sale.landSize} m²
                                 </span>
                               )}
                             </div>
-                          </motion.div>
-                        ))
-                      ) : (
-                        <div className="text-center py-8">
-                          <p className="text-muted-600 text-sm">No comparable sales data available</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            )}
+
+            {/* Nearby Schools Section */}
+            {property.schools && property.schools.length > 0 && (
+              <ScrollReveal delay={0.5}>
+                <div className="mb-12">
+                  <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-6">
+                    Nearby Schools
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {property.schools.map((school, index) => (
+                      <motion.div
+                        key={index}
+                        className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 + index * 0.03 }}
+                        whileHover={{ scale: 1.02 }}
+                      >
+                        <div className="font-semibold text-sm text-dark-green mb-2">
+                          {school.name}
                         </div>
-                      )}
-                    </div>
-                  </BlurredContent>
-                </div>
-              </motion.div>
-            </ScrollReveal>
-
-            {/* Suburb Insights - Locked */}
-            <ScrollReveal delay={0.25}>
-              <motion.div
-                className="card relative overflow-hidden group h-full"
-                whileHover={{ y: -2, scale: 1.01 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/0 to-primary-600/0 group-hover:from-primary-500/5 group-hover:to-primary-600/5 transition-all duration-500 rounded-lg" />
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl md:text-2xl font-heading font-bold text-dark-green">Suburb Insights</h2>
-                  </div>
-                  <BlurredContent isLocked={!isUnlocked} onUnlock={handleUnlockClick} className="min-h-[200px]">
-                    {property.suburbInsights && (
-                      <div className="grid grid-cols-2 gap-3 min-h-[200px]">
-                        {[
-                          { label: 'Median Price', value: formatCurrency(property.suburbInsights.medianPrice), highlight: false },
-                          { label: 'Growth', value: `+${property.suburbInsights.growthPercent}%`, highlight: true },
-                          { label: 'Demand', value: property.suburbInsights.demand, highlight: false },
-                          { label: 'Days on Market', value: `${property.suburbInsights.averageDaysOnMarket}`, highlight: false },
-                          { label: 'Clearance Rate', value: `${property.suburbInsights.auctionClearanceRate}%`, highlight: true },
-                          { label: 'Population', value: property.suburbInsights.population.toLocaleString(), highlight: false },
-                        ].map((insight, index) => (
-                          <motion.div
-                            key={index}
-                            className={`p-3 bg-gradient-to-br ${insight.highlight ? 'from-primary-100 to-primary-50 border-primary-300' : 'from-white to-primary-50/30 border-primary-100/50'} border rounded-lg hover:shadow-md transition-all`}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.25 + index * 0.03 }}
-                            whileHover={{ scale: 1.05 }}
-                          >
-                            <div className="text-xs text-muted-600 font-medium mb-1">{insight.label}</div>
-                            <div className={`text-lg font-bold ${insight.highlight ? 'text-primary-600' : 'text-dark-green'}`}>
-                              {insight.value}
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
-                  </BlurredContent>
-                </div>
-              </motion.div>
-            </ScrollReveal>
-          </div>
-
-          {/* Two Column Layout: Schools & Sales History */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Nearby Schools - Locked */}
-            <ScrollReveal delay={0.3}>
-              <motion.div
-                className="card relative overflow-hidden group h-full"
-                whileHover={{ y: -2, scale: 1.01 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/0 to-primary-600/0 group-hover:from-primary-500/5 group-hover:to-primary-600/5 transition-all duration-500 rounded-lg" />
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl md:text-2xl font-heading font-bold text-dark-green">Nearby Schools</h2>
-                  </div>
-                  <BlurredContent isLocked={!isUnlocked} onUnlock={handleUnlockClick} className="min-h-[200px]">
-                    <div className="space-y-3 max-h-[500px] overflow-y-auto scrollbar-thin pr-2 min-h-[200px]">
-                      {property.schools && property.schools.length > 0 ? (
-                        property.schools.map((school, index) => (
-                          <motion.div
-                            key={index}
-                            className="p-4 bg-gradient-to-br from-white to-primary-50/30 border border-primary-100/50 rounded-lg hover:shadow-md hover:border-primary-300 transition-all"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 + index * 0.03 }}
-                            whileHover={{ scale: 1.01 }}
-                          >
-                            <div className="flex justify-between items-start gap-3">
-                              <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-sm text-dark-green mb-1 truncate">
-                                  {school.name}
-                                </div>
-                                <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                                  <span className="px-2 py-0.5 bg-primary-100 text-primary-700 rounded-full text-xs font-medium">
-                                    {school.type}
-                                  </span>
-                                  <span className="text-xs text-muted-600">{school.yearRange}</span>
-                                </div>
-                                <div className="text-xs text-muted-600">{school.distance} km away</div>
-                              </div>
-                              <div className="shrink-0">
-                                <div className="text-center px-3 py-2 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg">
-                                  <div className="text-xl font-bold text-primary-600">{school.rating}</div>
-                                  <div className="text-xs text-primary-700 font-medium">Rating</div>
-                                </div>
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))
-                      ) : (
-                        <div className="text-center py-8">
-                          <p className="text-muted-600 text-sm">No nearby schools data available</p>
+                        <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                          <span className="px-2 py-0.5 bg-primary-100 text-primary-700 rounded-full text-xs font-medium">
+                            {school.type}
+                          </span>
+                          <span className="text-xs text-muted-600">{school.yearRange}</span>
                         </div>
-                      )}
-                    </div>
-                  </BlurredContent>
-                </div>
-              </motion.div>
-            </ScrollReveal>
-
-            {/* Past Sales History - Locked */}
-            <ScrollReveal delay={0.35}>
-              <motion.div
-                className="card relative overflow-hidden group h-full"
-                whileHover={{ y: -2, scale: 1.01 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/0 to-primary-600/0 group-hover:from-primary-500/5 group-hover:to-primary-600/5 transition-all duration-500 rounded-lg" />
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl md:text-2xl font-heading font-bold text-dark-green">Past Sales History</h2>
-                  </div>
-                  <BlurredContent isLocked={!isUnlocked} onUnlock={handleUnlockClick} className="min-h-[200px]">
-                    <div className="space-y-3 max-h-[500px] overflow-y-auto scrollbar-thin pr-2 min-h-[200px]">
-                      {property.salesHistory && property.salesHistory.length > 0 ? (
-                        property.salesHistory.map((sale, index) => (
-                          <motion.div
-                            key={index}
-                            className="p-4 bg-gradient-to-br from-white to-primary-50/30 border border-primary-100/50 rounded-lg hover:shadow-md hover:border-primary-300 transition-all"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.35 + index * 0.03 }}
-                            whileHover={{ scale: 1.01 }}
-                          >
-                            <div className="flex justify-between items-center gap-3">
-                              <div className="flex-1">
-                                <div className="font-bold text-lg text-dark-green mb-1">
-                                  {formatCurrency(sale.salePrice)}
-                                </div>
-                                <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-600">
-                                  <span>{formatDate(sale.saleDate)}</span>
-                                  <span>•</span>
-                                  <span className="px-2 py-0.5 bg-primary-100 text-primary-700 rounded-full font-medium">
-                                    {sale.saleType}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))
-                      ) : (
-                        <div className="text-center py-8">
-                          <p className="text-muted-600 text-sm">No past sales history available</p>
+                        <div className="text-xs text-muted-600 mb-2">{school.distance} km away</div>
+                        <div className="text-center px-3 py-2 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg inline-block">
+                          <div className="text-xl font-bold text-primary-600">{school.rating}</div>
+                          <div className="text-xs text-primary-700 font-medium">Rating</div>
                         </div>
-                      )}
-                    </div>
-                  </BlurredContent>
-                </div>
-              </motion.div>
-            </ScrollReveal>
-          </div>
-
-          {/* CTA Section - Compact */}
-          {!isUnlocked && (
-            <ScrollReveal delay={0.4}>
-              <motion.div
-                className="card bg-gradient-to-br from-primary-50 via-primary-100/50 to-primary-50 border-primary-200 text-center mb-6 relative overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                whileHover={{ y: -2, scale: 1.01 }}
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary-200/20 rounded-full blur-2xl" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary-300/20 rounded-full blur-2xl" />
-                
-                <div className="relative z-10">
-                  <div className="flex items-center justify-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h2 className="text-xl md:text-2xl font-heading font-bold text-dark-green">
-                        Get Your Complete Property Report
-                      </h2>
-                      <p className="text-sm text-muted-600 mt-1">
-                        Unlock all insights & receive PDF report via email
-                      </p>
-                    </div>
+                      </motion.div>
+                    ))}
                   </div>
-                  <motion.button
-                    onClick={handleUnlockClick}
-                    className="btn btn-primary px-6 py-3 flex items-center gap-2 mx-auto shadow-lg"
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    Unlock Full Report
-                  </motion.button>
                 </div>
-              </motion.div>
-            </ScrollReveal>
-          )}
+              </ScrollReveal>
+            )}
 
-          {/* Success Message - Compact */}
-          {isUnlocked && userEmail && (
-            <ScrollReveal>
-              <motion.div
-                className="card bg-gradient-to-br from-green-50 to-green-100/50 border-green-300 text-center mb-6"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
-              >
+            {/* Success Message */}
+            {isUnlocked && userEmail && (
+              <ScrollReveal>
                 <motion.div
-                  className="text-green-600 mb-3"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                  className="card bg-gradient-to-br from-green-50 to-green-100/50 border-green-300 text-center mb-6"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }}
                 >
-                  <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <motion.div
+                    className="text-green-600 mb-3"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                  >
+                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </motion.div>
+                  <h3 className="text-xl font-heading font-bold text-dark-green mb-2">Report Sent!</h3>
+                  <p className="text-muted-700 text-sm">
+                    Sent to <strong className="text-dark-green">{userEmail}</strong>
+                  </p>
                 </motion.div>
-                <h3 className="text-xl font-heading font-bold text-dark-green mb-2">Report Sent!</h3>
-                <p className="text-muted-700 text-sm">
-                  Sent to <strong className="text-dark-green">{userEmail}</strong>
-                </p>
-              </motion.div>
-            </ScrollReveal>
-          )}
+              </ScrollReveal>
+            )}
+          </BlurredContent>
 
-          {/* Bottom spacing */}
-          <div className="h-6" />
         </div>
       </div>
 
@@ -688,6 +727,147 @@ function PropertyResult() {
         onSubmit={handleFormSubmit}
         isSubmitting={isSubmitting}
       />
+
+      {/* Image Gallery Modal */}
+      {isImageGalleryOpen && createPortal(
+        <AnimatePresence>
+          <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            style={{
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: '100vh',
+              width: '100vw',
+            }}
+          >
+            {/* Backdrop */}
+            <motion.div
+              className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsImageGalleryOpen(false)}
+            />
+
+            {/* Modal Content */}
+            <motion.div
+              className="relative z-10 w-full max-w-6xl mx-auto"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setIsImageGalleryOpen(false)}
+                className="absolute top-4 right-4 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-colors z-30"
+                aria-label="Close gallery"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              {/* Main Image */}
+              <div className="relative bg-black rounded-xl overflow-hidden mb-4">
+                <div className="aspect-video flex items-center justify-center relative">
+                  {imageLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                  {imageError ? (
+                    <div className="flex flex-col items-center justify-center text-white/60 p-8">
+                      <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <p className="text-sm">Image failed to load</p>
+                    </div>
+                  ) : (
+                    <img
+                      src={propertyImages[currentImageIndex]?.url || propertyImages[0]?.url}
+                      alt={propertyImages[currentImageIndex]?.alt || 'Property image'}
+                      className={`w-full h-full object-contain ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                      onLoad={() => setImageLoading(false)}
+                      onError={() => {
+                        setImageLoading(false)
+                        setImageError(true)
+                      }}
+                    />
+                  )}
+                </div>
+
+                {/* Navigation Arrows */}
+                {propertyImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setCurrentImageIndex((prev) => 
+                          prev === 0 ? propertyImages.length - 1 : prev - 1
+                        )
+                      }}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-colors z-20"
+                      aria-label="Previous image"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setCurrentImageIndex((prev) => 
+                          prev === propertyImages.length - 1 ? 0 : prev + 1
+                        )
+                      }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-colors z-20"
+                      aria-label="Next image"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </>
+                )}
+
+                {/* Image Counter */}
+                {propertyImages.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 backdrop-blur-md rounded-full text-white text-sm font-medium z-20">
+                    {currentImageIndex + 1} / {propertyImages.length}
+                  </div>
+                )}
+              </div>
+
+              {/* Thumbnail Gallery */}
+              {propertyImages.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                  {propertyImages.map((image, index) => (
+                    <button
+                      key={image.id}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                        currentImageIndex === index
+                          ? 'border-primary-500 ring-2 ring-primary-500/50'
+                          : 'border-transparent hover:border-white/50'
+                      }`}
+                    >
+                      <img
+                        src={image.url}
+                        alt={image.alt}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </div>
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   )
 }

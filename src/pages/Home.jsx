@@ -216,12 +216,29 @@ function Home() {
 
       <div className="min-h-screen">
         {/* Hero Section - Kindred Inspired */}
-        <section className="hero-section relative  md:min-h-[65vh] flex items-center justify-center pb-8 sm:pb-4 md:pb-0 z-[99]">
-          {/* Animated Background - overflow hidden to contain effects */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#e8f5ed] via-[#f0faf4] to-[#e0f2e7] overflow-hidden">
-            {/* Floating Gradient Orbs */}
+        <section 
+          className="hero-section relative min-h-[75vh] md:min-h-[85vh] flex items-center justify-center pb-8 sm:pb-4 md:pb-0 z-[99]"
+          aria-label="Hero section with property search"
+        >
+          {/* Background Image with Overlay */}
+          <div className="absolute inset-0 overflow-hidden">
+            {/* Australia Real Estate Background Image */}
+            <img
+              src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1920&h=1080&fit=crop&q=80"
+              alt="Beautiful Australian real estate property"
+              className="w-full h-full object-cover"
+              loading="eager"
+            />
+            {/* Black/Dark Gradient Overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-black/65" />
+            {/* Additional overlay for depth and contrast */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            {/* Dark overlay at bottom for better text contrast */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
+            
+            {/* Floating Gradient Orbs - Subtle neutral accent */}
             <motion.div
-              className="absolute top-20 left-[10%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-br from-primary-200/40 to-primary-300/30 blur-3xl"
+              className="absolute top-20 left-[10%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-br from-white/10 to-white/5 blur-3xl"
               animate={{
                 x: [0, 30, 0],
                 y: [0, -20, 0],
@@ -232,9 +249,10 @@ function Home() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
+              aria-hidden="true"
             />
             <motion.div
-              className="absolute bottom-20 right-[10%] w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-primary-100/50 to-primary-200/40 blur-3xl"
+              className="absolute bottom-20 right-[10%] w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-white/8 to-white/4 blur-3xl"
               animate={{
                 x: [0, -25, 0],
                 y: [0, 25, 0],
@@ -245,113 +263,35 @@ function Home() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
+              aria-hidden="true"
             />
-            <motion.div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] md:w-[700px] md:h-[700px] rounded-full bg-gradient-to-br from-white/60 to-primary-50/40 blur-3xl"
-              animate={{
-                scale: [1, 1.05, 1],
-              }}
-              transition={{
-                duration: 6,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-            
-            {/* Decorative Property Icons - Floating */}
-            <motion.div
-              className="absolute top-[15%] right-[15%] text-primary-300/30 hidden lg:block"
-              animate={{
-                y: [0, -15, 0],
-                rotate: [0, 5, 0],
-              }}
-              transition={{
-                duration: 5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <svg className="w-20 h-20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z" />
-              </svg>
-            </motion.div>
-            <motion.div
-              className="absolute bottom-[20%] left-[12%] text-primary-200/25 hidden lg:block"
-              animate={{
-                y: [0, 12, 0],
-                rotate: [0, -5, 0],
-              }}
-              transition={{
-                duration: 6,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1,
-              }}
-            >
-              <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19,2H9C7.89,2 7,2.89 7,4V6H5C3.89,6 3,6.89 3,8V20A2,2 0 0,0 5,22H15A2,2 0 0,0 17,20V18H19A2,2 0 0,0 21,16V4A2,2 0 0,0 19,2M9,4H19V16H17V8A2,2 0 0,0 15,6H9V4M5,8H15V20H5V8Z" />
-              </svg>
-            </motion.div>
-            <motion.div
-              className="absolute top-[35%] left-[8%] text-primary-300/20 hidden xl:block"
-              animate={{
-                y: [0, -10, 0],
-                x: [0, 5, 0],
-              }}
-              transition={{
-                duration: 7,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.5,
-              }}
-            >
-              <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A2.25,2.25 0 0,1 14.25,11A2.25,2.25 0 0,1 12,13.25A2.25,2.25 0 0,1 9.75,11A2.25,2.25 0 0,1 12,8.75M12,15C13.5,15 16.5,15.75 16.5,17.25V18H7.5V17.25C7.5,15.75 10.5,15 12,15Z" />
-              </svg>
-            </motion.div>
-            <motion.div
-              className="absolute bottom-[30%] right-[8%] text-primary-200/25 hidden xl:block"
-              animate={{
-                y: [0, 8, 0],
-                rotate: [0, 3, 0],
-              }}
-              transition={{
-                duration: 5.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 2,
-              }}
-            >
-              <svg className="w-14 h-14" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.42,10.42C17.42,10.42 17.44,10.38 17.5,10.32L19,11.82V9.21L17.5,10.71C17.44,10.65 17.42,10.61 17.42,10.61C16.47,9.66 15.18,9 13.75,9A6.75,6.75 0 0,0 7,15.75A6.75,6.75 0 0,0 13.75,22.5A6.75,6.75 0 0,0 20.5,15.75A6.73,6.73 0 0,0 17.42,10.42M13.75,20.5A4.75,4.75 0 0,1 9,15.75A4.75,4.75 0 0,1 13.75,11A4.75,4.75 0 0,1 18.5,15.75A4.75,4.75 0 0,1 13.75,20.5M6,7V9H10V7H6M4,11V13H10V11H4M2,15V17H8V15H2Z" />
-              </svg>
-            </motion.div>
           </div>
 
           {/* Main Content */}
-          <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 relative z-10 py-3 md:py-8">
+          <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 relative z-10 py-8 md:py-12">
             <motion.div
               className="max-w-4xl mx-auto text-center"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8 }}
             >
+              {/* Hero Title - Clean and Elegant */}
               <motion.div
-                className="mb-3 md:mb-6"
+                className="mb-6 md:mb-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
               >
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold leading-tight tracking-tight">
-                  <span className="bg-gradient-to-r from-dark-green via-primary-600 to-primary-500 bg-clip-text text-transparent drop-shadow-sm">
+                <h1 className="text-3xl md:text-4xl lg:text-6xl font-heading font-extrabold leading-tight tracking-tight">
+                  <span className="text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
                     Discover Your Property's
                   </span>
                   <br />
-                  <span className="relative inline-block">
+                  <span className="relative inline-block mt-2">
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={currentWord}
-                        className="inline-block text-primary-500 italic font-extrabold"
+                        className="inline-block text-white italic font-extrabold drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
@@ -365,7 +305,7 @@ function Home() {
               </motion.div>
 
               <motion.p
-                className="text-sm md:text-xl text-muted-600 mb-8 text-balance max-w-2xl mx-auto"
+                className="text-base md:text-xl text-white mb-8 md:mb-10 text-balance max-w-2xl mx-auto font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)] leading-relaxed"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
@@ -374,25 +314,28 @@ function Home() {
                 and comprehensive reports for any Australian property.
               </motion.p>
 
-              {/* Search Bar with Overlay Results */}
+              {/* Search Bar with Overlay Results - Enhanced Visibility */}
               <motion.div
                 className="max-w-2xl mx-auto mb-8 relative z-[100]"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
               >
-                <PropertySearch
-                  onSelectProperty={handlePropertySelect}
-                  showHelpTagline={true}
-                  onSearchResultsChange={setSearchResults}
-                  onClear={() => setSearchResults([])}
-                />
+                {/* Glassmorphism Container for Search */}
+                <div className="backdrop-blur-md bg-white/95 rounded-2xl p-4 md:p-6 shadow-2xl border border-white/30">
+                  <PropertySearch
+                    onSelectProperty={handlePropertySelect}
+                    showHelpTagline={true}
+                    onSearchResultsChange={setSearchResults}
+                    onClear={() => setSearchResults([])}
+                  />
+                </div>
 
                 {/* Search Results - Absolute positioned overlay to prevent page jump */}
                 <AnimatePresence>
                   {searchResults.length > 0 && (
                     <motion.div
-                      className="absolute left-0 right-0 top-[72px] landscape:top-[60px] md:landscape:top-[72px] z-[999]"
+                      className="absolute left-0 right-0 top-[88px] landscape:top-[76px] md:landscape:top-[88px] z-[999] mt-2"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -860,7 +803,7 @@ function Home() {
                       </div>
 
                       {/* Card with Enhanced Design */}
-                      <div className="relative bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-2xl md:rounded-3xl shadow-2xl p-6 xl:p-10 pt-12 md:pt-16 h-full w-full flex flex-col items-center text-center transform transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(52,191,119,0.5)] overflow-hidden">
+                      <div className="relative bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-2xl md:rounded-3xl shadow-2xl p-6 xl:p-10 pt-12 md:pt-16 h-full w-full flex flex-col items-center text-center transform transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(16,185,129,0.5)] overflow-hidden">
                         {/* Animated Background Pattern */}
                         <div className="absolute inset-0 opacity-10">
                           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
@@ -873,7 +816,7 @@ function Home() {
 
                         {/* Icon Container with Enhanced Design */}
                         <motion.div
-                          className="relative w-16 h-16 md:w-24 md:h-24 bg-white/25 backdrop-blur-md rounded-2xl md:rounded-3xl flex items-center justify-center mb-4 md:mb-8 text-white shadow-2xl z-10"
+                          className="relative w-16 h-16 md:w-24 md:h-24 bg-white/25 backdrop-blur-md rounded-2xl md:rounded-3xl flex items-center justify-center mb-4 md:mb-8 text-white shadow-2xl z-10 mt-5"
                           whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
                           transition={{ duration: 0.5 }}
                         >

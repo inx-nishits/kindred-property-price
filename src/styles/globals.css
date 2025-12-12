@@ -4,12 +4,12 @@
 
 @layer base {
   :root {
-    /* Brand Colors */
+    /* Brand Colors - Kindred Property Theme */
     --color-soft-white: #F5F3EB;
     --color-pure-white: #F5F3EB;
-    --color-dark-green: #163B2A;
-    --color-deepest-green: #0A1C13;
-    --color-primary-green: #34BF77;
+    --color-dark-green: #065f46;
+    --color-deepest-green: #064e3b;
+    --color-primary-green: #10b981;
   }
 
   * {

@@ -7,32 +7,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Brand Colors
+        // Brand Colors - Kindred Property Theme
         primary: {
-          DEFAULT: '#34BF77', // Primary Green
-          50: '#e8f8f0',
-          100: '#c5eed6',
-          200: '#9ee3ba',
-          300: '#77d89e',
-          400: '#50cd82',
-          500: '#34BF77', // Primary Green
-          600: '#2aa862',
-          700: '#1f8f4d',
-          800: '#163B2A', // Dark Green
-          900: '#0A1C13', // Deepest Green
+          DEFAULT: '#10b981', // Kindred Primary Green (Emerald)
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981', // Primary Green
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46', // Dark Green
+          900: '#064e3b', // Deepest Green
         },
         secondary: {
-          DEFAULT: '#163B2A', // Dark Green
-          50: '#e8f0ed',
-          100: '#c5d9d0',
-          200: '#9fc2b3',
-          300: '#79ab96',
-          400: '#529479',
-          500: '#163B2A', // Dark Green
-          600: '#0f2a1f',
-          700: '#0A1C13', // Deepest Green
-          800: '#050e09',
-          900: '#000000',
+          DEFAULT: '#065f46', // Dark Green
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#059669',
+          600: '#047857',
+          700: '#065f46', // Dark Green
+          800: '#064e3b', // Deepest Green
+          900: '#022c22',
         },
         muted: {
           DEFAULT: '#6b7280',
@@ -53,12 +53,12 @@ export default {
         // Brand-specific color aliases (using kebab-case for Tailwind compatibility)
         'soft-white': '#F5F3EB',
         'pure-white': '#F5F3EB',
-        'dark-green': '#163B2A',
-        'deepest-green': '#0A1C13',
+        'dark-green': '#065f46', // Updated to match Kindred theme
+        'deepest-green': '#064e3b', // Updated to match Kindred theme
       },
       fontFamily: {
-        sans: ['Source Sans Pro', 'Open Sans', 'system-ui', 'sans-serif'],
-        heading: ['Source Sans Pro', 'Open Sans', 'system-ui', 'sans-serif'],
+        sans: ['Open Sauce One', 'sans-serif'],
+        heading: ['Open Sauce One', 'sans-serif'],
       },
       container: {
         center: true,
