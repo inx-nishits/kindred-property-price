@@ -396,7 +396,7 @@ function PropertySearch({
           </div>
           <button
             type="submit"
-            className="bg-primary-500 hover:bg-primary-600 text-white px-4 sm:px-8 py-4 text-base font-medium whitespace-nowrap flex-shrink-0 flex items-center justify-center gap-2 transition-colors border-l border-primary-600"
+            className="bg-primary-500 hover:bg-primary-600 text-white px-4 sm:px-4 py-4 text-base font-medium whitespace-nowrap flex-shrink-0 flex items-center justify-center gap-2 transition-colors border-l border-primary-600"
             aria-label="Search"
           >
             <svg

@@ -277,21 +277,26 @@ function Home() {
             >
               {/* Hero Title - Clean and Elegant */}
               <motion.div
-                className="mb-6 md:mb-8"
+                className="mb-6 md:mb-8 overflow-visible"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
               >
-                <h1 className="text-3xl md:text-4xl lg:text-6xl font-heading font-extrabold leading-tight tracking-tight">
+                <h1 className="text-3xl md:text-4xl lg:text-6xl font-heading font-extrabold leading-tight tracking-tight overflow-visible">
                   <span className="text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
                     Discover Your Property's
                   </span>
                   <br />
-                  <span className="relative inline-block mt-2">
+                  <span className="relative inline-block mt-2 px-2 overflow-visible">
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={currentWord}
-                        className="inline-block text-white italic font-extrabold drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]"
+                        className="inline-block bg-gradient-to-r from-white via-primary-300 to-primary-500 bg-clip-text text-transparent italic font-extrabold drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)] px-1 overflow-visible"
+                        style={{
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          backgroundClip: 'text',
+                        }}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
