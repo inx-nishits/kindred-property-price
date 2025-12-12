@@ -143,7 +143,7 @@ function About() {
                 Australia's Trusted Property Platform
               </span>
               
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-extrabold text-white mb-4 sm:mb-6 leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-semibold text-white mb-4 sm:mb-6 leading-tight">
                 Empowering Your
                 <span className="block text-primary-400">Property Decisions</span>
               </h1>
@@ -287,7 +287,7 @@ function About() {
                   Our Story
                 </span>
                 
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold text-dark-green mb-6 leading-tight">
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-semibold text-dark-green mb-6 leading-tight">
                   Making Property Data
                   <span className="text-primary-500"> Accessible to All</span>
                 </h2>
@@ -340,7 +340,7 @@ function About() {
                 </svg>
                 Our Purpose
               </span>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold text-dark-green mb-6">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-semibold text-dark-green mb-6">
                 Mission & Vision
               </h2>
             </div>
@@ -407,7 +407,7 @@ function About() {
         <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 relative z-10">
           <ScrollReveal>
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold text-white mb-4">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-semibold text-white mb-4">
                 Trusted by Australians
               </h2>
               <p className="text-xl text-gray-300 max-w-2xl mx-auto">
@@ -451,7 +451,7 @@ function About() {
                 </svg>
                 What Drives Us
               </span>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold text-dark-green mb-6">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-semibold text-dark-green mb-6">
                 Our Core Values
               </h2>
               <p className="text-lg text-muted-600 max-w-2xl mx-auto">
@@ -494,7 +494,7 @@ function About() {
                 </svg>
                 Coverage Area
               </span>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold text-dark-green mb-6">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-semibold text-dark-green mb-6">
                 Serving All Major Australian Cities
               </h2>
               <p className="text-lg text-muted-600 max-w-2xl mx-auto">
@@ -549,7 +549,7 @@ function About() {
                   Our Expertise
                 </span>
                 
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold text-dark-green mb-6 leading-tight">
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-semibold text-dark-green mb-6 leading-tight">
                   Built by Experts,
                   <span className="text-primary-500"> For Everyone</span>
                 </h2>
@@ -643,7 +643,7 @@ function About() {
         <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 relative z-10">
           <ScrollReveal>
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold text-white mb-6">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-semibold text-white mb-6">
                 Ready to Discover Your Property's Value?
               </h2>
               <p className="text-xl text-primary-100 mb-8 leading-relaxed">

@@ -62,7 +62,7 @@ function FAQ({
                     </span>
                   </motion.div>
                 )}
-                <h2 className={`${isCompact ? 'text-3xl md:text-4xl' : 'text-4xl md:text-5xl lg:text-6xl'} font-heading font-extrabold text-dark-green mb-6 leading-tight`}>
+                <h2 className={`${isCompact ? 'text-3xl md:text-4xl' : 'text-4xl md:text-5xl lg:text-6xl'} font-heading font-semibold text-dark-green mb-6 leading-tight`}>
                   {isCompact ? (
                     faqContent.title
                   ) : (

@@ -1,3 +1,130 @@
+/* Open Sauce One Font Face Declarations */
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-Light.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-LightItalic.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-LightItalic.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-Regular.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-Italic.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-Italic.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-Medium.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-MediumItalic.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-MediumItalic.woff') format('woff');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-SemiBold.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-SemiBoldItalic.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-SemiBoldItalic.woff') format('woff');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-Bold.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-BoldItalic.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-BoldItalic.woff') format('woff');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-ExtraBold.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-ExtraBold.woff') format('woff');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-ExtraBoldItalic.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-ExtraBoldItalic.woff') format('woff');
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-Black.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('../assets/fonts/open-sauce/OpenSauceOne-BlackItalic.woff2') format('woff2'),
+       url('../assets/fonts/open-sauce/OpenSauceOne-BlackItalic.woff') format('woff');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

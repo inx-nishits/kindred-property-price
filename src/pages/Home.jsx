@@ -282,7 +282,7 @@ function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
               >
-                <h1 className="text-3xl md:text-4xl lg:text-6xl font-heading font-extrabold leading-tight tracking-tight overflow-visible">
+                <h1 className="text-3xl md:text-4xl lg:text-6xl font-heading font-semibold leading-tight tracking-tight overflow-visible">
                   <span className="text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
                     Discover Your Property's
                   </span>
@@ -291,7 +291,7 @@ function Home() {
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={currentWord}
-                        className="inline-block bg-gradient-to-r from-white via-primary-300 to-primary-500 bg-clip-text text-transparent italic font-extrabold drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)] px-1 overflow-visible"
+                        className="inline-block bg-gradient-to-r from-white via-primary-300 to-primary-500 bg-clip-text text-transparent italic font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)] px-1 overflow-visible"
                         style={{
                           WebkitBackgroundClip: 'text',
                           WebkitTextFillColor: 'transparent',
@@ -523,7 +523,7 @@ function Home() {
                     Complete Insights
                   </span>
                 </motion.div>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-heading font-extrabold text-dark-green mb-6 leading-tight">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-heading font-semibold text-dark-green mb-6 leading-tight">
                   <span className="bg-gradient-to-r from-dark-green via-primary-600 to-primary-500 bg-clip-text text-transparent">
                     Everything You Need to Know
                   </span>
@@ -632,7 +632,7 @@ function Home() {
                     Simple Process
                   </span>
                 </motion.div>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-heading font-extrabold text-dark-green mb-6 leading-tight">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-heading font-semibold text-dark-green mb-6 leading-tight">
                   <span className="bg-gradient-to-r from-dark-green via-primary-600 to-primary-500 bg-clip-text text-transparent">
                     How It Works
                   </span>
@@ -800,7 +800,7 @@ function Home() {
                         >
                           <div className="absolute inset-0 bg-primary-500 rounded-full blur-lg opacity-50 animate-pulse" />
                           <div className="relative w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-white to-primary-50 border-3 md:border-4 border-primary-500 rounded-full flex items-center justify-center shadow-2xl">
-                            <span className="text-primary-600 font-extrabold text-lg md:text-xl">
+                            <span className="text-primary-600 font-semibold text-lg md:text-xl">
                               {item.step}
                             </span>
                           </div>
