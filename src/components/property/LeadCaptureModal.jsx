@@ -117,7 +117,7 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute top-1.5 right-1.5 p-2 text-gray-400 hover:text-gray-600 transition-colors"
             aria-label="Close modal"
           >
             <svg

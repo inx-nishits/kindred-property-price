@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async'
 import { useLocation } from 'react-router-dom'
+import ogImageAsset from '../../assets/images/favicon/og-image.png'
 
 /**
  * SEO Component with Open Graph and Twitter Card meta tags
@@ -8,7 +9,7 @@ import { useLocation } from 'react-router-dom'
  * @param {Object} props
  * @param {string} props.title - Page title (default: site default)
  * @param {string} props.description - Page description (default: site default)
- * @param {string} props.image - OG image URL (default: /og-image.png)
+ * @param {string} props.image - OG image URL (default: imported from assets/images/favicon/og-image.png)
  * @param {string} props.type - OG type (default: 'website')
  * @param {string} props.keywords - Meta keywords
  * @param {string} props.author - Page author
@@ -34,7 +35,12 @@ function SEO({
     : 'https://propertyinsights.com.au' // Fallback URL
   const defaultTitle = `${siteName} | Search Property Prices & Market Data`
   const defaultDescription = 'Get instant property estimates, comparable sales, suburb insights, and rental data for any Australian property. Free property reports delivered to your email.'
-  const defaultImage = `${siteUrl}/og-image.png`
+  // Import og-image from assets (similar to logo pattern) and convert to absolute URL
+  const defaultImage = ogImageAsset.startsWith('http') 
+    ? ogImageAsset 
+    : ogImageAsset.startsWith('/')
+    ? `${siteUrl}${ogImageAsset}`
+    : `${siteUrl}/${ogImageAsset}`
   
   // Use provided values or fall back to defaults
   const pageTitle = title ? `${title} | ${siteName}` : defaultTitle
@@ -42,7 +48,7 @@ function SEO({
   const pageImage = image || defaultImage
   const pageUrl = `${siteUrl}${location.pathname}${location.search}`
   
-  // Ensure image URL is absolute
+  // Ensure image URL is absolute (handle both imported assets and string paths)
   const ogImage = pageImage.startsWith('http') 
     ? pageImage 
     : pageImage.startsWith('/')
