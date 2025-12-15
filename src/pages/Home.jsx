@@ -93,7 +93,7 @@ function Home() {
       <div className="min-h-screen">
         {/* Hero Section - Kindred Inspired */}
         <section 
-          className="hero-section relative min-h-[75vh] md:min-h-[85vh] flex items-center justify-center pb-8 sm:pb-4 md:pb-0 z-10"
+          className="hero-section relative min-h-[75vh] md:min-h-[85vh] lg:min-h-screen flex items-center justify-center pb-8 sm:pb-4 md:pb-0 z-10"
           aria-label="Hero section with property search"
         >
           {/* Background Image with Overlay */}
@@ -110,13 +110,13 @@ function Home() {
           </div>
 
           {/* Main Content */}
-          <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 relative z-10 py-8 md:py-12">
+          <div className="container px-6 lg:px-8 relative z-10 py-8 md:py-12">
             <div className="max-w-4xl mx-auto text-center">
               {/* Hero Title - Clean and Elegant */}
               <div className="mb-6 md:mb-8">
                 <h1 className="text-3xl md:text-4xl lg:text-6xl font-heading font-semibold leading-tight tracking-tight">
                   <span className="text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
-                    Get an instant property estimate
+                    Get an instant property&nbsp;estimate
                   </span>
                 </h1>
               </div>
@@ -245,7 +245,7 @@ function Home() {
 
         {/* Features Section */}
         <section className="py-16 md:py-24 bg-primary-50">
-          <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8">
+          <div className="container px-6 lg:px-8">
             <div className="text-center mb-12 md:mb-16">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-dark-green mb-4">
                 Complete Property Insights
@@ -303,7 +303,7 @@ function Home() {
 
         {/* How It Works */}
         <section className="py-16 md:py-24 bg-white">
-          <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8">
+          <div className="container px-6 lg:px-8">
             <div className="text-center mb-12 md:mb-16">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-dark-green mb-4">
                 Get Your Property Report in 3 Simple Steps
@@ -360,7 +360,7 @@ function Home() {
 
         {/* Privacy & Trust Message */}
         <section className="py-16 bg-primary-50">
-          <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8">
+          <div className="container px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-4">
                 Privacy-First & Trusted

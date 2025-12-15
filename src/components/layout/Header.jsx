@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import logoImage from '../../assets/images/logo.png'
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const navigate = useNavigate()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,37 +38,38 @@ function Header() {
     return () => window.removeEventListener('keydown', handleEscape)
   }, [isMenuOpen])
 
-  // Function to close sidebar
   const closeSidebar = () => {
     setIsMenuOpen(false)
   }
 
+  // Keep your original routes/content, only tweak layout/styling
   const navLinks = [
-    { path: '/', label: 'Home', hasDropdown: false },
-    { path: '/about', label: 'About Us', hasDropdown: false },
-    { path: '/faq', label: 'FAQ', hasDropdown: false },
-    { path: '/contact', label: 'Contact Us', hasDropdown: false },
+    { path: '/', label: 'Home' },
+    { path: '/about', label: 'About Us' },
+    { path: '/faq', label: 'FAQ' },
+    { path: '/contact', label: 'Contact Us' },
   ]
 
+  const mainLinks = navLinks.slice(0, 3)
+  const contactLink = navLinks[3]
 
   return (
     <motion.header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? 'bg-white shadow-md border-b border-gray-200'
-          : 'bg-white border-b border-gray-100'
+      className={`sticky top-0 z-50 nav-shadow bg-white transition-all duration-300 ${
+        isScrolled ? 'border-b border-gray-200' : 'border-b border-gray-100'
       }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      <nav className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 md:h-20">
-          {/* Logo */}
+      <nav className="container px-6 lg:px-8">
+        <div className="flex items-center justify-between h-[74px] lg:h-[104px] gap-4">
+          {/* Logo - left aligned */}
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            className="flex-shrink-0"
           >
             <Link to="/" className="flex items-center">
               <img
@@ -80,15 +80,15 @@ function Header() {
             </Link>
           </motion.div>
 
-          {/* Desktop Navigation - Right aligned */}
-          <div className="hidden lg:flex items-center gap-1 ml-auto">
-            {navLinks.map((link, index) => (
+          {/* Center nav - three items, Kindred-like colours and 18px semi-bold font */}
+          <div className="hidden lg:flex flex-1 items-center justify-center gap-8">
+            {mainLinks.map((link) => (
               <NavLink
-                key={index}
+                key={link.path}
                 to={link.path}
                 className={({ isActive }) =>
-                  `px-4 py-2.5 text-lg font-semibold text-gray-400 hover:text-primary-500 transition-colors duration-200 ${
-                    isActive ? 'text-primary-900' : ''
+                  `text-[18px] font-semibold tracking-tight transition-colors text-[color:var(--green-900)] ${
+                    isActive ? 'opacity-100' : 'opacity-80 hover:opacity-100'
                   }`
                 }
               >
@@ -97,20 +97,21 @@ function Header() {
             ))}
           </div>
 
-          {/* Mobile Menu */}
-          <div className="flex items-center gap-4 lg:hidden">
-            {/* View Properties Button - Desktop (Hidden for now, enable when needed)
-            <motion.button
-              onClick={() => navigate('/properties')}
-              className="hidden lg:flex items-center px-6 py-2.5 bg-primary-500 text-white text-base font-medium rounded-full hover:bg-primary-600 transition-colors duration-200"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              View Properties
-            </motion.button>
-            */}
+          {/* Right: Contact button + mobile menu */}
+          <div className="flex items-center gap-3">
+            {/* Desktop Contact Us button aligned to right */}
+            {contactLink && (
+              <NavLink
+                to={contactLink.path}
+                className={({ isActive }) =>
+                  `inline-flex items-center justify-center px-4 lg:px-6 py-2 lg:py-[0.875rem] text-[14px] lg:text-[18px] font-semibold whitespace-nowrap rounded-full border transition-colors border-[color:var(--green-900)] bg-[color:var(--green-900)] text-[color:var(--white)] hover:bg-[color:var(--green-700)]`
+                }
+              >
+                {contactLink.label}
+              </NavLink>
+            )}
 
-            {/* Mobile Menu Button */}
+            {/* Mobile menu toggle */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="lg:hidden p-1.5 md:p-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
@@ -169,17 +170,17 @@ function Header() {
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
-                transition={{ 
-                  type: 'spring', 
-                  damping: 25, 
-                  stiffness: 200 
+                transition={{
+                  type: 'spring',
+                  damping: 25,
+                  stiffness: 200,
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Sidebar Header */}
                 <div className="flex items-center justify-between h-14 md:h-20 px-4 md:px-6 border-b border-gray-200">
-                  <Link 
-                    to="/" 
+                  <Link
+                    to="/"
                     onClick={closeSidebar}
                     className="flex items-center"
                   >
@@ -214,45 +215,26 @@ function Header() {
                 <nav className="flex flex-col p-4 md:p-6 gap-2">
                   {navLinks.map((link, index) => (
                     <motion.div
-                      key={index}
+                      key={link.path}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: index * 0.08 }}
                     >
                       <NavLink
                         to={link.path}
                         onClick={closeSidebar}
                         className={({ isActive }) =>
-                          `flex items-center px-4 py-2.5 md:py-3 text-base md:text-lg font-medium rounded-lg transition-all duration-200 ${
+                          `flex items-center px-4 py-2.5 md:py-3 rounded-lg text-[18px] font-semibold transition-all duration-200 text-[color:var(--green-900)] ${
                             isActive
-                              ? 'text-primary-800 bg-primary-50 border-l-4 border-primary-800'
-                              : 'text-gray-700 hover:text-primary-500 hover:bg-gray-50'
+                              ? 'bg-[color:var(--green-100)] border-l-4 border-[color:var(--green-900)]'
+                              : 'opacity-80 hover:opacity-100 hover:bg-[color:var(--green-100)]'
                           }`
                         }
                       >
-                        <span>{link.label}</span>
+                        {link.label}
                       </NavLink>
                     </motion.div>
                   ))}
-                  
-                  {/* View Properties Button - Mobile (Hidden for now, enable when needed)
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: navLinks.length * 0.1 }}
-                    className="pt-4 mt-4 border-t border-gray-200"
-                  >
-                    <button
-                      onClick={() => {
-                        navigate('/properties')
-                        setIsMenuOpen(false)
-                      }}
-                      className="w-full px-6 py-3 bg-primary-500 text-white text-base font-medium rounded-lg hover:bg-primary-600 transition-colors shadow-lg hover:shadow-xl"
-                    >
-                      View Properties
-                    </button>
-                  </motion.div>
-                  */}
                 </nav>
               </motion.div>
             </>
