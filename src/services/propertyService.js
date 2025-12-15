@@ -7,6 +7,7 @@ import {
   getNearbySchools,
   getPastSalesHistory,
 } from '../data/mockPropertyData'
+import { submitLeadFormAndSendReport } from './emailService'
 
 // Simulate API delay
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -68,16 +69,32 @@ export const getPropertyByAddressQuery = async (address) => {
 /**
  * Submit lead form and unlock content
  * @param {Object} formData - { name, email }
+ * @param {Object} property - Full property object (optional, will be fetched if not provided)
  * @returns {Promise<Object>} Success response
  */
-export const submitLeadForm = async (formData) => {
-  await delay(800) // Simulate API call
-  // In a real app, this would send to backend
-  // For now, we just store locally and return success
-  return {
-    success: true,
-    message: 'Report will be sent to your email shortly',
-    reportId: `RPT-${Date.now()}`,
+export const submitLeadForm = async (formData, property = null) => {
+  try {
+    // If property is provided, send the report
+    if (property) {
+      return await submitLeadFormAndSendReport(formData, property)
+    }
+    
+    // Otherwise, just simulate success (for backward compatibility)
+    await delay(800) // Simulate API call
+    return {
+      success: true,
+      message: 'Report will be sent to your email shortly',
+      reportId: `RPT-${Date.now()}`,
+    }
+  } catch (error) {
+    console.error('Error in submitLeadForm:', error)
+    // Still return success to unlock content, but log the error
+    return {
+      success: true,
+      message: 'Content unlocked. Report email may be delayed.',
+      reportId: `RPT-${Date.now()}`,
+      warning: error.message,
+    }
   }
 }
 

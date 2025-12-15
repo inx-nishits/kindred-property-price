@@ -167,7 +167,8 @@ function PropertyResult() {
   const handleFormSubmit = async (formData) => {
     setIsSubmitting(true)
     try {
-      await submitLeadForm(formData)
+      // Pass property data to generate and send PDF report
+      await submitLeadForm(formData, property)
       setIsUnlocked(true)
       setUserEmail(formData.email)
       setIsModalOpen(false)
@@ -487,12 +488,28 @@ function PropertyResult() {
                         <div className="text-sm text-muted-600 mb-2 uppercase tracking-wide font-medium">
                           Weekly Rent Range
                         </div>
-                        <div className="text-3xl md:text-4xl font-bold text-dark-green mb-2">
-                          {formatCurrency(property.rentalEstimate.weekly)}/week
-                        </div>
-                        <div className="text-sm text-muted-600">
-                          Estimated weekly rental income
-                        </div>
+                        {property.rentalEstimate.weekly && typeof property.rentalEstimate.weekly === 'object' ? (
+                          <>
+                            <div className="text-3xl md:text-4xl font-bold text-dark-green mb-2">
+                              {formatCurrency(property.rentalEstimate.weekly.low)} - {formatCurrency(property.rentalEstimate.weekly.high)}/week
+                            </div>
+                            <div className="text-sm text-muted-600 mb-1">
+                              Mid estimate: {formatCurrency(property.rentalEstimate.weekly.mid)}/week
+                            </div>
+                            <div className="text-sm text-muted-600">
+                              Estimated weekly rental income range
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-3xl md:text-4xl font-bold text-dark-green mb-2">
+                              {formatCurrency(property.rentalEstimate.weekly)}/week
+                            </div>
+                            <div className="text-sm text-muted-600">
+                              Estimated weekly rental income
+                            </div>
+                          </>
+                        )}
                       </div>
                       <div>
                         <div className="text-sm text-muted-600 mb-2 uppercase tracking-wide font-medium">
@@ -686,6 +703,62 @@ function PropertyResult() {
                         </div>
                       </motion.div>
                     ))}
+                  </div>
+                </div>
+              </ScrollReveal>
+            )}
+
+            {/* Past Sales History */}
+            {property.salesHistory && property.salesHistory.length > 0 && (
+              <ScrollReveal delay={0.6}>
+                <div className="mb-12">
+                  <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-4">
+                    Past Sales History
+                  </h2>
+                  <p className="text-muted-600 mb-6 max-w-3xl">
+                    Historical sales data for this property
+                  </p>
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="divide-y divide-gray-200">
+                      {property.salesHistory.map((sale, index) => (
+                        <motion.div
+                          key={index}
+                          className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.6 + index * 0.03 }}
+                        >
+                          {/* Sale Icon */}
+                          <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex-shrink-0 flex items-center justify-center">
+                            <svg className="w-8 h-8 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </div>
+
+                          {/* Sale Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-4 mb-1">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-dark-green text-sm mb-0.5">
+                                  {formatDate(sale.saleDate)}
+                                </div>
+                                <div className="text-xs text-muted-600">
+                                  {sale.saleType || 'Sale'}
+                                </div>
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                <div className="text-lg font-bold text-dark-green">
+                                  {formatCurrency(sale.salePrice)}
+                                </div>
+                                <span className="inline-block px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded mt-1">
+                                  SOLD
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </ScrollReveal>

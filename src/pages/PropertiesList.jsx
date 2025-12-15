@@ -115,7 +115,9 @@ function PropertiesList() {
                         <div className="mb-3">
                           <div className="text-2xl font-bold text-primary-600">
                             {property.rentalEstimate?.weekly 
-                              ? `${formatCurrency(property.rentalEstimate.weekly)} Per Week`
+                              ? (typeof property.rentalEstimate.weekly === 'object' 
+                                  ? `${formatCurrency(property.rentalEstimate.weekly.low)} - ${formatCurrency(property.rentalEstimate.weekly.high)} Per Week`
+                                  : `${formatCurrency(property.rentalEstimate.weekly)} Per Week`)
                               : formatCurrency(property.priceEstimate.mid)}
                           </div>
                         </div>
