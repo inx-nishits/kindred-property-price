@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import ScrollReveal from '../components/animations/ScrollReveal'
 import SEO from '../components/common/SEO'
 import staticContent from '../data/staticContent.json'
@@ -15,12 +14,7 @@ function Privacy() {
       />
 
       <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 py-12">
-        <motion.div
-          className="max-w-4xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
+        <div className="max-w-4xl mx-auto">
           <ScrollReveal>
             <h1 className="text-4xl md:text-5xl font-heading font-bold text-dark-green mb-4">
               {content.title}
@@ -44,7 +38,7 @@ function Privacy() {
               </ScrollReveal>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
     </>
   )

@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import ScrollReveal from '../components/animations/ScrollReveal'
 import NumberCounter from '../components/animations/NumberCounter'
@@ -130,10 +129,7 @@ function About() {
 
         <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 relative z-10 py-12 md:py-16">
           <div className="max-w-3xl">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+            <div
             >
               <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary-500/20 backdrop-blur-sm text-primary-300 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6 border border-primary-500/30">
                 <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,17 +168,12 @@ function About() {
                   Get in Touch
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
 
         {/* Floating Stats Cards */}
-        <motion.div
-          className="hidden lg:block absolute right-8 xl:right-12 top-1/2 -translate-y-1/2"
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
+        <div className="hidden lg:block absolute right-8 xl:right-12 top-1/2 -translate-y-1/2">
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 xl:p-6 border border-white/20 shadow-2xl">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-14 h-14 bg-primary-500/20 rounded-xl flex items-center justify-center">
@@ -207,7 +198,7 @@ function About() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Our Story Section */}
@@ -217,13 +208,7 @@ function About() {
             {/* Image Grid */}
             <ScrollReveal>
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <motion.div
-                  className="space-y-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
-                >
+                <div className="space-y-4">
                   <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-xl h-40 sm:h-48">
                     <img
                       src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop"
@@ -238,14 +223,8 @@ function About() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                </motion.div>
-                <motion.div
-                  className="space-y-3 sm:space-y-4 pt-6 sm:pt-8"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                >
+                </div>
+                <div className="space-y-3 sm:space-y-4 pt-6 sm:pt-8">
                   <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-xl h-52 sm:h-64">
                     <img
                       src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=400&fit=crop"
@@ -260,20 +239,16 @@ function About() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                </motion.div>
+                </div>
                 {/* Floating Badge */}
-                <motion.div
+                <div
                   className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-primary-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg font-semibold flex items-center gap-2 text-sm sm:text-base"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   Trusted by Australians
-                </motion.div>
+                </div>
               </div>
             </ScrollReveal>
 
@@ -349,10 +324,8 @@ function About() {
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* Mission Card */}
             <ScrollReveal delay={0.1}>
-              <motion.div
+              <div
                 className="relative group h-full"
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.3 }}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl transform rotate-3 group-hover:rotate-6 transition-transform duration-300" />
                 <div className="relative bg-white rounded-3xl p-8 md:p-10 shadow-xl h-full">
@@ -366,16 +339,12 @@ function About() {
                     To democratize access to property information, empowering every Australian with transparent, reliable data to make confident property decisions. We break down barriers between complex market data and everyday people.
                   </p>
                 </div>
-              </motion.div>
+              </div>
             </ScrollReveal>
 
             {/* Vision Card */}
             <ScrollReveal delay={0.2}>
-              <motion.div
-                className="relative group h-full"
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
+              <div className="relative group h-full">
                 <div className="absolute inset-0 bg-gradient-to-br from-dark-green to-deepest-green rounded-3xl transform -rotate-3 group-hover:-rotate-6 transition-transform duration-300" />
                 <div className="relative bg-white rounded-3xl p-8 md:p-10 shadow-xl h-full">
                   <div className="w-16 h-16 bg-dark-green/10 rounded-2xl flex items-center justify-center mb-6">
@@ -389,7 +358,7 @@ function About() {
                     To become Australia's most trusted property insights platform, where cutting-edge technology meets comprehensive data to transform how Australians interact with the property market for generations to come.
                   </p>
                 </div>
-              </motion.div>
+              </div>
             </ScrollReveal>
           </div>
         </div>
@@ -419,10 +388,8 @@ function About() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             {stats.map((stat, index) => (
               <ScrollReveal key={index} delay={index * 0.1}>
-                <motion.div
+                <div
                   className="text-center"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
                 >
                   <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-400 mb-2">
                     <NumberCounter
@@ -433,7 +400,7 @@ function About() {
                   </div>
                   <h3 className="text-lg md:text-xl font-semibold text-white mb-1">{stat.label}</h3>
                   <p className="text-gray-400 text-sm">{stat.description}</p>
-                </motion.div>
+                </div>
               </ScrollReveal>
             ))}
           </div>
@@ -463,11 +430,7 @@ function About() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {coreValues.map((value, index) => (
               <ScrollReveal key={index} delay={index * 0.1}>
-                <motion.div
-                  className="group relative h-full"
-                  whileHover={{ y: -8 }}
-                  transition={{ duration: 0.3 }}
-                >
+                <div className="group relative h-full">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-primary-600/10 rounded-2xl transform group-hover:scale-105 transition-transform duration-300" />
                   <div className="relative bg-white rounded-2xl p-6 md:p-8 border border-gray-100 shadow-lg hover:shadow-xl transition-shadow h-full">
                     <div className="w-14 h-14 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center mb-5 text-primary-600 group-hover:scale-110 transition-transform">
@@ -476,7 +439,7 @@ function About() {
                     <h3 className="text-xl font-heading font-bold text-dark-green mb-3">{value.title}</h3>
                     <p className="text-muted-600 leading-relaxed">{value.description}</p>
                   </div>
-                </motion.div>
+                </div>
               </ScrollReveal>
             ))}
           </div>
@@ -506,10 +469,8 @@ function About() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
             {australianCities.map((city, index) => (
               <ScrollReveal key={index} delay={index * 0.1}>
-                <motion.div
+                <div
                   className="group relative overflow-hidden rounded-2xl shadow-lg cursor-pointer"
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  transition={{ duration: 0.3 }}
                 >
                   <div className="aspect-[4/3] relative bg-gray-200">
                     <img
@@ -528,7 +489,7 @@ function About() {
                     <h3 className="text-lg font-bold mb-1">{city.name}</h3>
                     <p className="text-primary-300 text-sm font-medium">{city.description}</p>
                   </div>
-                </motion.div>
+                </div>
               </ScrollReveal>
             ))}
           </div>
@@ -560,11 +521,9 @@ function About() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   {expertise.map((item, index) => (
-                    <motion.div
+                    <div
                       key={index}
                       className="flex items-start gap-4 p-4 rounded-xl bg-gray-50 hover:bg-primary-50 transition-colors"
-                      whileHover={{ x: 5 }}
-                      transition={{ duration: 0.2 }}
                     >
                       <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 flex-shrink-0">
                         {item.icon}
@@ -573,7 +532,7 @@ function About() {
                         <h4 className="font-semibold text-dark-green mb-1">{item.title}</h4>
                         <p className="text-sm text-muted-600">{item.description}</p>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -581,12 +540,8 @@ function About() {
 
             {/* Image */}
             <ScrollReveal delay={0.2}>
-              <motion.div
+              <div
                 className="relative"
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
               >
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                   <img
@@ -597,12 +552,8 @@ function About() {
                   <div className="absolute inset-0 bg-gradient-to-t from-dark-green/20 to-transparent" />
                 </div>
                 {/* Floating Card */}
-                <motion.div
+                <div
                   className="absolute -bottom-4 sm:-bottom-6 -left-2 sm:-left-6 md:-left-12 bg-white rounded-2xl p-4 sm:p-6 shadow-xl max-w-xs"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
@@ -616,17 +567,13 @@ function About() {
                     </div>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <motion.div
+                    <div
                       className="h-full bg-primary-500 rounded-full"
-                      initial={{ width: 0 }}
-                      whileInView={{ width: '98%' }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 1, delay: 0.6 }}
                     />
                   </div>
                   <p className="text-xs text-muted-600 mt-2">98% Data Accuracy</p>
-                </motion.div>
-              </motion.div>
+                </div>
+              </div>
             </ScrollReveal>
           </div>
         </div>

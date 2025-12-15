@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { mockProperties } from '../data/mockPropertyData'
 import ScrollReveal from '../components/animations/ScrollReveal'
 import AnimatedCard from '../components/animations/AnimatedCard'
@@ -68,11 +67,7 @@ function PropertiesList() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {properties.map((property, index) => (
               <ScrollReveal key={property.id} delay={index * 0.1}>
-                <motion.div
-                  className="h-full"
-                  whileHover={{ y: -8 }}
-                  transition={{ duration: 0.3 }}
-                >
+                <div className="h-full">
                   <AnimatedCard className="h-full cursor-pointer overflow-hidden border border-gray-200 hover:border-primary-300 transition-all duration-300 bg-white shadow-md hover:shadow-lg rounded-lg">
                     <div
                       onClick={() => handlePropertyClick(property)}
@@ -196,7 +191,7 @@ function PropertiesList() {
                       </div>
                     </div>
                   </AnimatedCard>
-                </motion.div>
+                </div>
               </ScrollReveal>
             ))}
           </div>

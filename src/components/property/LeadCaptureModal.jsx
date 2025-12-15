@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { X, Loader2 } from 'lucide-react'
 
 function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
   const [formData, setFormData] = useState({
@@ -84,35 +84,27 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
   // Use portal to render modal at document body level
   // This ensures the modal appears above all other content including sticky headers
   return createPortal(
-    <AnimatePresence>
-      <div 
-        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-        style={{
-          // Ensure modal is always centered in viewport
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: '100vh',
-          width: '100vw',
-        }}
-      >
+    <div 
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{
+        // Ensure modal is always centered in viewport
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: '100vh',
+        width: '100vw',
+      }}
+    >
         {/* Backdrop */}
-        <motion.div
+        <div
           className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
           onClick={onClose}
         />
 
         {/* Modal */}
-        <motion.div
-          className="relative bg-white rounded-xl shadow-2xl max-w-md w-full p-6 md:p-8 z-10 max-h-[90vh] overflow-y-auto"
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        <div
+          className="relative bg-white rounded-md shadow-lg max-w-md w-full p-6 md:p-8 z-10 max-h-[90vh] overflow-y-auto"
         >
           {/* Close button */}
           <button
@@ -120,19 +112,7 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
             className="absolute top-1.5 right-1.5 p-2 text-gray-400 hover:text-gray-600 transition-colors"
             aria-label="Close modal"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X className="w-5 h-5" strokeWidth={1.5} />
           </button>
 
           {/* Header */}
@@ -193,30 +173,20 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
             </div>
 
             <div className="pt-4">
-              <motion.button
+              <button
                 type="submit"
                 disabled={isSubmitting}
                 className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
-                whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
-                    <motion.span
-                      animate={{ rotate: 360 }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        ease: 'linear',
-                      }}
-                      className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                    />
+                    <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
                     Processing...
                   </span>
                 ) : (
                   'View Property Details'
                 )}
-              </motion.button>
+              </button>
             </div>
 
             <p className="text-xs text-muted-600 text-center mt-4">
@@ -224,9 +194,8 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
               We respect your privacy and will never share your information.
             </p>
           </form>
-        </motion.div>
-      </div>
-    </AnimatePresence>,
+        </div>
+      </div>,
     document.body
   )
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { MapPin, Search, X, Clock, Loader2, Home as HomeIcon, Building2, AlertCircle, Hash } from 'lucide-react'
 import { searchPropertiesByQuery } from '../../services/propertyService'
 import { validateAustralianAddress } from '../../utils/helpers'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
@@ -175,25 +175,7 @@ function PropertySearch({
           <div className="flex-1 relative">
             {/* Map/Address Icon */}
             <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
-              <svg
-                className="w-5 h-5 text-muted-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
+              <MapPin className="w-5 h-5 text-muted-600" strokeWidth={1.5} />
             </div>
             {/* Clear Button */}
             {query.length > 0 && (
@@ -203,19 +185,7 @@ function PropertySearch({
                 className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 text-muted-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
                 aria-label="Clear search"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             )}
             <input
@@ -254,164 +224,118 @@ function PropertySearch({
               aria-describedby={validationError ? 'search-error' : 'search-help'}
             />
             {/* Recent Searches Dropdown */}
-            <AnimatePresence>
-              {showRecentSearches && query.trim().length === 0 && recentSearches.length > 0 && (
-                <motion.div
-                  ref={resultsRef}
-                  className="absolute z-50 top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.15 }}
-                >
+            {showRecentSearches && query.trim().length === 0 && recentSearches.length > 0 && (
+              <div
+                ref={resultsRef}
+                className="absolute z-50 top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto"
+              >
+                <div className="py-2">
+                  <div className="px-4 py-2 flex items-center justify-between border-b border-gray-100">
+                    <div className="text-xs font-semibold text-muted-600 uppercase tracking-wide">
+                      Recent Searches
+                    </div>
+                    <button
+                      type="button"
+                      onClick={clearRecentSearches}
+                      className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                  <ul className="py-1">
+                    {recentSearches.map((recentSearch, index) => (
+                      <li key={`${recentSearch.term}-${index}`}>
+                        <button
+                          type="button"
+                          onClick={() => handleRecentSearchClick(recentSearch)}
+                          className="w-full text-left px-4 py-3 hover:bg-primary-50 transition-colors border-b border-gray-50 last:border-b-0 flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Clock className="w-4 h-4 text-muted-600 flex-shrink-0" strokeWidth={1.5} />
+                            <span className="text-sm text-gray-900">{recentSearch.term}</span>
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Suggestions Dropdown - positioned relative to input container */}
+            {showResults && (results.length > 0 || isLoading) && query.trim().length >= 1 && (
+              <div
+                ref={resultsRef}
+                className="absolute z-50 top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto"
+              >
+                {isLoading ? (
+                  <div className="p-4 text-center text-muted-600 flex items-center justify-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" strokeWidth={1.5} />
+                    <span>Searching...</span>
+                  </div>
+                ) : results.length > 0 ? (
                   <div className="py-2">
-                    <div className="px-4 py-2 flex items-center justify-between border-b border-gray-100">
-                      <div className="text-xs font-semibold text-muted-600 uppercase tracking-wide">
-                        Recent Searches
-                      </div>
-                      <button
-                        type="button"
-                        onClick={clearRecentSearches}
-                        className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                      >
-                        Clear All
-                      </button>
+                    <div className="px-4 py-2 text-xs font-semibold text-muted-600 uppercase tracking-wide border-b border-gray-100">
+                      Matching Properties ({results.length})
                     </div>
                     <ul className="py-1">
-                      {recentSearches.map((recentSearch, index) => (
-                        <motion.li
-                          key={`${recentSearch.term}-${index}`}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.03 }}
-                        >
+                      {results.map((property, index) => (
+                        <li key={property.id}>
                           <button
                             type="button"
-                            onClick={() => handleRecentSearchClick(recentSearch)}
-                            className="w-full text-left px-4 py-3 hover:bg-primary-50 transition-colors border-b border-gray-50 last:border-b-0 flex items-center justify-between"
+                            onClick={() => handleSelect(property)}
+                            className="w-full text-left px-4 py-3 hover:bg-primary-50 transition-colors border-b border-gray-50 last:border-b-0"
                           >
-                            <div className="flex items-center gap-3">
-                              <svg
-                                className="w-4 h-4 text-muted-600 flex-shrink-0"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
-                              <span className="text-sm text-gray-900">{recentSearch.term}</span>
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <div className="font-medium text-dark-green mb-1">
+                                  {property.shortAddress}
+                                </div>
+                                <div className="text-sm text-muted-600">
+                                  {property.suburb}, {property.state} {property.postcode}
+                                </div>
+                                <div className="flex items-center gap-3 mt-2 text-xs text-muted-600">
+                                  {property.beds > 0 && (
+                                    <span>{property.beds} bed{property.beds !== 1 ? 's' : ''}</span>
+                                  )}
+                                  {property.baths > 0 && (
+                                    <span>{property.baths} bath{property.baths !== 1 ? 's' : ''}</span>
+                                  )}
+                                  <span className="text-primary-600 font-medium">
+                                    {property.propertyType}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                <div className="text-sm font-semibold text-dark-green">
+                                  {new Intl.NumberFormat('en-AU', {
+                                    style: 'currency',
+                                    currency: 'AUD',
+                                    maximumFractionDigits: 0,
+                                  }).format(property.priceEstimate.mid)}
+                                </div>
+                              </div>
                             </div>
                           </button>
-                        </motion.li>
+                        </li>
                       ))}
                     </ul>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Suggestions Dropdown - positioned relative to input container */}
-            <AnimatePresence>
-              {showResults && (results.length > 0 || isLoading) && query.trim().length >= 1 && (
-                <motion.div
-                  ref={resultsRef}
-                  className="absolute z-50 top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  {isLoading ? (
-                    <div className="p-4 text-center text-muted-600">
-                      <div className="inline-block w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-                      <span className="ml-2">Searching...</span>
-                    </div>
-                  ) : results.length > 0 ? (
-                    <div className="py-2">
-                      <div className="px-4 py-2 text-xs font-semibold text-muted-600 uppercase tracking-wide border-b border-gray-100">
-                        Matching Properties ({results.length})
-                      </div>
-                      <ul className="py-1">
-                        {results.map((property, index) => (
-                          <motion.li
-                            key={property.id}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.03 }}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => handleSelect(property)}
-                              className="w-full text-left px-4 py-3 hover:bg-primary-50 transition-colors border-b border-gray-50 last:border-b-0"
-                            >
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex-1">
-                                  <div className="font-medium text-dark-green mb-1">
-                                    {property.shortAddress}
-                                  </div>
-                                  <div className="text-sm text-muted-600">
-                                    {property.suburb}, {property.state} {property.postcode}
-                                  </div>
-                                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-600">
-                                    {property.beds > 0 && (
-                                      <span>{property.beds} bed{property.beds !== 1 ? 's' : ''}</span>
-                                    )}
-                                    {property.baths > 0 && (
-                                      <span>{property.baths} bath{property.baths !== 1 ? 's' : ''}</span>
-                                    )}
-                                    <span className="text-primary-600 font-medium">
-                                      {property.propertyType}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="text-right flex-shrink-0">
-                                  <div className="text-sm font-semibold text-dark-green">
-                                    {new Intl.NumberFormat('en-AU', {
-                                      style: 'currency',
-                                      currency: 'AUD',
-                                      maximumFractionDigits: 0,
-                                    }).format(property.priceEstimate.mid)}
-                                  </div>
-                                </div>
-                              </div>
-                            </button>
-                          </motion.li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : query.trim().length >= 1 ? (
-                    <div className="p-4 text-center text-muted-600">
-                      <p className="text-sm">No properties found matching "{query.trim()}"</p>
-                      <p className="text-xs mt-1">Try a different search term</p>
-                    </div>
-                  ) : null}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                ) : query.trim().length >= 1 ? (
+                  <div className="p-4 text-center text-muted-600">
+                    <p className="text-sm">No properties found matching "{query.trim()}"</p>
+                    <p className="text-xs mt-1">Try a different search term</p>
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
           <button
             type="submit"
             className="bg-primary-500 hover:bg-primary-600 text-white px-4 sm:px-4 py-4 text-base font-medium whitespace-nowrap flex-shrink-0 flex items-center justify-center gap-2 transition-colors border-l border-primary-600"
             aria-label="Search"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <Search className="w-5 h-5" strokeWidth={1.5} />
             <span className="hidden sm:inline">Search</span>
           </button>
         </div>
@@ -419,27 +343,13 @@ function PropertySearch({
 
       {/* Validation Error */}
       {validationError && (
-        <motion.div
+        <div
           id="search-error"
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
           className="mt-2 text-sm text-red-600 flex items-center gap-2"
         >
-          <svg
-            className="w-4 h-4 flex-shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
           <span>{validationError}</span>
-        </motion.div>
+        </div>
       )}
 
       {/* Help Tagline with Property Suggestions - Always rendered to prevent layout shift */}
@@ -469,20 +379,13 @@ function PropertySearch({
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-primary-100 hover:text-primary-700 rounded-full text-xs font-medium transition-colors border border-gray-200 hover:border-primary-300"
               >
                 {suggestion.type === 'address' && (
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                  </svg>
+                  <HomeIcon className="w-3 h-3" strokeWidth={1.5} />
                 )}
                 {suggestion.type === 'suburb' && (
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+                  <MapPin className="w-3 h-3" strokeWidth={1.5} />
                 )}
                 {suggestion.type === 'postcode' && (
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                  </svg>
+                  <Hash className="w-3 h-3" strokeWidth={1.5} />
                 )}
                 {suggestion.label}
               </button>

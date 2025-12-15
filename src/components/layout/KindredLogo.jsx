@@ -1,23 +1,14 @@
-import { motion } from 'framer-motion'
-
 function KindredLogo({ className = '' }) {
   return (
-    <motion.div
-      className={`flex items-center gap-3 ${className}`}
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-    >
+    <div className={`flex items-center gap-3 ${className}`}>
       {/* Tree Icon - Organic deciduous tree silhouette */}
-      <motion.svg
+      <svg
         width="42"
         height="42"
         viewBox="0 0 40 40"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="flex-shrink-0"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
       >
         {/* Tree Trunk - wider at base, tapering upward */}
         <path
@@ -64,18 +55,13 @@ function KindredLogo({ className = '' }) {
           d="M31 20C31 18.5 32.2 17.5 33.5 17.5C34.8 17.5 36 18.5 36 20C36 21.5 34.8 22.5 33.5 22.5C32.2 22.5 31 21.5 31 20Z"
           fill="#10b981"
         />
-      </motion.svg>
+      </svg>
 
       {/* Kindred Text */}
-      <motion.span
-        className="text-2xl font-bold text-primary-500 tracking-tight"
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-      >
+      <span className="text-2xl font-bold text-primary-500 tracking-tight">
         Kindred
-      </motion.span>
-    </motion.div>
+      </span>
+    </div>
   )
 }
 

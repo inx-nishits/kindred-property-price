@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { createPortal } from 'react-dom'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { getPropertyDetails } from '../services/propertyService'
@@ -245,11 +244,9 @@ function PropertyResult() {
           {/* Minimal Header with Back to Main Site */}
           <ScrollReveal>
             <div className="mb-8 flex items-center justify-between">
-              <motion.button
+              <button
                 onClick={() => navigate('/')}
                 className="text-muted-600 hover:text-dark-green text-sm font-medium transition-colors flex items-center gap-2 group"
-                whileHover={{ x: -2 }}
-                whileTap={{ scale: 0.95 }}
               >
                 <svg
                   className="w-4 h-4 group-hover:-translate-x-1 transition-transform"
@@ -265,20 +262,14 @@ function PropertyResult() {
                   />
                 </svg>
                 BACK TO MAIN SITE
-              </motion.button>
+              </button>
             </div>
           </ScrollReveal>
 
           {/* Prominent Form CTA Banner - Show when locked (Visible, not blurred) */}
           {!isUnlocked && (
             <ScrollReveal delay={0.05}>
-              <motion.div
-                className="mb-8 card bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white relative overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                whileHover={{ scale: 1.01 }}
-              >
+              <div className="mb-8 card bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white relative overflow-hidden">
                 <div className="relative z-10 p-6 md:p-8">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                     <div className="flex-1">
@@ -290,17 +281,15 @@ function PropertyResult() {
                         nearby schools, and sales history. Plus, receive a comprehensive PDF report via email.
                       </p>
                     </div>
-                    <motion.button
+                    <button
                       onClick={handleUnlockClick}
                       className="btn bg-white text-primary-600 hover:bg-primary-50 px-8 py-4 text-lg font-semibold shadow-xl whitespace-nowrap"
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
                     >
                       Get Full Report
-                    </motion.button>
+                    </button>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </ScrollReveal>
           )}
 
@@ -346,12 +335,7 @@ function PropertyResult() {
               {/* Estimated Value and Property Image - Enhanced Design */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 {/* Estimated Value Card - Enhanced Dark Green */}
-                <motion.div
-                  className="bg-dark-green text-white rounded-xl p-8 md:p-10 relative overflow-hidden shadow-2xl"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
+                <div className="bg-dark-green text-white rounded-xl p-8 md:p-10 relative overflow-hidden shadow-2xl">
                   {/* Subtle gradient overlay for depth */}
                   <div className="absolute inset-0 bg-gradient-to-br from-dark-green via-dark-green to-deepest-green opacity-90"></div>
 
@@ -405,14 +389,11 @@ function PropertyResult() {
                         <div className="text-3xl md:text-4xl font-bold">Loading...</div>
                       )}
                   </div>
-                </motion.div>
+                </div>
 
                 {/* Property Image - Single Image with Gallery Button */}
-                <motion.div
+                <div
                   className="relative rounded-xl overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 shadow-2xl group cursor-pointer"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
                   onClick={() => setIsImageGalleryOpen(true)}
                 >
                   <div className="aspect-[4/3] relative">
@@ -454,10 +435,8 @@ function PropertyResult() {
                   {/* Gallery Button Overlay */}
                   {propertyImages && propertyImages.length > 1 && (
                     <div className="absolute bottom-4 right-4 z-20">
-                      <motion.button
+                      <button
                         className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-md rounded-lg shadow-lg hover:bg-white transition-colors group"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
                         onClick={(e) => {
                           e.stopPropagation()
                           setIsImageGalleryOpen(true)
@@ -467,10 +446,10 @@ function PropertyResult() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span className="text-sm font-semibold text-dark-green">View Gallery</span>
-                      </motion.button>
+                      </button>
                     </div>
                   )}
-                </motion.div>
+                </div>
               </div>
             </div>
           </ScrollReveal>
@@ -553,12 +532,9 @@ function PropertyResult() {
                         subtitle: 'Market demand level'
                       },
                     ].map((stat, index) => (
-                      <motion.div
+                      <div
                         key={index}
                         className="bg-gray-100 rounded-lg p-6"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 + index * 0.1 }}
                       >
                         <div className="text-2xl md:text-3xl font-bold text-dark-green mb-2">
                           {stat.value}
@@ -571,7 +547,7 @@ function PropertyResult() {
                             {stat.subtitle}
                           </div>
                         )}
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -591,12 +567,9 @@ function PropertyResult() {
                   <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                     <div className="divide-y divide-gray-200">
                       {property.comparables.slice(0, 6).map((sale, index) => (
-                        <motion.div
+                        <div
                           key={index}
                           className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.3 + index * 0.03 }}
                         >
                           {/* Property Image */}
                           <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
@@ -662,7 +635,7 @@ function PropertyResult() {
                               )}
                             </div>
                           </div>
-                        </motion.div>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -679,13 +652,9 @@ function PropertyResult() {
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {property.schools.map((school, index) => (
-                      <motion.div
+                      <div
                         key={index}
                         className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 + index * 0.03 }}
-                        whileHover={{ scale: 1.02 }}
                       >
                         <div className="font-semibold text-sm text-dark-green mb-2">
                           {school.name}
@@ -721,12 +690,9 @@ function PropertyResult() {
                   <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                     <div className="divide-y divide-gray-200">
                       {property.salesHistory.map((sale, index) => (
-                        <motion.div
+                        <div
                           key={index}
                           className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.6 + index * 0.03 }}
                         >
                           {/* Sale Icon */}
                           <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex-shrink-0 flex items-center justify-center">
@@ -756,7 +722,7 @@ function PropertyResult() {
                               </div>
                             </div>
                           </div>
-                        </motion.div>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -767,27 +733,17 @@ function PropertyResult() {
             {/* Success Message */}
             {isUnlocked && userEmail && (
               <ScrollReveal>
-                <motion.div
-                  className="card bg-gradient-to-br from-green-50 to-green-100/50 border-green-300 text-center mb-6"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <motion.div
-                    className="text-green-600 mb-3"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                  >
+                <div className="card bg-gradient-to-br from-green-50 to-green-100/50 border-green-300 text-center mb-6">
+                  <div className="text-green-600 mb-3">
                     <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                  </motion.div>
+                  </div>
                   <h3 className="text-xl font-heading font-bold text-dark-green mb-2">Report Sent!</h3>
                   <p className="text-muted-700 text-sm">
                     Sent to <strong className="text-dark-green">{userEmail}</strong>
                   </p>
-                </motion.div>
+                </div>
               </ScrollReveal>
             )}
           </BlurredContent>
@@ -820,35 +776,25 @@ function PropertyResult() {
 
       {/* Image Gallery Modal */}
       {isImageGalleryOpen && createPortal(
-        <AnimatePresence>
-          <div 
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-            style={{
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: '100vh',
-              width: '100vw',
-            }}
-          >
-            {/* Backdrop */}
-            <motion.div
-              className="absolute inset-0 bg-black/90 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsImageGalleryOpen(false)}
-            />
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          style={{
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: '100vh',
+            width: '100vw',
+          }}
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+            onClick={() => setIsImageGalleryOpen(false)}
+          />
 
-            {/* Modal Content */}
-            <motion.div
-              className="relative z-10 w-full max-w-6xl mx-auto"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            >
+          {/* Modal Content */}
+          <div className="relative z-10 w-full max-w-6xl mx-auto">
               {/* Close Button */}
               <button
                 onClick={() => setIsImageGalleryOpen(false)}
@@ -953,9 +899,8 @@ function PropertyResult() {
                   ))}
                 </div>
               )}
-            </motion.div>
-          </div>
-        </AnimatePresence>,
+            </div>
+          </div>,
         document.body
       )}
     </>

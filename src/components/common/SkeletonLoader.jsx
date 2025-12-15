@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 
 /**
  * Skeleton loader component with shimmer effect
@@ -40,19 +39,7 @@ export function PropertyCardSkeleton() {
  */
 export function TextSkeleton({ width = 'w-full', height = 'h-4' }) {
   return (
-    <motion.div
-      className={`${width} ${height} bg-gray-200 rounded relative overflow-hidden`}
-      animate={{
-        background: [
-          'linear-gradient(90deg, #e5e7eb 0%, #f3f4f6 50%, #e5e7eb 100%)',
-        ],
-      }}
-      transition={{
-        duration: 1.5,
-        repeat: Infinity,
-        ease: 'linear',
-      }}
-    />
+    <div className={`${width} ${height} bg-gray-200 rounded relative overflow-hidden animate-pulse`} />
   )
 }
 
