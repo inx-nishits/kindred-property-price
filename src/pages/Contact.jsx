@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Mail, Phone, MapPin, ArrowRight, CheckCircle, Navigation } from 'lucide-react'
+import { Mail, Phone, MapPin, ArrowRight, CheckCircle } from 'lucide-react'
 import SEO from '../components/common/SEO'
 
 function Contact() {
@@ -29,13 +29,6 @@ function Contact() {
       setIsSubmitting(false)
     }, 1000)
   }
-
-  const serviceAreas = [
-    { region: 'Coastal', locations: ['Deception Bay', 'Scarborough', 'Newport', 'Margate', 'Redcliffe'] },
-    { region: 'Northern', locations: ['North Lakes', 'Mango Hill', 'Griffin', 'Kallangur', 'Warner', 'Petrie', 'Strathpine'] },
-    { region: 'Caboolture Region', locations: ['Caboolture', 'Morayfield', 'Burpengary', 'Narangba'] },
-    { region: 'Brisbane North', locations: ['Sandgate', 'Bracken Ridge', 'Aspley', 'Albany Creek'] },
-  ]
 
   const contactMethods = [
     {
@@ -97,7 +90,7 @@ function Contact() {
                     href={method.href}
                     target={method.href.startsWith('http') ? '_blank' : undefined}
                     rel={method.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                    className="flex items-center gap-4 p-4 rounded-md bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-primary-200 transition-shadow duration-200"
+                    className="flex items-center gap-4 p-4 rounded-full bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-primary-200 transition-shadow duration-200"
                   >
                     <div className="w-12 h-12 rounded-md bg-primary-500 flex items-center justify-center text-white">
                       {method.icon}
@@ -226,7 +219,7 @@ function Contact() {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full py-4 bg-primary-500 text-white font-semibold rounded-md shadow-sm hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                        className="w-full py-4 bg-primary-500 text-white font-semibold rounded-full shadow-sm hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                       >
                         {isSubmitting ? (
                           <span className="flex items-center justify-center gap-2">
@@ -236,7 +229,12 @@ function Contact() {
                         ) : (
                           <span className="flex items-center justify-center gap-2">
                             Send Message
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg
+                              className="w-5 h-5 transform rotate-45"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                             </svg>
                           </span>
@@ -248,72 +246,6 @@ function Contact() {
               </div>
             </div>
           </div>
-      </section>
-
-      {/* Service Areas Section */}
-      <section className="py-20 bg-white">
-        
-        <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-dark-green/5 rounded-md text-sm font-medium text-dark-green mb-4">
-              <MapPin className="w-4 h-4 text-primary-500" strokeWidth={1.5} />
-              Our Coverage Area
-            </span>
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-dark-green mb-4">
-              Proudly serving North Brisbane<br className="hidden sm:block" /> & Moreton Bay
-            </h2>
-            <p className="text-muted-600 max-w-xl mx-auto">
-              Your trusted property partner across these communities
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {serviceAreas.map((area) => (
-              <div
-                key={area.region}
-                className="bg-white rounded-md p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-primary-100 transition-shadow duration-200"
-              >
-                <h3 className="text-lg font-heading font-bold text-dark-green mb-4 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-primary-500 rounded-full" />
-                  {area.region}
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {area.locations.map((location) => (
-                    <span
-                      key={location}
-                      className="px-3 py-1.5 bg-gray-50 rounded-lg text-sm text-muted-600 hover:bg-primary-50 hover:text-primary-700 transition-colors cursor-default"
-                    >
-                      {location}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-dark-green">
-        <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 text-center">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-heading font-bold text-white mb-4">
-              Prefer to visit in person?
-            </h2>
-            <p className="text-white/80 mb-8">
-              Our office is located at 425 Elizabeth Avenue, Kippa-Ring QLD 4021
-            </p>
-            <a
-              href="https://maps.google.com/?q=425+Elizabeth+Avenue+Kippa-Ring+QLD"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 px-8 py-4 bg-white text-dark-green font-semibold rounded-md hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              <Navigation className="w-5 h-5 text-primary-500" strokeWidth={1.5} />
-              Get Directions
-            </a>
-          </div>
-        </div>
       </section>
     </>
   )

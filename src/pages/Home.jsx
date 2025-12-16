@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { BarChart3, Home as HomeIcon, MapPin, FileText, Search, Mail, CheckCircle, X, ChevronRight, Bed, Bath, Building2, XCircle, ArrowRight } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { BarChart3, Home as HomeIcon, MapPin, FileText, Search, Mail, CheckCircle, X, ChevronRight, Bed, Bath, Building2, XCircle, ArrowRight, Phone } from 'lucide-react'
 import PropertySearch from '../components/property/PropertySearch'
 import FAQ from '../components/common/FAQ'
 import SEO from '../components/common/SEO'
 import staticContent from '../data/staticContent.json'
+import JourneyTree from '../assets/images/tree.webp'
 
 function Home() {
   const navigate = useNavigate()
@@ -93,7 +94,7 @@ function Home() {
       <div className="min-h-screen">
         {/* Hero Section - Kindred Inspired */}
         <section 
-          className="hero-section relative min-h-[75vh] md:min-h-[85vh] lg:min-h-screen flex items-center justify-center pb-8 sm:pb-4 md:pb-0 z-10"
+          className="hero-section relative h-[calc(100vh-74px)] lg:h-[calc(100vh-104px)] flex justify-center z-10"
           aria-label="Hero section with property search"
         >
           {/* Background Image with Overlay */}
@@ -110,25 +111,25 @@ function Home() {
           </div>
 
           {/* Main Content */}
-          <div className="container px-6 lg:px-8 relative z-10 py-8 md:py-12">
+          <div className="container px-6 lg:px-8 relative z-10 pt-2 pb-6 md:pt-32 md:pb-8">
             <div className="max-w-4xl mx-auto text-center">
               {/* Hero Title - Clean and Elegant */}
-              <div className="mb-6 md:mb-8">
-                <h1 className="text-3xl md:text-4xl lg:text-6xl font-heading font-semibold leading-tight tracking-tight">
+              <div className="mb-4 md:mb-5">
+                <h1 className="text-[32px] sm:text-[40px] md:text-[48px] lg:text-[56px] xl:text-[62px] font-heading font-semibold leading-tight tracking-tight">
                   <span className="text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
                     Get an instant property&nbsp;estimate
                   </span>
                 </h1>
               </div>
 
-              <p className="text-base md:text-xl text-white mb-8 md:mb-10 text-balance max-w-2xl mx-auto font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)] leading-relaxed">
+              <p className="text-base md:text-lg text-white mb-8 md:mb-6 text-balance max-w-2xl mx-auto font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)] leading-relaxed">
                 Find out the market value of your property (instantly) and see comparable sales, suburb performance and more.
               </p>
 
               {/* Search Bar with Overlay Results */}
-              <div className="max-w-2xl mx-auto mb-8 relative z-10">
+              <div className="max-w-3xl mx-auto mb-8 relative z-10">
                 {/* Search Container */}
-                <div className="bg-white rounded-md p-4 md:p-6 shadow-lg border border-gray-200">
+                <div className="bg-white/20 rounded-md p-1.5 shadow-lg">
                   <PropertySearch
                     onSelectProperty={handlePropertySelect}
                     showHelpTagline={true}
@@ -139,7 +140,7 @@ function Home() {
 
                 {/* Search Results - Absolute positioned overlay to prevent page jump */}
                 {searchResults.length > 0 && (
-                  <div className="absolute left-0 right-0 top-[88px] landscape:top-[76px] md:landscape:top-[88px] z-[999] mt-2">
+                  <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-[999]">
                     {/* Results Container */}
                     <div 
                       ref={resultsContainerRef}
@@ -230,7 +231,9 @@ function Home() {
                           >
                             <span className="text-xs text-muted-400">
                               <span className="landscape:hidden md:landscape:inline">Scroll to see more results</span>
-                              <span className="hidden landscape:inline md:landscape:hidden">↓ More results</span>
+                              <span className="hidden landscape:inline md:landscape:hidden">
+                                ↓ More results
+                              </span>
                             </span>
                           </div>
                         )}
@@ -243,70 +246,116 @@ function Home() {
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="py-16 md:py-24 bg-primary-50">
+        {/* Features Section - Kindred "We do all the things" Style */}
+        <section className="pt-16 md:pt-24 section-spacing">
           <div className="container px-6 lg:px-8">
-            <div className="text-center mb-12 md:mb-16">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-dark-green mb-4">
-                Complete Property Insights
-              </h2>
-              <p className="text-lg md:text-xl text-muted-600 max-w-2xl mx-auto">
-                Everything you need to make informed property decisions
-              </p>
-            </div>
+            <div
+              className="rounded-3xl py-16 md:py-24 px-6 lg:px-8"
+              style={{ backgroundColor: 'var(--green-900)' }}
+            >
+              <div className="text-center mb-12 md:mb-16">
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-white mb-4">
+                  Complete Property{' '}
+                  <span className="relative inline-block pb-2 md:pb-3 lg:pb-4">
+                    Insights
+                    <svg
+                      className="absolute bottom-0 left-0 w-full h-3 md:h-4 lg:h-5"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="1.89 4.19 187.49 11.7"
+                      preserveAspectRatio="none"
+                      style={{ width: '100%', height: 'auto' }}
+                    >
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M95.4142 14.2774C79.2509 12.7025 34.6058 11.6607 11.3734 15.4478C7.66859 16.0517 3.86646 14.398 2.0943 11.0889V11.0889C1.57679 10.1226 2.0935 8.92907 3.16244 8.68626C28.0014 3.04417 80.9272 3.68224 98.5286 5.39729C98.8659 5.43016 98.1906 5.36431 98.5286 5.39729C114.684 6.97382 152.543 8.19785 179.385 6.19142C183.345 5.89535 187.154 7.84824 189.114 11.3025L189.247 11.537C189.593 12.1464 189.232 12.9114 188.538 13.0111C158.795 17.2865 112.931 15.9877 95.4142 14.2774C95.0266 14.2395 95.7994 14.3149 95.4142 14.2774Z"
+                        fill="#48D98E"
+                      />
+                    </svg>
+                  </span>
+                </h2>
+                <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
+                  Everything you need to make informed property decisions
+                </p>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 max-w-7xl mx-auto">
-              {[
-                {
-                  title: 'Property Estimates',
-                  description:
-                    'Get accurate low, mid, and high price estimates based on comprehensive market analysis and comparable sales data.',
-                  icon: <BarChart3 className="w-7 h-7" strokeWidth={1.5} />,
-                },
-                {
-                  title: 'Comparable Sales',
-                  description:
-                    'View recent sales of similar properties in the area to understand market trends and property values.',
-                  icon: <HomeIcon className="w-7 h-7" strokeWidth={1.5} />,
-                },
-                {
-                  title: 'Suburb Insights',
-                  description:
-                    'Comprehensive suburb data including median prices, growth trends, demand indicators, and market statistics.',
-                  icon: <MapPin className="w-7 h-7" strokeWidth={1.5} />,
-                },
-                {
-                  title: 'Detailed Reports',
-                  description:
-                    'Download comprehensive PDF reports with all property insights, estimates, and market analysis delivered to your email.',
-                  icon: <FileText className="w-7 h-7" strokeWidth={1.5} />,
-                },
-              ].map((feature) => (
-                <div key={feature.title} className="bg-white rounded-md shadow-sm border border-gray-200 p-6 md:p-8">
-                  {/* Icon Container */}
-                  <div className="w-14 h-14 bg-primary-100 rounded-md flex items-center justify-center mb-5 text-primary-600">
-                    {feature.icon}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto">
+                {[
+                  {
+                    title: 'Property Estimates',
+                    description:
+                      'Get accurate low, mid, and high price estimates based on comprehensive market analysis and comparable sales data.',
+                    icon: <BarChart3 className="w-8 h-8" strokeWidth={2} />,
+                  },
+                  {
+                    title: 'Comparable Sales',
+                    description:
+                      'View recent sales of similar properties in the area to understand market trends and property values.',
+                    icon: <HomeIcon className="w-8 h-8" strokeWidth={2} />,
+                  },
+                  {
+                    title: 'Suburb Insights',
+                    description:
+                      'Comprehensive suburb data including median prices, growth trends, demand indicators, and market statistics.',
+                    icon: <MapPin className="w-8 h-8" strokeWidth={2} />,
+                  },
+                  {
+                    title: 'Detailed Reports',
+                    description:
+                      'Download comprehensive PDF reports with all property insights, estimates, and market analysis delivered to your email.',
+                    icon: <FileText className="w-8 h-8" strokeWidth={2} />,
+                  },
+                ].map((feature) => (
+                  <div
+                    key={feature.title}
+                    className="bg-white rounded-xl p-6 md:p-8 shadow-lg hover:shadow-xl transition-shadow duration-300"
+                  >
+                    {/* Icon */}
+                    <div className="mb-5" style={{ color: 'var(--green-400)' }}>
+                      {feature.icon}
+                    </div>
+
+                    {/* Content */}
+                    <h3 className="text-xl md:text-2xl font-heading font-bold text-gray-900 mb-3">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed text-sm md:text-base">
+                      {feature.description}
+                    </p>
                   </div>
-
-                  {/* Content */}
-                  <h3 className="text-xl md:text-2xl font-heading font-bold text-dark-green mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-muted-600 leading-relaxed text-sm md:text-base">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
         {/* How It Works */}
-        <section className="py-16 md:py-24 bg-white">
+        <section className="pt-16 md:pt-24 bg-white section-spacing">
           <div className="container px-6 lg:px-8">
             <div className="text-center mb-12 md:mb-16">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-dark-green mb-4">
-                Get Your Property Report in 3 Simple Steps
+                Get Your Property Report in{' '}
+                <span className="relative inline-block pb-2 md:pb-3 lg:pb-4">
+                  3 Simple
+                  <svg
+                    className="absolute bottom-0 left-0 w-full h-3 md:h-4 lg:h-5"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="1.89 4.19 187.49 11.7"
+                    preserveAspectRatio="none"
+                    style={{ width: '100%', height: 'auto' }}
+                  >
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M95.4142 14.2774C79.2509 12.7025 34.6058 11.6607 11.3734 15.4478C7.66859 16.0517 3.86646 14.398 2.0943 11.0889V11.0889C1.57679 10.1226 2.0935 8.92907 3.16244 8.68626C28.0014 3.04417 80.9272 3.68224 98.5286 5.39729C98.8659 5.43016 98.1906 5.36431 98.5286 5.39729C114.684 6.97382 152.543 8.19785 179.385 6.19142C183.345 5.89535 187.154 7.84824 189.114 11.3025L189.247 11.537C189.593 12.1464 189.232 12.9114 188.538 13.0111C158.795 17.2865 112.931 15.9877 95.4142 14.2774C95.0266 14.2395 95.7994 14.3149 95.4142 14.2774Z"
+                      fill="#48D98E"
+                    />
+                  </svg>
+                </span>
+                {' '}
+                Steps
               </h2>
               <p className="text-lg md:text-xl text-muted-600 max-w-2xl mx-auto">
                 Quick, easy, and completely free
@@ -338,9 +387,12 @@ function Home() {
                     icon: <FileText className="w-8 h-8" strokeWidth={1.5} />,
                   },
                 ].map((item) => (
-                  <div key={item.step} className="bg-white rounded-md shadow-sm border border-gray-200 p-6 md:p-8 text-center">
+                  <div
+                    key={item.step}
+                    className="bg-primary-50 rounded-xl shadow-sm p-6 md:p-8 text-left"
+                  >
                     {/* Icon */}
-                    <div className="w-16 h-16 mx-auto mb-5 text-primary-600 flex items-center justify-center">
+                    <div className="w-16 h-16 mb-5 text-primary-600 flex items-center justify-start">
                       {item.icon}
                     </div>
 
@@ -359,7 +411,7 @@ function Home() {
         </section>
 
         {/* Privacy & Trust Message */}
-        <section className="py-16 bg-primary-50">
+        <section className="pt-16 pb-16 bg-primary-50 section-spacing">
           <div className="container px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-4">
@@ -382,6 +434,56 @@ function Home() {
 
         {/* FAQ Section */}
         <FAQ faqContent={faqContent} showHeader={true} showHelpSection={true} variant="default" />
+
+        {/* Journey CTA - match About page UI, above footer */}
+        <section className="pb-[60px] md:pb-[80px] bg-primary-50">
+          <div className="container px-6 lg:px-8 pt-[40px] md:pt-[60px] max-w-6xl mx-auto">
+            <div
+              className="relative rounded-[40px] md:rounded-[48px]"
+              style={{ backgroundColor: 'var(--green-900)' }}
+            >
+              <div className="px-6 sm:px-10 lg:px-16 pt-12 md:pt-16 pb-32 md:pb-24 text-center text-white">
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-semibold mb-4 text-white">
+                  Ready to take the journey with us?
+                </h2>
+                <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto mb-8">
+                  Browse current properties or talk to our team and we&apos;ll help you take the next step with clear,
+                  data‑backed insights.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <a
+                    href="https://www.kindred.com.au/property?status=current&price=100000%2C5000000&rent-price=400%2C2000#"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-semibold bg-[color:var(--green-400)] text-[color:var(--green-900)] hover:bg-[color:var(--green-300)] transition-colors"
+                  >
+                    View current properties
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </a>
+                  <Link
+                    to="/contact"
+                    className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-semibold text-white border border-white/50 hover:bg-white/10 transition-colors"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      Contact our friendly team
+                    </span>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Tree image anchored at the bottom */}
+              <div className="pointer-events-none select-none flex justify-center">
+                <img
+                  src={JourneyTree}
+                  alt="Kindred tree illustration"
+                  className="max-w-[260px] sm:max-w-[320px] md:max-w-[380px] w-full object-contain"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </>
   )

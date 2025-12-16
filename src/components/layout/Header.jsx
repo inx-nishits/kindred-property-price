@@ -58,19 +58,11 @@ function Header() {
       className={`sticky top-0 z-50 nav-shadow bg-white transition-all duration-300 ${
         isScrolled ? 'border-b border-gray-200' : 'border-b border-gray-100'
       }`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
       <nav className="container px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[74px] lg:h-[104px] gap-4">
+        <div className="flex items-center justify-between h-[74px] lg:h-[100px] gap-4">
           {/* Logo - left aligned */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-            className="flex-shrink-0"
-          >
+          <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
               <img
                 src={logoImage}
@@ -78,7 +70,7 @@ function Header() {
                 className="h-8 md:h-10 w-auto object-contain"
               />
             </Link>
-          </motion.div>
+          </div>
 
           {/* Center nav - three items, Kindred-like colours and 18px semi-bold font */}
           <div className="hidden lg:flex flex-1 items-center justify-center gap-8">
@@ -104,7 +96,7 @@ function Header() {
               <NavLink
                 to={contactLink.path}
                 className={({ isActive }) =>
-                  `inline-flex items-center justify-center px-4 lg:px-6 py-2 lg:py-[0.875rem] text-[14px] lg:text-[18px] font-semibold whitespace-nowrap rounded-full border transition-colors border-[color:var(--green-900)] bg-[color:var(--green-900)] text-[color:var(--white)] hover:bg-[color:var(--green-700)]`
+                  `inline-flex items-center justify-center px-4 lg:px-6 py-2 lg:py-[0.875rem] text-[14px] lg:text-[18px] font-semibold whitespace-nowrap rounded-full transition-colors bg-[color:var(--green-900)] text-[color:var(--white)] hover:bg-[color:var(--green-700)]`
                 }
               >
                 {contactLink.label}
@@ -246,4 +238,3 @@ function Header() {
 }
 
 export default Header
-

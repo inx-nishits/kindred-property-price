@@ -670,7 +670,7 @@ function PropertyResult() {
                           <div className="text-xl font-bold text-primary-600">{school.rating}</div>
                           <div className="text-xs text-primary-700 font-medium">Rating</div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </div>

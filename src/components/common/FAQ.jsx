@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { HelpCircle, ChevronDown, ChevronUp, CheckCircle2, MessageCircle } from 'lucide-react'
+import { HelpCircle, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react'
 import ScrollReveal from '../animations/ScrollReveal'
 
 function FAQ({ 
@@ -18,8 +18,8 @@ function FAQ({
 
   const isCompact = variant === 'compact'
   const sectionClass = isCompact 
-    ? 'py-12 md:py-16 bg-white'
-    : 'py-16 md:py-24 bg-white'
+    ? 'pt-12 md:pt-16 section-spacing bg-white'
+    : 'pt-16 md:pt-10 section-spacing bg-white'
 
   return (
     <section className={sectionClass}>
@@ -127,7 +127,7 @@ function FAQ({
                       <div className="overflow-hidden">
                         <div className={`${isCompact ? 'px-5 md:px-6 pb-5 md:pb-6' : 'px-6 md:px-8 pb-6 md:pb-8'} relative z-10`}>
                           <div className="ml-14 border-l-2 border-primary-300 pl-6">
-                            <p className={`text-muted-700 leading-relaxed ${isCompact ? 'text-base' : 'text-base md:text-lg'}`}>
+                            <p className={`text-muted-700 leading-relaxed ${isCompact ? 'text-base' : 'text-base md:text-base'}`}>
                               {item.answer}
                             </p>
                           </div>
@@ -155,34 +155,6 @@ function FAQ({
               </ScrollReveal>
             ))}
           </div>
-
-          {/* Additional Help Section */}
-          {showHelpSection && (
-            <ScrollReveal delay={0.5}>
-              <div className={`${isCompact ? 'mt-8 md:mt-10' : 'mt-12 md:mt-16'} text-center`}>
-                <div className={`inline-block ${isCompact ? 'p-5 md:p-6' : 'p-6 md:p-8'} bg-primary-50 rounded-md border border-primary-200 shadow-sm`}>
-                  <div className="flex items-center justify-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-primary-500 rounded-md flex items-center justify-center text-white">
-                      <MessageCircle className="w-6 h-6" strokeWidth={1.5} />
-                    </div>
-                    <h3 className={`${isCompact ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'} font-heading font-bold text-dark-green`}>
-                      Still have questions?
-                    </h3>
-                  </div>
-                  <p className={`text-muted-600 mb-4 ${isCompact ? 'text-sm' : 'text-base'}`}>
-                    Can't find the answer you're looking for? Please reach out
-                    to our friendly team.
-                  </p>
-                  <button
-                    onClick={() => navigate('/contact')}
-                    className={`btn btn-primary ${isCompact ? 'px-5 py-2.5 text-sm' : 'px-6 py-3 text-base'} font-semibold inline-flex items-center gap-2 shadow-md`}
-                  >
-                    Contact Us
-                  </button>
-                </div>
-              </div>
-            </ScrollReveal>
-          )}
         </div>
       </div>
     </section>
@@ -190,4 +162,3 @@ function FAQ({
 }
 
 export default FAQ
-
