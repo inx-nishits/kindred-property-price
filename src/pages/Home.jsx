@@ -13,7 +13,7 @@ import SEO from '../components/common/SEO'
 import staticContent from '../data/staticContent.json'
 
 import JourneyTree from '../assets/images/tree.webp'
-
+import logoImage from '../assets/images/logo.png'
 
 
 function Home() {
@@ -791,6 +791,182 @@ function Home() {
                 ))}
 
               </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* What's in the kindred property report */}
+
+        <section className="bg-white section-spacing">
+
+          <div className="container px-6 lg:px-8">
+
+            {/* Header */}
+
+            <div className="max-w-4xl mx-auto mb-12 md:mb-16 text-center md:text-left">
+
+              <img
+
+                src={logoImage}
+
+                alt="kindred logo"
+
+                className="h-6 md:h-7 w-auto object-contain mb-4 md:mb-5 mx-auto md:mx-0"
+
+              />
+
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-dark-green mb-3 md:mb-4 leading-tight">
+
+                What’s in the kindred property report?
+
+              </h2>
+
+              <p className="text-base md:text-lg text-muted-600 leading-relaxed max-w-2xl mx-auto md:mx-0">
+
+                The kindred Report gives you an in-depth understanding of your property and the market with
+
+                comprehensive data including property value estimates, comparable sales and historical suburb
+
+                performance.
+
+              </p>
+
+            </div>
+
+
+
+            {/* Zig-zag content rows */}
+
+            <div className="space-y-14 md:space-y-20">
+
+              {[
+
+                {
+
+                  title: 'Property value estimate',
+
+                  description:
+
+                    "Get a property value estimate from Australia’s leading real estate data provider. See how the value has changed over the years with past sales.",
+
+                  image:
+
+                    'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=900&h=600&fit=crop&q=80',
+
+                },
+
+                {
+
+                  title: 'Comparable sales',
+
+                  description:
+
+                    'Discover the prices and details of similar properties that have recently sold nearby to get an idea of the market value of your property.',
+
+                  image:
+
+                    'https://images.unsplash.com/photo-1600607687920-4e2a5345c9c3?w=900&h=600&fit=crop&q=80',
+
+                },
+
+                {
+
+                  title: 'Suburb Performance and Insights',
+
+                  description:
+
+                    'See how the property market in your suburb has changed over the last 10 years including median property prices, average days on market and auction clearance rates for both houses and units.',
+
+                  image:
+
+                    'https://images.unsplash.com/photo-1502672023488-70e25813eb80?w=900&h=600&fit=crop&q=80',
+
+                },
+
+              ].map((item, index) => (
+
+                <div
+
+                  key={item.title}
+
+                  className={`group relative flex flex-col md:flex-row items-start md:items-stretch gap-8 lg:gap-16 ${
+
+                    index % 2 === 1 ? 'md:flex-row-reverse' : ''
+
+                  }`}
+
+                >
+
+                  {/* Image */}
+
+                  <div className="w-full md:w-1/2">
+
+                    <div className="relative overflow-hidden rounded-3xl bg-gray-100 transition-transform duration-300 group-hover:-translate-y-1">
+
+                      <div className="aspect-[4/3] w-full">
+
+                        <img
+
+                          src={item.image}
+
+                          alt={item.title}
+
+                          className="w-full h-full object-cover"
+
+                          loading="lazy"
+
+                        />
+
+                      </div>
+
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none" />
+
+                    </div>
+
+                  </div>
+
+
+
+                  {/* Content */}
+
+                  <div className="w-full md:w-1/2">
+
+                    <div className="h-full bg-white/90 md:bg-primary-50/70 rounded-3xl px-6 py-6 md:px-8 md:py-8 flex flex-col justify-center transition-transform duration-300 group-hover:-translate-y-0.5">
+
+                      <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-primary-600 mb-3">
+
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-50 text-primary-700">
+
+                          {index + 1}
+
+                        </span>
+
+                        <span>Report insight</span>
+
+                      </div>
+
+                      <h3 className="text-2xl md:text-3xl font-heading font-semibold text-dark-green mb-3 md:mb-4">
+
+                        {item.title}
+
+                      </h3>
+
+                      <p className="text-base md:text-lg text-muted-700 leading-relaxed">
+
+                        {item.description}
+
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              ))}
 
             </div>
 
