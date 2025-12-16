@@ -868,7 +868,7 @@ function Home() {
 
                   image:
 
-                    'https://images.unsplash.com/photo-1600607687920-4e2a5345c9c3?w=900&h=600&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=900&h=600&fit=crop&q=80&auto=format&ixlib=rb-4.0.3',
 
                 },
 
