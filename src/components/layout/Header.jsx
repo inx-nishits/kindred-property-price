@@ -60,7 +60,7 @@ function Header() {
       }`}
     >
       <nav className="container px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[74px] lg:h-[100px] gap-4">
+        <div className="flex items-center justify-between h-[64px] lg:h-[100px] gap-4">
           {/* Logo - left aligned */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
@@ -170,7 +170,7 @@ function Header() {
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Sidebar Header */}
-                <div className="flex items-center justify-between h-14 md:h-20 px-4 md:px-6 border-b border-gray-200">
+                <div className="flex items-center justify-between h-[64px] md:h-20 px-4 md:px-6 border-b border-gray-200">
                   <Link
                     to="/"
                     onClick={closeSidebar}

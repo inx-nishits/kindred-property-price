@@ -616,7 +616,7 @@
 
     width: 100%;
 
-    max-width: 82rem; /* Align with Kindred container width */
+    max-width: 1476px; /* Standard container width (includes padding) */
 
     margin-left: auto;
 

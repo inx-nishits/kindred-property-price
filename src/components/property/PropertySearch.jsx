@@ -166,7 +166,7 @@ function PropertySearch({
     <div className={`relative ${className}`} ref={searchRef}>
       <form onSubmit={handleSubmit} className="w-full">
         <div
-          className={`flex rounded-lg overflow-hidden  transition-all ${
+          className={`flex md:flex-row flex-col rounded-lg overflow-hidden  transition-all ${
             validationError
               ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-200'
               : 'border-gray-300 focus-within:border-primary-500 focus-within:ring-primary-200'
@@ -262,8 +262,18 @@ function PropertySearch({
               </div>
             )}
 
-            {/* Suggestions Dropdown - positioned relative to input container */}
-            {showResults && (results.length > 0 || isLoading) && query.trim().length >= 1 && (
+            {/* Suggestions Dropdown - positioned relative to input container
+                NOTE:
+                - When `onSearchResultsChange` is provided, the parent page (e.g. `Home`)
+                  is responsible for rendering the full results list.
+                - In that case, we HIDE this inline dropdown to avoid duplicated
+                  result summaries (especially noticeable on mobile, where both
+                  the inline "Matching Properties" bar and the overlay list
+                  were visible at the same time). */}
+            {showResults &&
+              !onSearchResultsChange &&
+              (results.length > 0 || isLoading) &&
+              query.trim().length >= 1 && (
               <div
                 ref={resultsRef}
                 className="absolute z-50 top-full left-0 right-0 mt-[6px] bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto"
