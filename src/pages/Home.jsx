@@ -94,7 +94,7 @@ function Home() {
       <div className="min-h-screen">
         {/* Hero Section - Kindred Inspired */}
         <section 
-          className="hero-section relative h-[calc(100vh-74px)] lg:h-[calc(100vh-104px)] flex justify-center z-10"
+          className="hero-section relative min-h-[calc(100vh-74px)] lg:min-h-[calc(100vh-104px)] flex justify-center z-10"
           aria-label="Hero section with property search"
         >
           {/* Background Image with Overlay */}
@@ -111,13 +111,31 @@ function Home() {
           </div>
 
           {/* Main Content */}
-          <div className="container px-6 lg:px-8 relative z-10 pt-2 pb-6 md:pt-32 md:pb-8">
+          <div className="container px-4 sm:px-6 lg:px-8 relative z-10 pt-4 pb-8 md:pt-32 md:pb-8">
             <div className="max-w-4xl mx-auto text-center">
               {/* Hero Title - Clean and Elegant */}
               <div className="mb-4 md:mb-5">
                 <h1 className="text-[32px] sm:text-[40px] md:text-[48px] lg:text-[56px] xl:text-[62px] font-heading font-semibold leading-tight tracking-tight">
                   <span className="text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
-                    Get an instant property&nbsp;estimate
+                    Get an instant property{' '}
+                    <span className="relative inline-block pb-2 md:pb-3 lg:pb-4">
+                      estimate
+                      <svg
+                        className="absolute bottom-0 left-0 w-full h-3 md:h-4 lg:h-5"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="1.89 4.19 187.49 11.7"
+                        preserveAspectRatio="none"
+                        style={{ width: '100%', height: 'auto' }}
+                      >
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M95.4142 14.2774C79.2509 12.7025 34.6058 11.6607 11.3734 15.4478C7.66859 16.0517 3.86646 14.398 2.0943 11.0889V11.0889C1.57679 10.1226 2.0935 8.92907 3.16244 8.68626C28.0014 3.04417 80.9272 3.68224 98.5286 5.39729C98.8659 5.43016 98.1906 5.36431 98.5286 5.39729C114.684 6.97382 152.543 8.19785 179.385 6.19142C183.345 5.89535 187.154 7.84824 189.114 11.3025L189.247 11.537C189.593 12.1464 189.232 12.9114 188.538 13.0111C158.795 17.2865 112.931 15.9877 95.4142 14.2774C95.0266 14.2395 95.7994 14.3149 95.4142 14.2774Z"
+                          fill="#48D98E"
+                        />
+                      </svg>
+                    </span>
                   </span>
                 </h1>
               </div>
@@ -331,7 +349,7 @@ function Home() {
         </section>
 
         {/* How It Works */}
-        <section className="pt-16 md:pt-24 bg-white section-spacing">
+        <section className="bg-white section-spacing">
           <div className="container px-6 lg:px-8">
             <div className="text-center mb-12 md:mb-16">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-dark-green mb-4">
@@ -362,7 +380,7 @@ function Home() {
               </p>
             </div>
 
-            <div className="max-w-5xl mx-auto">
+            <div className="w-full mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                 {[
                   {
@@ -411,7 +429,7 @@ function Home() {
         </section>
 
         {/* Privacy & Trust Message */}
-        <section className="pt-16 pb-16 bg-primary-50 section-spacing">
+        <section className="pt-16 pb-16 bg-primary-50 section-spacing !mb-0">
           <div className="container px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-4">
@@ -433,7 +451,9 @@ function Home() {
         </section>
 
         {/* FAQ Section */}
-        <FAQ faqContent={faqContent} showHeader={true} showHelpSection={true} variant="default" />
+        <section className="section-spacing bg-white">
+          <FAQ faqContent={faqContent} showHeader={true} showHelpSection={true} variant="default" />
+        </section>
 
         {/* Journey CTA - match About page UI, above footer */}
         <section className="pb-[60px] md:pb-[80px] bg-primary-50">

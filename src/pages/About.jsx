@@ -90,8 +90,8 @@ function About() {
 
       <div className="min-h-screen">
         {/* Intro Section */}
-        <section className="pb-[60px] md:pb-[60px] bg-white">
-          <div className="container px-6 lg:px-8 pt-[60px] md:pt-[120px] max-w-5xl mx-auto text-center">
+        <section className="section-spacing bg-white">
+          <div className="container px-6 lg:px-8 pt-[60px] lg:pt-[120px] max-w-5xl mx-auto text-center">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-dark-green mb-4">
               About Kindred
             </h1>
@@ -108,8 +108,8 @@ function About() {
         </section>
 
         {/* We do things differently */}
-        <section className="pb-[60px] md:pb-[60px]">
-          <div className="container px-6 lg:px-8 pt-[40px] md:pt-[60px]">
+        <section className="section-spacing">
+          <div className="container px-6 lg:px-8">
             <div className="rounded-3xl px-6 lg:px-8 py-12 md:py-16" style={{ backgroundColor: 'var(--green-900)' }}>
               <div className="text-center mb-10 md:mb-14">
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-white mb-4">
@@ -165,9 +165,9 @@ function About() {
         </section>
 
         {/* Property insights, built around you – 3-step layout */}
-        <section className="pb-[60px] md:pb-[60px] bg-white">
-          <div className="container px-6 lg:px-8 pt-[60px] md:pt-[80px]">
-            <div className="text-center mb-12 md:mb-16 max-w-3xl mx-auto">
+        <section className="section-spacing bg-white">
+          <div className="container px-6 lg:px-8">
+            <div className="text-center mb-12 md:mb-16 mx-auto">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-dark-green mb-4">
                 Property insights, built around you
               </h2>
@@ -218,8 +218,8 @@ function About() {
         </section>
 
         {/* Kindred in the community */}
-        <section className="pb-[60px] md:pb-[60px] bg-primary-50">
-          <div className="container px-6 lg:px-8 pt-[60px] md:pt-[80px] max-w-6xl mx-auto">
+        <section className="section-spacing">
+          <div className="container px-6 lg:px-8 max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
               <div>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-semibold text-dark-green mb-4">
@@ -292,7 +292,7 @@ function About() {
                 <img
                   src={JourneyTree}
                   alt="Kindred tree illustration"
-                  className="max-w-[260px] sm:max-w-[320px] md:max-w-[380px] w-full object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
+                  className="max-w-[260px] sm:max-w-[320px] md:max-w-[380px] w-full object-contain"
                 />
               </div>
             </div>

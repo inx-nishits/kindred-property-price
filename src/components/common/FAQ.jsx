@@ -18,8 +18,8 @@ function FAQ({
 
   const isCompact = variant === 'compact'
   const sectionClass = isCompact 
-    ? 'pt-12 md:pt-16 section-spacing bg-white'
-    : 'pt-16 md:pt-10 section-spacing bg-white'
+    ? 'section-spacing bg-white'
+    : 'section-spacing bg-white'
 
   return (
     <section className={sectionClass}>
@@ -31,7 +31,7 @@ function FAQ({
         </div>
       )}
 
-      <div className={`container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 ${!isCompact ? 'relative z-10' : ''}`}>
+      <div className={`container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 pt-[60px] lg:pt-[120px] ${!isCompact ? 'relative z-10' : ''}`}>
         <div className="max-w-4xl mx-auto">
           {showHeader && (
             <ScrollReveal>
@@ -53,7 +53,7 @@ function FAQ({
                     </span>
                   )}
                 </h2>
-                <p className={`${isCompact ? 'text-base md:text-lg' : 'text-lg md:text-xl'} text-muted-600 max-w-2xl mx-auto leading-relaxed`}>
+                <p className={`${isCompact ? 'text-base' : 'text-base'} text-muted-600 max-w-2xl mx-auto leading-relaxed`}>
                   Find answers to common questions about our property insights
                   platform.
                 </p>

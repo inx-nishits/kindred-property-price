@@ -297,7 +297,7 @@ function PropertyResult() {
           <BlurredContent isLocked={!isUnlocked} className="w-full">
             {/* Property Overview Section */}
             <ScrollReveal>
-              <div className="mb-12">
+              <div className="section-spacing">
               {/* Property Title */}
               <div className="mb-6">
                 <p className="text-sm text-muted-600 mb-2">Property report for</p>
@@ -457,7 +457,7 @@ function PropertyResult() {
             {/* Rental Estimate Section */}
             {property.rentalEstimate && (
               <ScrollReveal delay={0.1}>
-                <div className="mb-12">
+                <div className="section-spacing">
                   <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-6">
                     Rental Estimate
                   </h2>
@@ -510,7 +510,7 @@ function PropertyResult() {
             {/* Suburb Insights */}
             {property.suburbInsights && (
               <ScrollReveal delay={0.2}>
-                <div className="mb-12">
+                <div className="section-spacing">
                   <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-6">
                     Suburb Insights
                   </h2>
@@ -557,7 +557,7 @@ function PropertyResult() {
             {/* Comparable Sales */}
             {property.comparables && property.comparables.length > 0 && (
               <ScrollReveal delay={0.3}>
-                <div className="mb-12">
+                <div className="section-spacing">
                   <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-4">
                     Comparable Sales
                   </h2>
@@ -646,7 +646,7 @@ function PropertyResult() {
             {/* Nearby Schools Section */}
             {property.schools && property.schools.length > 0 && (
               <ScrollReveal delay={0.5}>
-                <div className="mb-12">
+                <div className="section-spacing">
                   <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-6">
                     Nearby Schools
                   </h2>
@@ -680,7 +680,7 @@ function PropertyResult() {
             {/* Past Sales History */}
             {property.salesHistory && property.salesHistory.length > 0 && (
               <ScrollReveal delay={0.6}>
-                <div className="mb-12">
+                <div className="section-spacing">
                   <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-4">
                     Past Sales History
                   </h2>

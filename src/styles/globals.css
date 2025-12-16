@@ -482,6 +482,16 @@
 
 
 
+  /* Shared section title underline used across pages */
+
+  .section-title-underline {
+
+    @apply inline-block border-b-4 border-primary-300 pb-1;
+
+  }
+
+
+
   /* Card component with animation support */
 
   .card {
@@ -1114,7 +1124,7 @@ a {
 
 .section-spacing {
 
-  margin-bottom: 60px;
+  margin-bottom: 80px;
 
 }
 

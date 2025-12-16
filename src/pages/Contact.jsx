@@ -90,7 +90,7 @@ function Contact() {
                     href={method.href}
                     target={method.href.startsWith('http') ? '_blank' : undefined}
                     rel={method.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                    className="flex items-center gap-4 p-4 rounded-full bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-primary-200 transition-shadow duration-200"
+                    className="flex items-center gap-4 p-4 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-primary-200 transition-shadow duration-200"
                   >
                     <div className="w-12 h-12 rounded-md bg-primary-500 flex items-center justify-center text-white">
                       {method.icon}
