@@ -764,6 +764,32 @@ function PropertyResult() {
         </div>
       </div>
 
+      {/* Selling CTA - above footer */}
+      <section className="section-spacing">
+        <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+          <div
+            className="relative rounded-xl px-6 sm:px-10 lg:px-14 py-8 sm:py-10 md:py-12"
+            style={{ backgroundColor: 'var(--green-900)' }}
+          >
+            <div className="flex flex-col md:flex-row items-center md:items-center justify-between gap-6">
+              <div className="text-center md:text-left">
+                <h2 className="text-2xl md:text-3xl font-heading font-semibold text-white">
+                  If you're thinking of selling, speak to our team&nbsp;today.
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate('/contact')}
+                className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-semibold bg-[color:var(--green-400)] text-[color:var(--green-900)] hover:bg-[color:var(--green-300)] transition-colors whitespace-nowrap shadow-md"
+              >
+                Book your appraisal now
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Lead Capture Modal */}
       <LeadCaptureModal
         isOpen={isModalOpen}

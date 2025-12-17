@@ -17,7 +17,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 /**
  * Generate PDF report from property data
  * @param {Object} property - Full property object with all details
- * @param {Object} userData - { name, email }
+ * @param {Object} userData - { firstName, lastName, email, mobile }
  * @returns {Promise<Blob>} PDF blob (or URL in production)
  */
 export const generatePDFReport = async (property, userData) => {
@@ -45,7 +45,7 @@ export const generatePDFReport = async (property, userData) => {
 
 /**
  * Send email with PDF attachment
- * @param {Object} userData - { name, email }
+ * @param {Object} userData - { firstName, lastName, email, mobile }
  * @param {Blob|string} pdfData - PDF blob or URL
  * @param {Object} property - Property data for email content
  * @returns {Promise<Object>} Success response
@@ -69,9 +69,14 @@ export const sendPropertyReportEmail = async (userData, pdfData, property) => {
   
   await delay(800) // Simulate email sending time
   
+  // Construct full name from firstName and lastName for email
+  const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.name || 'Valued Customer'
+  
   // For now, log to console (in production, this would actually send email)
   console.log('Email would be sent:', {
     to: userData.email,
+    name: fullName,
+    mobile: userData.mobile,
     subject: `Property Report for ${property.address}`,
     propertyId: property.id,
     hasPDF: !!pdfData,
@@ -87,7 +92,7 @@ export const sendPropertyReportEmail = async (userData, pdfData, property) => {
 /**
  * Submit lead form and send property report
  * This is the main function called from the UI
- * @param {Object} formData - { name, email }
+ * @param {Object} formData - { firstName, lastName, email, mobile }
  * @param {Object} property - Full property object
  * @returns {Promise<Object>} Success response
  */

@@ -4,8 +4,10 @@ import { X, Loader2 } from 'lucide-react'
 
 function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
+    mobile: '',
   })
   const [errors, setErrors] = useState({})
 
@@ -57,18 +59,34 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
     }
   }
 
+  const validateMobile = (mobile) => {
+    // Basic mobile validation - accepts digits, spaces, hyphens, parentheses, and + for international
+    const re = /^[\d\s\-\+\(\)]+$/
+    return re.test(mobile) && mobile.replace(/\D/g, '').length >= 8
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     const newErrors = {}
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Full name is required'
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required'
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required'
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email address is required'
+      newErrors.email = 'Email is required'
     } else if (!validateEmail(formData.email)) {
       newErrors.email = 'Please enter a valid email address'
+    }
+
+    if (!formData.mobile.trim()) {
+      newErrors.mobile = 'Mobile is required'
+    } else if (!validateMobile(formData.mobile)) {
+      newErrors.mobile = 'Please enter a valid mobile number'
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -117,12 +135,14 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
 
           {/* Header */}
           <div className="mb-6">
+            <p className="text-muted-600 text-xs mb-2 tracking-wide">
+              Instant property estimate with kindred
+            </p>
             <h2 className="text-2xl font-heading font-bold text-dark-green mb-2">
-              View Complete Property Details
+              Confirm your details
             </h2>
             <p className="text-muted-600 text-sm">
-              Enter your details below to instantly view all property insights. 
-              You'll also receive a comprehensive PDF report via email.
+              Almost there, we just need to get a few details from you
             </p>
           </div>
 
@@ -130,23 +150,45 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
-                htmlFor="name"
+                htmlFor="firstName"
                 className="block text-sm font-medium text-dark-green mb-2"
               >
-                Full Name <span className="text-red-500">*</span>
+                First name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                id="name"
-                name="name"
-                value={formData.name}
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
                 onChange={handleChange}
-                className={`input ${errors.name ? 'border-red-500' : ''}`}
-                placeholder="John Smith"
+                className={`input ${errors.firstName ? 'border-red-500' : ''}`}
+                placeholder="John"
                 disabled={isSubmitting}
               />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+              {errors.firstName && (
+                <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-dark-green mb-2"
+              >
+                Last name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className={`input ${errors.lastName ? 'border-red-500' : ''}`}
+                placeholder="Smith"
+                disabled={isSubmitting}
+              />
+              {errors.lastName && (
+                <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>
               )}
             </div>
 
@@ -155,7 +197,7 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
                 htmlFor="email"
                 className="block text-sm font-medium text-dark-green mb-2"
               >
-                Email Address <span className="text-red-500">*</span>
+                Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -169,6 +211,28 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="mobile"
+                className="block text-sm font-medium text-dark-green mb-2"
+              >
+                Mobile <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                id="mobile"
+                name="mobile"
+                value={formData.mobile}
+                onChange={handleChange}
+                className={`input ${errors.mobile ? 'border-red-500' : ''}`}
+                placeholder="0412 345 678"
+                disabled={isSubmitting}
+              />
+              {errors.mobile && (
+                <p className="mt-1 text-sm text-red-500">{errors.mobile}</p>
               )}
             </div>
 

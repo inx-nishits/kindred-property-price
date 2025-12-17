@@ -68,7 +68,7 @@ export const getPropertyByAddressQuery = async (address) => {
 
 /**
  * Submit lead form and unlock content
- * @param {Object} formData - { name, email }
+ * @param {Object} formData - { firstName, lastName, email, mobile }
  * @param {Object} property - Full property object (optional, will be fetched if not provided)
  * @returns {Promise<Object>} Success response
  */
