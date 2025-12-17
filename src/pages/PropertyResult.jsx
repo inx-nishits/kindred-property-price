@@ -796,6 +796,8 @@ function PropertyResult() {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleFormSubmit}
         isSubmitting={isSubmitting}
+        property={property}
+        primaryImageUrl={propertyImages[0]?.url}
       />
 
       {/* Success Modal */}

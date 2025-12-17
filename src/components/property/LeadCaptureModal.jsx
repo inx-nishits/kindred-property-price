@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Loader2 } from 'lucide-react'
 
-function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
+function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, property, primaryImageUrl }) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -103,7 +103,7 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
   // This ensures the modal appears above all other content including sticky headers
   return createPortal(
     <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-6"
       style={{
         // Ensure modal is always centered in viewport
         top: 0,
@@ -122,7 +122,7 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
 
         {/* Modal */}
         <div
-          className="relative bg-white rounded-md shadow-lg max-w-md w-full p-6 md:p-8 z-10 max-h-[90vh] overflow-y-auto"
+          className="relative bg-white rounded-xl shadow-xl max-w-5xl w-full p-4 md:p-6 lg:p-8 z-10 max-h-[90vh] overflow-y-auto"
         >
           {/* Close button */}
           <button
@@ -133,22 +133,25 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
             <X className="w-5 h-5" strokeWidth={1.5} />
           </button>
 
-          {/* Header */}
-          <div className="mb-6">
-            <p className="text-muted-600 text-xs mb-2 tracking-wide">
-              Instant property estimate with kindred
-            </p>
-            <h2 className="text-2xl font-heading font-bold text-dark-green mb-2">
-              Confirm your details
-            </h2>
-            <p className="text-muted-600 text-sm">
-              Almost there, we just need to get a few details from you
-            </p>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-start">
+            {/* Left: Form */}
             <div>
+              {/* Header */}
+              <div className="mb-6">
+                <p className="text-muted-600 text-xs mb-1 tracking-wide">
+                  Instant property estimate with kindred
+                </p>
+                <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-1">
+                  Confirm your details
+                </h2>
+                <p className="text-muted-600 text-sm">
+                  Almost there, we just need to get a few details from you
+                </p>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
               <label
                 htmlFor="firstName"
                 className="block text-sm font-medium text-dark-green mb-2"
@@ -168,9 +171,9 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
               {errors.firstName && (
                 <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
               )}
-            </div>
+                </div>
 
-            <div>
+                <div>
               <label
                 htmlFor="lastName"
                 className="block text-sm font-medium text-dark-green mb-2"
@@ -190,9 +193,9 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
               {errors.lastName && (
                 <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>
               )}
-            </div>
+                </div>
 
-            <div>
+                <div>
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-dark-green mb-2"
@@ -234,30 +237,73 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting }) {
               {errors.mobile && (
                 <p className="mt-1 text-sm text-red-500">{errors.mobile}</p>
               )}
+                </div>
+
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
+                        Processing...
+                      </span>
+                    ) : (
+                      'View Property Details'
+                    )}
+                  </button>
+                </div>
+
+                <p className="text-xs text-muted-600 text-center mt-4">
+                  Don't worry, we never pass your details onto any third parties. By continuing you agree to our{' '}
+                  <a href="/privacy" className="text-primary-600 underline hover:text-primary-700">
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
+              </form>
             </div>
 
-            <div className="pt-4">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
-                    Processing...
-                  </span>
-                ) : (
-                  'View Property Details'
-                )}
-              </button>
+            {/* Right: Property Summary */}
+            <div className="w-full">
+              <div className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
+                <div className="relative h-40 sm:h-48 bg-gray-200">
+                  {primaryImageUrl ? (
+                    <img
+                      src={primaryImageUrl}
+                      alt={property?.address || 'Property image'}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white/80 text-sm font-semibold">
+                      Property preview
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/20" />
+                </div>
+                <div className="p-4">
+                  <p className="text-xs font-semibold text-primary-600 mb-1">
+                    You're viewing
+                  </p>
+                  <h3 className="text-sm md:text-base font-heading font-semibold text-dark-green mb-1 line-clamp-2">
+                    {property?.address || 'Selected property'}
+                  </h3>
+                  {property && (
+                    <p className="text-xs text-muted-600 mb-3">
+                      {property.propertyType} · {property.beds} Bed · {property.baths} Bath
+                      {typeof property.parking === 'number' ? ` · ${property.parking} Car` : ''}
+                    </p>
+                  )}
+                  <div className="text-[11px] text-muted-500">
+                    This estimate is based on recent sales and market data for this property and its surrounding area.
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <p className="text-xs text-muted-600 text-center mt-4">
-              By submitting, you agree to receive property reports and updates.
-              We respect your privacy and will never share your information.
-            </p>
-          </form>
+          </div>
         </div>
       </div>,
     document.body
