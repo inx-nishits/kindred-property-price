@@ -14,6 +14,10 @@ import staticContent from '../data/staticContent.json'
 
 import JourneyTree from '../assets/images/tree.webp'
 import logoImage from '../assets/images/logo.png'
+import propertyValueEstimateImage from '../assets/images/property-value-estimate.png'
+import comparableSalesImage from '../assets/images/comparable-sales.png'
+import suburbPerformanceImage from '../assets/images/suburb-performance.png'
+import getPriceEstimateImage from '../assets/images/get-price-estimate-a.jpg'
 
 
 function Home() {
@@ -31,6 +35,18 @@ function Home() {
   const resultsListRef = useRef(null)
 
   const scrollFooterRef = useRef(null)
+
+  // Second Hero section state (before footer)
+
+  const [footerSearchResults, setFooterSearchResults] = useState([])
+
+  const [footerResultsListMaxHeight, setFooterResultsListMaxHeight] = useState(null)
+
+  const footerResultsContainerRef = useRef(null)
+
+  const footerResultsListRef = useRef(null)
+
+  const footerScrollFooterRef = useRef(null)
 
   const faqContent = staticContent.faq
 
@@ -155,6 +171,128 @@ function Home() {
     }
 
   }, [searchResults.length])
+
+
+
+  // Calculate dynamic max-height for footer search results list
+
+  useEffect(() => {
+
+    if (!footerSearchResults.length || !footerResultsContainerRef.current || !footerResultsListRef.current) {
+
+      setFooterResultsListMaxHeight(null)
+
+      return
+
+    }
+
+
+
+    const calculateMaxHeight = () => {
+
+      const container = footerResultsContainerRef.current
+
+      const list = footerResultsListRef.current
+
+      const footer = footerScrollFooterRef.current
+
+
+
+      if (!container || !list) return
+
+
+
+      const containerRect = container.getBoundingClientRect()
+
+      const viewportHeight = window.innerHeight
+
+      const containerTop = containerRect.top
+
+      
+
+      // Calculate available space from container top to viewport bottom
+
+      const availableSpace = viewportHeight - containerTop
+
+      
+
+      // Reserve space for header (measure actual height)
+
+      const headerElement = container.querySelector('.flex.items-center.justify-between')
+
+      const headerHeight = headerElement?.offsetHeight || 50
+
+      
+
+      // Reserve space for footer if it exists (measure actual height)
+
+      const footerHeight = footer?.offsetHeight || 0
+
+      
+
+      // Add some padding to ensure footer is always visible (16px buffer)
+
+      const buffer = 16
+
+      
+
+      // Calculate max height for scrollable list
+
+      const calculatedMaxHeight = availableSpace - headerHeight - footerHeight - buffer
+
+      
+
+      // Set minimum height to show at least 2 items (approximately 100px)
+
+      const minHeight = 100
+
+      
+
+      // Set maximum reasonable height (don't exceed viewport)
+
+      const maxReasonableHeight = Math.min(calculatedMaxHeight, viewportHeight * 0.6)
+
+      
+
+      setFooterResultsListMaxHeight(Math.max(minHeight, maxReasonableHeight))
+
+    }
+
+
+
+    // Use requestAnimationFrame to ensure DOM has updated
+
+    const timeoutId = setTimeout(() => {
+
+      requestAnimationFrame(() => {
+
+        calculateMaxHeight()
+
+      })
+
+    }, 0)
+
+
+
+    // Recalculate on window resize and scroll
+
+    window.addEventListener('resize', calculateMaxHeight)
+
+    window.addEventListener('scroll', calculateMaxHeight, true)
+
+
+
+    return () => {
+
+      clearTimeout(timeoutId)
+
+      window.removeEventListener('resize', calculateMaxHeight)
+
+      window.removeEventListener('scroll', calculateMaxHeight, true)
+
+    }
+
+  }, [footerSearchResults.length])
 
 
 
@@ -474,7 +612,7 @@ function Home() {
 
         {/* Features Section - Kindred "We do all the things" Style */}
 
-        <section className="pt-16 md:pt-24 section-spacing">
+        <section className="pt-16 md:pt-24 section-spacing hidden">
 
           <div className="container px-6 lg:px-8">
 
@@ -642,7 +780,7 @@ function Home() {
 
         {/* How It Works */}
 
-        <section className="bg-white section-spacing">
+        <section className="bg-white section-spacing pt-16 md:pt-24">
 
           <div className="container px-6 lg:px-8">
 
@@ -806,7 +944,7 @@ function Home() {
 
             {/* Header */}
 
-            <div className="max-w-4xl mx-auto mb-12 md:mb-16 text-center md:text-left">
+            <div className="mx-auto mb-12 md:mb-16 text-center md:text-left">
 
               <img
 
@@ -824,7 +962,7 @@ function Home() {
 
               </h2>
 
-              <p className="text-base md:text-lg text-muted-600 leading-relaxed max-w-2xl mx-auto md:mx-0">
+              <p className="text-base md:text-lg text-muted-600 leading-relaxed">
 
                 The kindred Report gives you an in-depth understanding of your property and the market with
 
@@ -852,9 +990,7 @@ function Home() {
 
                     "Get a property value estimate from Australia’s leading real estate data provider. See how the value has changed over the years with past sales.",
 
-                  image:
-
-                    'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=900&h=600&fit=crop&q=80',
+                  image: propertyValueEstimateImage,
 
                 },
 
@@ -866,9 +1002,7 @@ function Home() {
 
                     'Discover the prices and details of similar properties that have recently sold nearby to get an idea of the market value of your property.',
 
-                  image:
-
-                    'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=900&h=600&fit=crop&q=80&auto=format&ixlib=rb-4.0.3',
+                  image: comparableSalesImage,
 
                 },
 
@@ -880,9 +1014,7 @@ function Home() {
 
                     'See how the property market in your suburb has changed over the last 10 years including median property prices, average days on market and auction clearance rates for both houses and units.',
 
-                  image:
-
-                    'https://images.unsplash.com/photo-1502672023488-70e25813eb80?w=900&h=600&fit=crop&q=80',
+                  image: suburbPerformanceImage,
 
                 },
 
@@ -902,29 +1034,19 @@ function Home() {
 
                   {/* Image */}
 
-                  <div className="w-full md:w-1/2">
+                  <div className="w-full md:w-1/2 flex justify-center">
 
-                    <div className="relative overflow-hidden rounded-3xl bg-gray-100 transition-transform duration-300 group-hover:-translate-y-1">
+                    <img
 
-                      <div className="aspect-[4/3] w-full">
+                      src={item.image}
 
-                        <img
+                      alt={item.title}
 
-                          src={item.image}
+                      className="max-w-xs md:max-w-sm lg:max-w-md h-auto"
 
-                          alt={item.title}
+                      loading="lazy"
 
-                          className="w-full h-full object-cover"
-
-                          loading="lazy"
-
-                        />
-
-                      </div>
-
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none" />
-
-                    </div>
+                    />
 
                   </div>
 
@@ -934,7 +1056,7 @@ function Home() {
 
                   <div className="w-full md:w-1/2">
 
-                    <div className="h-full bg-white/90 md:bg-primary-50/70 rounded-3xl px-6 py-6 md:px-8 md:py-8 flex flex-col justify-center transition-transform duration-300 group-hover:-translate-y-0.5">
+                    <div className="h-full bg-white/90 md:bg-primary-50/70 rounded-3xl px-6 py-6 md:px-8 md:py-8 flex flex-col justify-center">
 
                       <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-primary-600 mb-3">
 
@@ -978,7 +1100,7 @@ function Home() {
 
         {/* Privacy & Trust Message */}
 
-        <section className="pt-16 pb-16 bg-primary-50 section-spacing !mb-0">
+        <section className="pt-16 pb-16 bg-primary-50 section-spacing !mb-0 hidden">
 
           <div className="container px-6 lg:px-8">
 
@@ -1020,9 +1142,297 @@ function Home() {
 
 
 
+        {/* Hero Section - Before Footer */}
+
+        <section 
+
+          className="hero-section relative flex items-center justify-center py-10 md:py-16 lg:py-20 min-h-[520px] sm:min-h-[560px] md:min-h-[600px] lg:min-h-[calc(100vh-104px)] z-10"
+
+          aria-label="Hero section with property search"
+
+        >
+
+          {/* Background Image with Overlay */}
+
+          <div className="absolute inset-0 overflow-hidden">
+
+            {/* Australian Property Sellers Background Image - Two Women Discussing */}
+
+            <img
+
+              src={getPriceEstimateImage}
+
+              alt="Two women discussing property - real estate professionals"
+
+              className="w-full h-full object-cover"
+
+              loading="eager"
+
+            />
+
+            {/* Dark Overlay for better text readability */}
+
+            <div className="absolute inset-0 bg-black/60" />
+
+          </div>
+
+
+
+          {/* Main Content with Container and Border Radius */}
+
+          <div className="container px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+
+            <div className="max-w-4xl mx-auto flex items-center justify-center min-h-[400px] md:min-h-[500px]">
+
+              <div className="text-center w-full">
+
+                {/* Hero Title */}
+
+                <div className="mb-4 md:mb-5">
+
+                  <h1 className="text-[32px] sm:text-[40px] md:text-[40px] lg:text-[56px] xl:text-[62px] font-heading font-semibold leading-tight tracking-tight md:whitespace-nowrap">
+
+                    <span className="text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
+
+                      Get a free online property{' '}
+
+                      <span className="relative inline-block pb-2 md:pb-3 lg:pb-4">
+
+                        estimate
+
+                          <svg
+
+                            className="absolute bottom-0 left-0 w-full h-3 md:h-4 lg:h-5"
+
+                            fill="none"
+
+                            xmlns="http://www.w3.org/2000/svg"
+
+                            viewBox="1.89 4.19 187.49 11.7"
+
+                            preserveAspectRatio="none"
+
+                            style={{ width: '100%', height: 'auto' }}
+
+                          >
+
+                            <path
+
+                              fillRule="evenodd"
+
+                              clipRule="evenodd"
+
+                              d="M95.4142 14.2774C79.2509 12.7025 34.6058 11.6607 11.3734 15.4478C7.66859 16.0517 3.86646 14.398 2.0943 11.0889V11.0889C1.57679 10.1226 2.0935 8.92907 3.16244 8.68626C28.0014 3.04417 80.9272 3.68224 98.5286 5.39729C98.8659 5.43016 98.1906 5.36431 98.5286 5.39729C114.684 6.97382 152.543 8.19785 179.385 6.19142C183.345 5.89535 187.154 7.84824 189.114 11.3025L189.247 11.537C189.593 12.1464 189.232 12.9114 188.538 13.0111C158.795 17.2865 112.931 15.9877 95.4142 14.2774C95.0266 14.2395 95.7994 14.3149 95.4142 14.2774Z"
+
+                              fill="#48D98E"
+
+                            />
+
+                          </svg>
+
+                        </span>
+
+                      </span>
+
+                    </h1>
+
+                  </div>
+
+
+
+                  <p className="text-base md:text-lg text-white mb-8 md:mb-6 text-balance max-w-2xl mx-auto font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)] leading-relaxed">
+
+                    Find out the market value of your property and see comparable sales, suburb performance and more. It takes seconds.
+
+                  </p>
+
+
+
+                  {/* Search Bar with Overlay Results */}
+
+                  <div className="max-w-3xl mx-auto mb-8 relative z-10">
+
+                    {/* Search Container */}
+
+                    <div className="bg-white/20 rounded-md p-1.5 shadow-lg">
+
+                      <PropertySearch
+
+                        onSelectProperty={handlePropertySelect}
+
+                        showHelpTagline={true}
+
+                        onSearchResultsChange={setFooterSearchResults}
+
+                        onClear={() => setFooterSearchResults([])}
+
+                      />
+
+                    </div>
+
+
+
+                    {/* Search Results - Absolute positioned overlay */}
+
+                    {footerSearchResults.length > 0 && (
+
+                      <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-[999]">
+
+                        {/* Results Container */}
+
+                        <div 
+
+                          ref={footerResultsContainerRef}
+
+                          className="bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden"
+
+                        >
+
+                            {/* Results Header */}
+
+                            <div className="flex items-center justify-between px-5 py-3 landscape:px-3 landscape:py-2 md:landscape:px-5 md:landscape:py-3 bg-gray-50 border-b border-gray-100">
+
+                              <div className="flex items-center gap-2">
+
+                                <Building2 className="w-5 h-5 text-primary-500" strokeWidth={1.5} />
+
+                                <span className="text-sm font-semibold text-dark-green">
+
+                                  {footerSearchResults.length} {footerSearchResults.length === 1 ? 'Property' : 'Properties'} Found
+
+                                </span>
+
+                              </div>
+
+                              <button
+
+                                onClick={() => setFooterSearchResults([])}
+
+                                className="text-xs text-muted-500 hover:text-red-500 transition-colors flex items-center gap-1"
+
+                              >
+
+                                <XCircle className="w-3.5 h-3.5" strokeWidth={1.5} />
+
+                                Clear
+
+                              </button>
+
+                            </div>
+
+
+
+                            {/* Results List - Scrollable */}
+
+                            <div 
+
+                              ref={footerResultsListRef}
+
+                              className="divide-y divide-gray-100 overflow-y-auto min-h-[100px] max-h-[calc(100vh-480px)] sm:max-h-[calc(100vh-450px)] md:max-h-[calc(100vh-420px)] landscape:max-h-[220px] md:landscape:max-h-[calc(100vh-420px)]"
+
+                              style={{
+
+                                maxHeight: footerResultsListMaxHeight 
+
+                                  ? `${footerResultsListMaxHeight}px` 
+
+                                  : undefined
+
+                              }}
+
+                            >
+
+                              {footerSearchResults.map((property) => (
+
+                                <button
+
+                                  key={property.id}
+
+                                  onClick={() => handlePropertySelect(property)}
+
+                                  className="w-full text-left px-3 py-1.5 landscape:py-1 md:landscape:py-1.5 hover:bg-primary-50/60 transition-colors group"
+
+                                >
+
+                                  <div className="flex items-center justify-between gap-3">
+
+                                    <div className="flex-1 min-w-0">
+
+                                      <h3 className="font-medium text-sm text-dark-green truncate group-hover:text-primary-600 transition-colors mb-0.5">
+
+                                        {property.shortAddress}
+
+                                      </h3>
+
+                                      <p className="text-[11px] text-muted-500 truncate">
+
+                                        {property.suburb}, {property.state} {property.postcode}
+
+                                      </p>
+
+                                    </div>
+
+                                    <ChevronRight className="w-4 h-4 text-muted-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all shrink-0" strokeWidth={1.5} />
+
+                                  </div>
+
+                                </button>
+
+                              ))}
+
+                            </div>
+
+
+
+                            {/* Scroll indicator */}
+
+                            {footerSearchResults.length > 3 && (
+
+                              <div 
+
+                                ref={footerScrollFooterRef}
+
+                                className="px-5 py-2 landscape:px-3 landscape:py-1 md:landscape:px-5 md:landscape:py-2 bg-gray-50 border-t border-gray-100 text-center"
+
+                              >
+
+                                <span className="text-xs text-muted-400">
+
+                                  <span className="landscape:hidden md:landscape:inline">Scroll to see more results</span>
+
+                                  <span className="hidden landscape:inline md:landscape:hidden">
+
+                                    ↓ More results
+
+                                  </span>
+
+                                </span>
+
+                              </div>
+
+                            )}
+
+                          </div>
+
+                        </div>
+
+                      )}
+
+                  </div>
+
+                </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+
         {/* FAQ Section */}
 
-        <section className="section-spacing bg-white">
+        <section className="section-spacing bg-white hidden">
 
           <FAQ faqContent={faqContent} showHeader={true} showHelpSection={true} variant="default" />
 
@@ -1032,7 +1442,7 @@ function Home() {
 
         {/* Journey CTA - match About page UI, above footer */}
 
-        <section className="pb-[60px] md:pb-[80px] bg-primary-50">
+        <section className="pb-[60px] md:pb-[80px] bg-primary-50 hidden">
 
           <div className="container px-6 lg:px-8 pt-[40px] md:pt-[60px] max-w-6xl mx-auto">
 

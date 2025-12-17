@@ -23,7 +23,7 @@ function Footer() {
                 />
               </Link>
             </div>
-            <p className="text-lg text-gray-600 leading-relaxed max-w-xs">
+            <p className="text-base text-gray-600 leading-relaxed max-w-xs">
               Comprehensive property insights and market data for Australian properties. Get accurate estimates and detailed reports.
             </p>
           </div>
