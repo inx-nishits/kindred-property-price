@@ -6,7 +6,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-Light.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-Light.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-Light.woff') format('woff');
 
   font-weight: 300;
 
@@ -24,7 +24,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-LightItalic.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-LightItalic.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-LightItalic.woff') format('woff');
 
   font-weight: 300;
 
@@ -42,7 +42,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-Regular.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-Regular.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-Regular.woff') format('woff');
 
   font-weight: 400;
 
@@ -60,7 +60,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-Italic.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-Italic.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-Italic.woff') format('woff');
 
   font-weight: 400;
 
@@ -78,7 +78,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-Medium.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-Medium.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-Medium.woff') format('woff');
 
   font-weight: 500;
 
@@ -96,7 +96,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-MediumItalic.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-MediumItalic.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-MediumItalic.woff') format('woff');
 
   font-weight: 500;
 
@@ -114,7 +114,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-SemiBold.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-SemiBold.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-SemiBold.woff') format('woff');
 
   font-weight: 600;
 
@@ -132,7 +132,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-SemiBoldItalic.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-SemiBoldItalic.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-SemiBoldItalic.woff') format('woff');
 
   font-weight: 600;
 
@@ -150,7 +150,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-Bold.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-Bold.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-Bold.woff') format('woff');
 
   font-weight: 700;
 
@@ -168,7 +168,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-BoldItalic.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-BoldItalic.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-BoldItalic.woff') format('woff');
 
   font-weight: 700;
 
@@ -186,7 +186,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-ExtraBold.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-ExtraBold.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-ExtraBold.woff') format('woff');
 
   font-weight: 800;
 
@@ -204,7 +204,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-ExtraBoldItalic.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-ExtraBoldItalic.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-ExtraBoldItalic.woff') format('woff');
 
   font-weight: 800;
 
@@ -222,7 +222,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-Black.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-Black.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-Black.woff') format('woff');
 
   font-weight: 900;
 
@@ -240,7 +240,7 @@
 
   src: url('../assets/fonts/open-sauce/OpenSauceOne-BlackItalic.woff2') format('woff2'),
 
-       url('../assets/fonts/open-sauce/OpenSauceOne-BlackItalic.woff') format('woff');
+    url('../assets/fonts/open-sauce/OpenSauceOne-BlackItalic.woff') format('woff');
 
   font-weight: 900;
 
@@ -616,7 +616,8 @@
 
     width: 100%;
 
-    max-width: 1476px; /* Standard container width (includes padding) */
+    max-width: 1476px;
+    /* Standard container width (includes padding) */
 
     margin-left: auto;
 
@@ -862,9 +863,9 @@ html {
 
 /* Get rid of top margin on first element in any rich text element */
 
-.w-richtext > :not(div):first-child,
+.w-richtext> :not(div):first-child,
 
-.w-richtext > div:first-child > :first-child {
+.w-richtext>div:first-child> :first-child {
 
   margin-top: 0 !important;
 
@@ -874,7 +875,7 @@ html {
 
 /* Get rid of bottom margin on last element in any rich text element */
 
-.w-richtext > :last-child,
+.w-richtext> :last-child,
 
 .w-richtext ol li:last-child,
 
@@ -1016,9 +1017,11 @@ a {
 
 .no-scrollbar {
 
-  -ms-overflow-style: none; /* IE 10+ */
+  -ms-overflow-style: none;
+  /* IE 10+ */
 
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
+  /* Firefox */
 
 }
 
@@ -1026,7 +1029,8 @@ a {
 
 .no-scrollbar::-webkit-scrollbar {
 
-  display: none; /* Safari and Chrome */
+  display: none;
+  /* Safari and Chrome */
 
 }
 
@@ -1407,4 +1411,3 @@ html {
   }
 
 }
-

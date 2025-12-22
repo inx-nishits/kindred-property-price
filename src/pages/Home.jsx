@@ -86,13 +86,13 @@ function Home() {
 
       const containerTop = containerRect.top
 
-      
+
 
       // Calculate available space from container top to viewport bottom
 
       const availableSpace = viewportHeight - containerTop
 
-      
+
 
       // Reserve space for header (measure actual height)
 
@@ -100,37 +100,37 @@ function Home() {
 
       const headerHeight = headerElement?.offsetHeight || 50
 
-      
+
 
       // Reserve space for footer if it exists (measure actual height)
 
       const footerHeight = footer?.offsetHeight || 0
 
-      
+
 
       // Add some padding to ensure footer is always visible (16px buffer)
 
       const buffer = 16
 
-      
+
 
       // Calculate max height for scrollable list
 
       const calculatedMaxHeight = availableSpace - headerHeight - footerHeight - buffer
 
-      
+
 
       // Set minimum height to show at least 2 items (approximately 100px)
 
       const minHeight = 100
 
-      
+
 
       // Set maximum reasonable height (don't exceed viewport)
 
       const maxReasonableHeight = Math.min(calculatedMaxHeight, viewportHeight * 0.6)
 
-      
+
 
       setResultsListMaxHeight(Math.max(minHeight, maxReasonableHeight))
 
@@ -208,13 +208,13 @@ function Home() {
 
       const containerTop = containerRect.top
 
-      
+
 
       // Calculate available space from container top to viewport bottom
 
       const availableSpace = viewportHeight - containerTop
 
-      
+
 
       // Reserve space for header (measure actual height)
 
@@ -222,37 +222,37 @@ function Home() {
 
       const headerHeight = headerElement?.offsetHeight || 50
 
-      
+
 
       // Reserve space for footer if it exists (measure actual height)
 
       const footerHeight = footer?.offsetHeight || 0
 
-      
+
 
       // Add some padding to ensure footer is always visible (16px buffer)
 
       const buffer = 16
 
-      
+
 
       // Calculate max height for scrollable list
 
       const calculatedMaxHeight = availableSpace - headerHeight - footerHeight - buffer
 
-      
+
 
       // Set minimum height to show at least 2 items (approximately 100px)
 
       const minHeight = 100
 
-      
+
 
       // Set maximum reasonable height (don't exceed viewport)
 
       const maxReasonableHeight = Math.min(calculatedMaxHeight, viewportHeight * 0.6)
 
-      
+
 
       setFooterResultsListMaxHeight(Math.max(minHeight, maxReasonableHeight))
 
@@ -326,7 +326,7 @@ function Home() {
 
         {/* Hero Section - Kindred Inspired */}
 
-        <section 
+        <section
 
           className="hero-section relative flex items-center justify-center md:justify-start md:items-start py-10 md:py-16 lg:py-20 min-h-[520px] sm:min-h-[560px] md:min-h-[600px] lg:min-h-[calc(100vh-104px)] z-10"
 
@@ -460,7 +460,7 @@ function Home() {
 
                     {/* Results Container */}
 
-                    <div 
+                    <div
 
                       ref={resultsContainerRef}
 
@@ -468,135 +468,135 @@ function Home() {
 
                     >
 
-                        {/* Results Header - compact in mobile landscape */}
+                      {/* Results Header - compact in mobile landscape */}
 
-                        <div className="flex items-center justify-between px-5 py-3 landscape:px-3 landscape:py-2 md:landscape:px-5 md:landscape:py-3 bg-gray-50 border-b border-gray-100">
+                      <div className="flex items-center justify-between px-5 py-3 landscape:px-3 landscape:py-2 md:landscape:px-5 md:landscape:py-3 bg-gray-50 border-b border-gray-100">
 
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
 
-                            <Building2 className="w-5 h-5 text-primary-500" strokeWidth={1.5} />
+                          <Building2 className="w-5 h-5 text-primary-500" strokeWidth={1.5} />
 
-                            <span className="text-sm font-semibold text-dark-green">
+                          <span className="text-sm font-semibold text-dark-green">
 
-                              {searchResults.length} {searchResults.length === 1 ? 'Property' : 'Properties'} Found
+                            {searchResults.length} {searchResults.length === 1 ? 'Property' : 'Properties'} Found
 
-                            </span>
-
-                          </div>
-
-                          <button
-
-                            onClick={() => setSearchResults([])}
-
-                            className="text-xs text-muted-500 hover:text-red-500 transition-colors flex items-center gap-1"
-
-                          >
-
-                            <XCircle className="w-3.5 h-3.5" strokeWidth={1.5} />
-
-                            Clear
-
-                          </button>
+                          </span>
 
                         </div>
 
+                        <button
 
+                          onClick={() => setSearchResults([])}
 
-                        {/* Results List - Scrollable - dynamic height based on viewport to ensure footer is always visible */}
-
-                        <div 
-
-                          ref={resultsListRef}
-
-                          className="divide-y divide-gray-100 overflow-y-auto min-h-[100px] max-h-[calc(100vh-480px)] sm:max-h-[calc(100vh-450px)] md:max-h-[calc(100vh-420px)] landscape:max-h-[220px] md:landscape:max-h-[calc(100vh-420px)]"
-
-                          style={{
-
-                            maxHeight: resultsListMaxHeight 
-
-                              ? `${resultsListMaxHeight}px` 
-
-                              : undefined
-
-                          }}
+                          className="text-xs text-muted-500 hover:text-red-500 transition-colors flex items-center gap-1"
 
                         >
 
-                          {searchResults.map((property) => (
+                          <XCircle className="w-3.5 h-3.5" strokeWidth={1.5} />
 
-                            <button
+                          Clear
 
-                              key={property.id}
-
-                              onClick={() => handlePropertySelect(property)}
-
-                              className="w-full text-left px-3 py-1.5 landscape:py-1 md:landscape:py-1.5 hover:bg-primary-50/60 transition-colors group"
-
-                            >
-
-                              <div className="flex items-center justify-between gap-3">
-
-                                <div className="flex-1 min-w-0">
-
-                                  <h3 className="font-medium text-sm text-dark-green truncate group-hover:text-primary-600 transition-colors mb-0.5">
-
-                                    {property.shortAddress}
-
-                                  </h3>
-
-                                  <p className="text-[11px] text-muted-500 truncate">
-
-                                    {property.suburb}, {property.state} {property.postcode}
-
-                                  </p>
-
-                                </div>
-
-                                <ChevronRight className="w-4 h-4 text-muted-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all shrink-0" strokeWidth={1.5} />
-
-                              </div>
-
-                            </button>
-
-                          ))}
-
-                        </div>
-
-
-
-                        {/* Scroll indicator - compact for mobile landscape - always visible */}
-
-                        {searchResults.length > 3 && (
-
-                          <div 
-
-                            ref={scrollFooterRef}
-
-                            className="px-5 py-2 landscape:px-3 landscape:py-1 md:landscape:px-5 md:landscape:py-2 bg-gray-50 border-t border-gray-100 text-center"
-
-                          >
-
-                            <span className="text-xs text-muted-400">
-
-                              <span className="landscape:hidden md:landscape:inline">Scroll to see more results</span>
-
-                              <span className="hidden landscape:inline md:landscape:hidden">
-
-                                ↓ More results
-
-                              </span>
-
-                            </span>
-
-                          </div>
-
-                        )}
+                        </button>
 
                       </div>
 
+
+
+                      {/* Results List - Scrollable - dynamic height based on viewport to ensure footer is always visible */}
+
+                      <div
+
+                        ref={resultsListRef}
+
+                        className="divide-y divide-gray-100 overflow-y-auto min-h-[100px] max-h-[calc(100vh-480px)] sm:max-h-[calc(100vh-450px)] md:max-h-[calc(100vh-420px)] landscape:max-h-[220px] md:landscape:max-h-[calc(100vh-420px)]"
+
+                        style={{
+
+                          maxHeight: resultsListMaxHeight
+
+                            ? `${resultsListMaxHeight}px`
+
+                            : undefined
+
+                        }}
+
+                      >
+
+                        {searchResults.map((property) => (
+
+                          <button
+
+                            key={property.id}
+
+                            onClick={() => handlePropertySelect(property)}
+
+                            className="w-full text-left px-3 py-1.5 landscape:py-1 md:landscape:py-1.5 hover:bg-primary-50/60 transition-colors group"
+
+                          >
+
+                            <div className="flex items-center justify-between gap-3">
+
+                              <div className="flex-1 min-w-0">
+
+                                <h3 className="font-medium text-sm text-dark-green truncate group-hover:text-primary-600 transition-colors mb-0.5">
+
+                                  {property.shortAddress}
+
+                                </h3>
+
+                                <p className="text-[11px] text-muted-500 truncate">
+
+                                  {property.suburb}, {property.state} {property.postcode}
+
+                                </p>
+
+                              </div>
+
+                              <ChevronRight className="w-4 h-4 text-muted-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all shrink-0" strokeWidth={1.5} />
+
+                            </div>
+
+                          </button>
+
+                        ))}
+
+                      </div>
+
+
+
+                      {/* Scroll indicator - compact for mobile landscape - always visible */}
+
+                      {searchResults.length > 3 && (
+
+                        <div
+
+                          ref={scrollFooterRef}
+
+                          className="px-5 py-2 landscape:px-3 landscape:py-1 md:landscape:px-5 md:landscape:py-2 bg-gray-50 border-t border-gray-100 text-center"
+
+                        >
+
+                          <span className="text-xs text-muted-400">
+
+                            <span className="landscape:hidden md:landscape:inline">Scroll to see more results</span>
+
+                            <span className="hidden landscape:inline md:landscape:hidden">
+
+                              ↓ More results
+
+                            </span>
+
+                          </span>
+
+                        </div>
+
+                      )}
+
                     </div>
 
-                  )}
+                  </div>
+
+                )}
 
               </div>
 
@@ -788,11 +788,11 @@ function Home() {
 
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-dark-green mb-4">
 
-                Get Your Property Report in{' '}
+                Get your property report in{' '}
 
                 <span className="relative inline-block pb-2 md:pb-3 lg:pb-4">
 
-                  3 Simple
+                  3 simple
 
                   <svg
 
@@ -828,7 +828,7 @@ function Home() {
 
                 {' '}
 
-                Steps
+                steps
 
               </h2>
 
@@ -958,13 +958,13 @@ function Home() {
 
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-dark-green mb-3 md:mb-4 leading-tight">
 
-                What’s in the kindred property report?
+                What’s in the Kindred property report?
 
               </h2>
 
               <p className="text-base md:text-lg text-muted-600 leading-relaxed">
 
-                The kindred Report gives you an in-depth understanding of your property and the market with
+                The Kindred report gives you an in-depth understanding of your property and the market with
 
                 comprehensive data including property value estimates, comparable sales and historical suburb
 
@@ -1024,11 +1024,9 @@ function Home() {
 
                   key={item.title}
 
-                  className={`group relative flex flex-col md:flex-row items-start md:items-stretch gap-8 lg:gap-16 ${
+                  className={`group relative flex flex-col md:flex-row items-start md:items-stretch gap-8 lg:gap-16 ${index % 2 === 1 ? 'md:flex-row-reverse' : ''
 
-                    index % 2 === 1 ? 'md:flex-row-reverse' : ''
-
-                  }`}
+                    }`}
 
                 >
 
@@ -1144,7 +1142,7 @@ function Home() {
 
         {/* Hero Section - Before Footer */}
 
-        <section 
+        <section
 
           className="hero-section relative flex items-center justify-center py-10 md:py-16 lg:py-20 min-h-[520px] sm:min-h-[560px] md:min-h-[600px] lg:min-h-[calc(100vh-104px)] z-10"
 
@@ -1200,227 +1198,227 @@ function Home() {
 
                         estimate
 
-                          <svg
+                        <svg
 
-                            className="absolute bottom-0 left-0 w-full h-3 md:h-4 lg:h-5"
+                          className="absolute bottom-0 left-0 w-full h-3 md:h-4 lg:h-5"
 
-                            fill="none"
+                          fill="none"
 
-                            xmlns="http://www.w3.org/2000/svg"
+                          xmlns="http://www.w3.org/2000/svg"
 
-                            viewBox="1.89 4.19 187.49 11.7"
+                          viewBox="1.89 4.19 187.49 11.7"
 
-                            preserveAspectRatio="none"
+                          preserveAspectRatio="none"
 
-                            style={{ width: '100%', height: 'auto' }}
-
-                          >
-
-                            <path
-
-                              fillRule="evenodd"
-
-                              clipRule="evenodd"
-
-                              d="M95.4142 14.2774C79.2509 12.7025 34.6058 11.6607 11.3734 15.4478C7.66859 16.0517 3.86646 14.398 2.0943 11.0889V11.0889C1.57679 10.1226 2.0935 8.92907 3.16244 8.68626C28.0014 3.04417 80.9272 3.68224 98.5286 5.39729C98.8659 5.43016 98.1906 5.36431 98.5286 5.39729C114.684 6.97382 152.543 8.19785 179.385 6.19142C183.345 5.89535 187.154 7.84824 189.114 11.3025L189.247 11.537C189.593 12.1464 189.232 12.9114 188.538 13.0111C158.795 17.2865 112.931 15.9877 95.4142 14.2774C95.0266 14.2395 95.7994 14.3149 95.4142 14.2774Z"
-
-                              fill="#48D98E"
-
-                            />
-
-                          </svg>
-
-                        </span>
-
-                      </span>
-
-                    </h1>
-
-                  </div>
-
-
-
-                  <p className="text-base md:text-lg text-white mb-8 md:mb-6 text-balance max-w-2xl mx-auto font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)] leading-relaxed">
-
-                    Find out the market value of your property and see comparable sales, suburb performance and more. It takes seconds.
-
-                  </p>
-
-
-
-                  {/* Search Bar with Overlay Results */}
-
-                  <div className="max-w-3xl mx-auto mb-8 relative z-10">
-
-                    {/* Search Container */}
-
-                    <div className="bg-white/20 rounded-md p-1.5 shadow-lg">
-
-                      <PropertySearch
-
-                        onSelectProperty={handlePropertySelect}
-
-                        showHelpTagline={true}
-
-                        onSearchResultsChange={setFooterSearchResults}
-
-                        onClear={() => setFooterSearchResults([])}
-
-                      />
-
-                    </div>
-
-
-
-                    {/* Search Results - Absolute positioned overlay */}
-
-                    {footerSearchResults.length > 0 && (
-
-                      <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-[999]">
-
-                        {/* Results Container */}
-
-                        <div 
-
-                          ref={footerResultsContainerRef}
-
-                          className="bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden"
+                          style={{ width: '100%', height: 'auto' }}
 
                         >
 
-                            {/* Results Header */}
+                          <path
 
-                            <div className="flex items-center justify-between px-5 py-3 landscape:px-3 landscape:py-2 md:landscape:px-5 md:landscape:py-3 bg-gray-50 border-b border-gray-100">
+                            fillRule="evenodd"
 
-                              <div className="flex items-center gap-2">
+                            clipRule="evenodd"
 
-                                <Building2 className="w-5 h-5 text-primary-500" strokeWidth={1.5} />
+                            d="M95.4142 14.2774C79.2509 12.7025 34.6058 11.6607 11.3734 15.4478C7.66859 16.0517 3.86646 14.398 2.0943 11.0889V11.0889C1.57679 10.1226 2.0935 8.92907 3.16244 8.68626C28.0014 3.04417 80.9272 3.68224 98.5286 5.39729C98.8659 5.43016 98.1906 5.36431 98.5286 5.39729C114.684 6.97382 152.543 8.19785 179.385 6.19142C183.345 5.89535 187.154 7.84824 189.114 11.3025L189.247 11.537C189.593 12.1464 189.232 12.9114 188.538 13.0111C158.795 17.2865 112.931 15.9877 95.4142 14.2774C95.0266 14.2395 95.7994 14.3149 95.4142 14.2774Z"
 
-                                <span className="text-sm font-semibold text-dark-green">
+                            fill="#48D98E"
 
-                                  {footerSearchResults.length} {footerSearchResults.length === 1 ? 'Property' : 'Properties'} Found
+                          />
 
-                                </span>
+                        </svg>
 
-                              </div>
+                      </span>
 
-                              <button
+                    </span>
 
-                                onClick={() => setFooterSearchResults([])}
+                  </h1>
 
-                                className="text-xs text-muted-500 hover:text-red-500 transition-colors flex items-center gap-1"
+                </div>
 
-                              >
 
-                                <XCircle className="w-3.5 h-3.5" strokeWidth={1.5} />
 
-                                Clear
+                <p className="text-base md:text-lg text-white mb-8 md:mb-6 text-balance max-w-2xl mx-auto font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)] leading-relaxed">
 
-                              </button>
+                  Find out the market value of your property and see comparable sales, suburb performance and more. It takes seconds.
 
-                            </div>
+                </p>
 
 
 
-                            {/* Results List - Scrollable */}
+                {/* Search Bar with Overlay Results */}
 
-                            <div 
+                <div className="max-w-3xl mx-auto mb-8 relative z-10">
 
-                              ref={footerResultsListRef}
+                  {/* Search Container */}
 
-                              className="divide-y divide-gray-100 overflow-y-auto min-h-[100px] max-h-[calc(100vh-480px)] sm:max-h-[calc(100vh-450px)] md:max-h-[calc(100vh-420px)] landscape:max-h-[220px] md:landscape:max-h-[calc(100vh-420px)]"
+                  <div className="bg-white/20 rounded-md p-1.5 shadow-lg">
 
-                              style={{
+                    <PropertySearch
 
-                                maxHeight: footerResultsListMaxHeight 
+                      onSelectProperty={handlePropertySelect}
 
-                                  ? `${footerResultsListMaxHeight}px` 
+                      showHelpTagline={true}
 
-                                  : undefined
+                      onSearchResultsChange={setFooterSearchResults}
 
-                              }}
+                      onClear={() => setFooterSearchResults([])}
 
-                            >
-
-                              {footerSearchResults.map((property) => (
-
-                                <button
-
-                                  key={property.id}
-
-                                  onClick={() => handlePropertySelect(property)}
-
-                                  className="w-full text-left px-3 py-1.5 landscape:py-1 md:landscape:py-1.5 hover:bg-primary-50/60 transition-colors group"
-
-                                >
-
-                                  <div className="flex items-center justify-between gap-3">
-
-                                    <div className="flex-1 min-w-0">
-
-                                      <h3 className="font-medium text-sm text-dark-green truncate group-hover:text-primary-600 transition-colors mb-0.5">
-
-                                        {property.shortAddress}
-
-                                      </h3>
-
-                                      <p className="text-[11px] text-muted-500 truncate">
-
-                                        {property.suburb}, {property.state} {property.postcode}
-
-                                      </p>
-
-                                    </div>
-
-                                    <ChevronRight className="w-4 h-4 text-muted-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all shrink-0" strokeWidth={1.5} />
-
-                                  </div>
-
-                                </button>
-
-                              ))}
-
-                            </div>
-
-
-
-                            {/* Scroll indicator */}
-
-                            {footerSearchResults.length > 3 && (
-
-                              <div 
-
-                                ref={footerScrollFooterRef}
-
-                                className="px-5 py-2 landscape:px-3 landscape:py-1 md:landscape:px-5 md:landscape:py-2 bg-gray-50 border-t border-gray-100 text-center"
-
-                              >
-
-                                <span className="text-xs text-muted-400">
-
-                                  <span className="landscape:hidden md:landscape:inline">Scroll to see more results</span>
-
-                                  <span className="hidden landscape:inline md:landscape:hidden">
-
-                                    ↓ More results
-
-                                  </span>
-
-                                </span>
-
-                              </div>
-
-                            )}
-
-                          </div>
-
-                        </div>
-
-                      )}
+                    />
 
                   </div>
 
+
+
+                  {/* Search Results - Absolute positioned overlay */}
+
+                  {footerSearchResults.length > 0 && (
+
+                    <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-[999]">
+
+                      {/* Results Container */}
+
+                      <div
+
+                        ref={footerResultsContainerRef}
+
+                        className="bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden"
+
+                      >
+
+                        {/* Results Header */}
+
+                        <div className="flex items-center justify-between px-5 py-3 landscape:px-3 landscape:py-2 md:landscape:px-5 md:landscape:py-3 bg-gray-50 border-b border-gray-100">
+
+                          <div className="flex items-center gap-2">
+
+                            <Building2 className="w-5 h-5 text-primary-500" strokeWidth={1.5} />
+
+                            <span className="text-sm font-semibold text-dark-green">
+
+                              {footerSearchResults.length} {footerSearchResults.length === 1 ? 'Property' : 'Properties'} Found
+
+                            </span>
+
+                          </div>
+
+                          <button
+
+                            onClick={() => setFooterSearchResults([])}
+
+                            className="text-xs text-muted-500 hover:text-red-500 transition-colors flex items-center gap-1"
+
+                          >
+
+                            <XCircle className="w-3.5 h-3.5" strokeWidth={1.5} />
+
+                            Clear
+
+                          </button>
+
+                        </div>
+
+
+
+                        {/* Results List - Scrollable */}
+
+                        <div
+
+                          ref={footerResultsListRef}
+
+                          className="divide-y divide-gray-100 overflow-y-auto min-h-[100px] max-h-[calc(100vh-480px)] sm:max-h-[calc(100vh-450px)] md:max-h-[calc(100vh-420px)] landscape:max-h-[220px] md:landscape:max-h-[calc(100vh-420px)]"
+
+                          style={{
+
+                            maxHeight: footerResultsListMaxHeight
+
+                              ? `${footerResultsListMaxHeight}px`
+
+                              : undefined
+
+                          }}
+
+                        >
+
+                          {footerSearchResults.map((property) => (
+
+                            <button
+
+                              key={property.id}
+
+                              onClick={() => handlePropertySelect(property)}
+
+                              className="w-full text-left px-3 py-1.5 landscape:py-1 md:landscape:py-1.5 hover:bg-primary-50/60 transition-colors group"
+
+                            >
+
+                              <div className="flex items-center justify-between gap-3">
+
+                                <div className="flex-1 min-w-0">
+
+                                  <h3 className="font-medium text-sm text-dark-green truncate group-hover:text-primary-600 transition-colors mb-0.5">
+
+                                    {property.shortAddress}
+
+                                  </h3>
+
+                                  <p className="text-[11px] text-muted-500 truncate">
+
+                                    {property.suburb}, {property.state} {property.postcode}
+
+                                  </p>
+
+                                </div>
+
+                                <ChevronRight className="w-4 h-4 text-muted-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all shrink-0" strokeWidth={1.5} />
+
+                              </div>
+
+                            </button>
+
+                          ))}
+
+                        </div>
+
+
+
+                        {/* Scroll indicator */}
+
+                        {footerSearchResults.length > 3 && (
+
+                          <div
+
+                            ref={footerScrollFooterRef}
+
+                            className="px-5 py-2 landscape:px-3 landscape:py-1 md:landscape:px-5 md:landscape:py-2 bg-gray-50 border-t border-gray-100 text-center"
+
+                          >
+
+                            <span className="text-xs text-muted-400">
+
+                              <span className="landscape:hidden md:landscape:inline">Scroll to see more results</span>
+
+                              <span className="hidden landscape:inline md:landscape:hidden">
+
+                                ↓ More results
+
+                              </span>
+
+                            </span>
+
+                          </div>
+
+                        )}
+
+                      </div>
+
+                    </div>
+
+                  )}
+
                 </div>
+
+              </div>
 
             </div>
 

@@ -6,7 +6,7 @@ import LoadingSpinner from './components/common/LoadingSpinner'
 // Lazy load routes for code splitting
 const Home = lazy(() => import('./pages/Home'))
 const About = lazy(() => import('./pages/About'))
-const Contact = lazy(() => import('./pages/Contact'))
+// const Contact = lazy(() => import('./pages/Contact')) // Hidden as per requirement
 const PropertiesList = lazy(() => import('./pages/PropertiesList'))
 const PropertyResult = lazy(() => import('./pages/PropertyResult'))
 const Privacy = lazy(() => import('./pages/Privacy'))
@@ -21,7 +21,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
-          <Route path="contact" element={<Contact />} />
+          {/* <Route path="contact" element={<Contact />} /> */}
           <Route path="properties" element={<PropertiesList />} />
           <Route path="property/:id" element={<PropertyResult />} />
           <Route path="privacy" element={<Privacy />} />

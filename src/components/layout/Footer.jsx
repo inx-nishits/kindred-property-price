@@ -38,7 +38,6 @@ function Footer() {
                 { path: '/', label: 'Home' },
                 { path: '/about', label: 'About' },
                 { path: '/faq', label: 'FAQ' },
-                { path: '/contact', label: 'Contact' },
               ].map((link) => (
                 <li key={link.path}>
                   <Link
@@ -49,6 +48,16 @@ function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <a
+                  href="https://www.kindred.com.au/contact-us"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-lg text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+                >
+                  Contact
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -58,8 +67,17 @@ function Footer() {
               Legal
             </h3>
             <ul className="space-y-3">
+              <li>
+                <a
+                  href="https://www.kindred.com.au/legal/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-lg text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+                >
+                  Privacy Policy
+                </a>
+              </li>
               {[
-                { path: '/privacy', label: 'Privacy Policy' },
                 { path: '/terms', label: 'Terms & Conditions' },
               ].map((link) => (
                 <li key={link.path}>

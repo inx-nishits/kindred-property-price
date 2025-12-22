@@ -16,7 +16,7 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, property, p
     if (isOpen) {
       // Store current scroll position
       const scrollY = window.scrollY
-      
+
       // Prevent body scrolling
       document.body.style.overflow = 'hidden'
       document.body.style.position = 'fixed'
@@ -29,7 +29,7 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, property, p
       document.body.style.position = ''
       document.body.style.top = ''
       document.body.style.width = ''
-      
+
       // Restore scroll position
       if (scrollY) {
         window.scrollTo(0, parseInt(scrollY || '0', 10) * -1)
@@ -102,7 +102,7 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, property, p
   // Use portal to render modal at document body level
   // This ensures the modal appears above all other content including sticky headers
   return createPortal(
-    <div 
+    <div
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-6"
       style={{
         // Ensure modal is always centered in viewport
@@ -114,198 +114,197 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, property, p
         width: '100vw',
       }}
     >
-        {/* Backdrop */}
-        <div
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div
+        className="relative bg-white rounded-xl shadow-xl max-w-5xl w-full p-4 md:p-6 lg:p-8 z-10 max-h-[90vh] overflow-y-auto"
+      >
+        {/* Close button */}
+        <button
           onClick={onClose}
-        />
-
-        {/* Modal */}
-        <div
-          className="relative bg-white rounded-xl shadow-xl max-w-5xl w-full p-4 md:p-6 lg:p-8 z-10 max-h-[90vh] overflow-y-auto"
+          className="absolute top-1.5 right-1.5 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          aria-label="Close modal"
         >
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-1.5 right-1.5 p-2 text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" strokeWidth={1.5} />
-          </button>
+          <X className="w-5 h-5" strokeWidth={1.5} />
+        </button>
 
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-start">
-            {/* Left: Form */}
-            <div>
-              {/* Header */}
-              <div className="mb-6">
-                <p className="text-muted-600 text-xs mb-1 tracking-wide">
-                  Instant property estimate with kindred
-                </p>
-                <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-1">
-                  Confirm your details
-                </h2>
-                <p className="text-muted-600 text-sm">
-                  Almost there, we just need to get a few details from you
-                </p>
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-start">
+          {/* Left: Form */}
+          <div>
+            {/* Header */}
+            <div className="mb-6">
+              <p className="text-muted-600 text-xs mb-1 tracking-wide">
+                Instant property estimate with Kindred
+              </p>
+              <h2 className="text-2xl md:text-3xl font-heading font-bold text-dark-green mb-1">
+                Confirm your details
+              </h2>
+              <p className="text-muted-600 text-sm">
+                Almost there, we just need to get a few details from you
+              </p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="firstName"
+                  className="block text-sm font-medium text-dark-green mb-2"
+                >
+                  First name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className={`input ${errors.firstName ? 'border-red-500' : ''}`}
+                  placeholder="John"
+                  disabled={isSubmitting}
+                />
+                {errors.firstName && (
+                  <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
+                )}
               </div>
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-              <label
-                htmlFor="firstName"
-                className="block text-sm font-medium text-dark-green mb-2"
-              >
-                First name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                className={`input ${errors.firstName ? 'border-red-500' : ''}`}
-                placeholder="John"
-                disabled={isSubmitting}
-              />
-              {errors.firstName && (
-                <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
-              )}
-                </div>
+              <div>
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium text-dark-green mb-2"
+                >
+                  Last name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className={`input ${errors.lastName ? 'border-red-500' : ''}`}
+                  placeholder="Smith"
+                  disabled={isSubmitting}
+                />
+                {errors.lastName && (
+                  <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>
+                )}
+              </div>
 
-                <div>
-              <label
-                htmlFor="lastName"
-                className="block text-sm font-medium text-dark-green mb-2"
-              >
-                Last name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                className={`input ${errors.lastName ? 'border-red-500' : ''}`}
-                placeholder="Smith"
-                disabled={isSubmitting}
-              />
-              {errors.lastName && (
-                <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>
-              )}
-                </div>
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-dark-green mb-2"
+                >
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`input ${errors.email ? 'border-red-500' : ''}`}
+                  placeholder="john.smith@example.com"
+                  disabled={isSubmitting}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+                )}
+              </div>
 
-                <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-dark-green mb-2"
-              >
-                Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`input ${errors.email ? 'border-red-500' : ''}`}
-                placeholder="john.smith@example.com"
-                disabled={isSubmitting}
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-500">{errors.email}</p>
-              )}
-            </div>
+              <div>
+                <label
+                  htmlFor="mobile"
+                  className="block text-sm font-medium text-dark-green mb-2"
+                >
+                  Mobile <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  id="mobile"
+                  name="mobile"
+                  value={formData.mobile}
+                  onChange={handleChange}
+                  className={`input ${errors.mobile ? 'border-red-500' : ''}`}
+                  placeholder="0412 345 678"
+                  disabled={isSubmitting}
+                />
+                {errors.mobile && (
+                  <p className="mt-1 text-sm text-red-500">{errors.mobile}</p>
+                )}
+              </div>
 
-            <div>
-              <label
-                htmlFor="mobile"
-                className="block text-sm font-medium text-dark-green mb-2"
-              >
-                Mobile <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="tel"
-                id="mobile"
-                name="mobile"
-                value={formData.mobile}
-                onChange={handleChange}
-                className={`input ${errors.mobile ? 'border-red-500' : ''}`}
-                placeholder="0412 345 678"
-                disabled={isSubmitting}
-              />
-              {errors.mobile && (
-                <p className="mt-1 text-sm text-red-500">{errors.mobile}</p>
-              )}
-                </div>
-
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
-                        Processing...
-                      </span>
-                    ) : (
-                      'View Property Details'
-                    )}
-                  </button>
-                </div>
-
-                <p className="text-xs text-muted-600 text-center mt-4">
-                  Don't worry, we never pass your details onto any third parties. By continuing you agree to our{' '}
-                  <a href="/privacy" className="text-primary-600 underline hover:text-primary-700">
-                    Privacy Policy
-                  </a>
-                  .
-                </p>
-              </form>
-            </div>
-
-            {/* Right: Property Summary */}
-            <div className="w-full">
-              <div className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
-                <div className="relative h-40 sm:h-48 bg-gray-200">
-                  {primaryImageUrl ? (
-                    <img
-                      src={primaryImageUrl}
-                      alt={property?.address || 'Property image'}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
+                      Processing...
+                    </span>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white/80 text-sm font-semibold">
-                      Property preview
-                    </div>
+                    'View Property Details'
                   )}
-                  <div className="absolute inset-0 bg-black/20" />
-                </div>
-                <div className="p-4">
-                  <p className="text-xs font-semibold text-primary-600 mb-1">
-                    You're viewing
-                  </p>
-                  <h3 className="text-sm md:text-base font-heading font-semibold text-dark-green mb-1 line-clamp-2">
-                    {property?.address || 'Selected property'}
-                  </h3>
-                  {property && (
-                    <p className="text-xs text-muted-600 mb-3">
-                      {property.propertyType} · {property.beds} Bed · {property.baths} Bath
-                      {typeof property.parking === 'number' ? ` · ${property.parking} Car` : ''}
-                    </p>
-                  )}
-                  <div className="text-[11px] text-muted-500">
-                    This estimate is based on recent sales and market data for this property and its surrounding area.
+                </button>
+              </div>
+
+              <p className="text-xs text-muted-600 text-center mt-4 leading-relaxed">
+                Don't worry, we never pass your details onto any third parties. By continuing you agree to&nbsp;our&nbsp;<a href="/privacy" className="text-primary-600 underline hover:text-primary-700">
+                  Privacy Policy
+                </a>
+                .
+              </p>
+            </form>
+          </div>
+
+          {/* Right: Property Summary */}
+          <div className="w-full">
+            <div className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
+              <div className="relative h-40 sm:h-48 bg-gray-200">
+                {primaryImageUrl ? (
+                  <img
+                    src={primaryImageUrl}
+                    alt={property?.address || 'Property image'}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white/80 text-sm font-semibold">
+                    Property preview
                   </div>
+                )}
+                <div className="absolute inset-0 bg-black/20" />
+              </div>
+              <div className="p-4">
+                <p className="text-xs font-semibold text-primary-600 mb-1">
+                  You're viewing
+                </p>
+                <h3 className="text-sm md:text-base font-heading font-semibold text-dark-green mb-1 line-clamp-2">
+                  {property?.address || 'Selected property'}
+                </h3>
+                {property && (
+                  <p className="text-xs text-muted-600 mb-3">
+                    {property.propertyType} · {property.beds} Bed · {property.baths} Bath
+                    {typeof property.parking === 'number' ? ` · ${property.parking} Car` : ''}
+                  </p>
+                )}
+                <div className="text-[11px] text-muted-500">
+                  This estimate is based on recent sales and market data for this property and its surrounding area.
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>,
+      </div>
+    </div>,
     document.body
   )
 }
