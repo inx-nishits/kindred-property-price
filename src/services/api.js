@@ -1,8 +1,10 @@
+'use client'
+
 import axios from 'axios'
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.example.com',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

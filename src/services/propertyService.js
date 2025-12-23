@@ -1,3 +1,5 @@
+'use client'
+
 import {
   searchProperties,
   getPropertyById,
@@ -78,7 +80,7 @@ export const submitLeadForm = async (formData, property = null) => {
     if (property) {
       return await submitLeadFormAndSendReport(formData, property)
     }
-    
+
     // Otherwise, just simulate success (for backward compatibility)
     await delay(800) // Simulate API call
     return {

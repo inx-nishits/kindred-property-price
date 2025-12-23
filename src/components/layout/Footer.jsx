@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
 import { Mail, Phone } from 'lucide-react'
-import logoImage from '../../assets/images/logo.png'
+import logoImage from '@/assets/images/logo.png'
 
 function Footer() {
   const currentYear = new Date().getFullYear()
@@ -15,9 +17,9 @@ function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-1">
             <div className="mb-6">
-              <Link to="/" className="inline-block">
+              <Link href="/" className="inline-block">
                 <img
-                  src={logoImage}
+                  src={logoImage.src}
                   alt="Kindred Logo"
                   className="h-12 w-auto object-contain"
                 />
@@ -41,7 +43,7 @@ function Footer() {
               ].map((link) => (
                 <li key={link.path}>
                   <Link
-                    to={link.path}
+                    href={link.path}
                     className="text-lg text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
                   >
                     {link.label}
@@ -82,7 +84,7 @@ function Footer() {
               ].map((link) => (
                 <li key={link.path}>
                   <Link
-                    to={link.path}
+                    href={link.path}
                     className="text-lg text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
                   >
                     {link.label}
@@ -102,7 +104,7 @@ function Footer() {
                 <Mail className="w-5 h-5 text-primary-500 flex-shrink-0" strokeWidth={1.5} />
                 <a
                   href="mailto:info@propertyinsights.com.au"
-                  className="text-lg text-gray-600 hover:text-primary-600 transition-colors font-medium"
+                  className="text-lg text-gray-600 hover:text-primary-600 transition-colors font-medium break-all"
                 >
                   info@propertyinsights.com.au
                 </a>
@@ -132,4 +134,3 @@ function Footer() {
 }
 
 export default Footer
-

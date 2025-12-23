@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Utility helper functions
  */
@@ -127,12 +129,12 @@ export function isValidAustralianPostcode(postcode) {
 export function isAustralianLocation(query) {
   if (!query || typeof query !== 'string') return false
   const upperQuery = query.toUpperCase()
-  
+
   // Check for Australian state abbreviations
   const hasState = AUSTRALIAN_STATES.some((state) =>
     upperQuery.includes(state)
   )
-  
+
   // Check for Australian postcode pattern (4 digits)
   const postcodeMatch = query.match(/\b\d{4}\b/)
   if (postcodeMatch) {
@@ -141,7 +143,7 @@ export function isAustralianLocation(query) {
       return true
     }
   }
-  
+
   // Check for common Australian city/suburb names
   const australianCities = [
     'SYDNEY',
@@ -160,7 +162,7 @@ export function isAustralianLocation(query) {
     'CAIRNS',
   ]
   const hasCity = australianCities.some((city) => upperQuery.includes(city))
-  
+
   return hasState || hasCity
 }
 
@@ -176,16 +178,16 @@ export function validateAustralianAddress(address) {
       error: 'Please enter a property address',
     }
   }
-  
+
   const trimmed = address.trim()
-  
+
   if (trimmed.length < 3) {
     return {
       isValid: false,
       error: 'Address must be at least 3 characters',
     }
   }
-  
+
   // Check if it appears to be an Australian location
   if (!isAustralianLocation(trimmed)) {
     return {
@@ -193,7 +195,7 @@ export function validateAustralianAddress(address) {
       error: 'Please enter an Australian property address only',
     }
   }
-  
+
   return {
     isValid: true,
     error: null,

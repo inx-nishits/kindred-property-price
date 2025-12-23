@@ -19,6 +19,7 @@ function PropertySearch({
   const [hasSearched, setHasSearched] = useState(false)
   const [recentSearches, setRecentSearches] = useLocalStorage('property_recent_searches', [])
   const [showRecentSearches, setShowRecentSearches] = useState(false)
+  const [maxDropdownHeight, setMaxDropdownHeight] = useState(400)
   const searchRef = useRef(null)
   const resultsRef = useRef(null)
   const inputRef = useRef(null)
@@ -66,10 +67,44 @@ function PropertySearch({
     }
   }, [query, onSearchResultsChange, onClear])
 
+  // Dynamic height calculation
+  useEffect(() => {
+    const calculateMaxHeight = () => {
+      if (typeof window === 'undefined' || !searchRef.current) return
+
+      const searchRect = searchRef.current.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const searchBottom = searchRect.bottom
+      const searchTop = searchRect.top
+
+      // Check if search box is in the lower part of viewport (likely footer)
+      const isNearBottom = searchBottom > viewportHeight * 0.7
+
+      // Calculate available space below the search input
+      // Reserve space for: dropdown padding (20px), footer (40px), and bottom margin (68px)
+      const reservedSpace = 128
+      const availableHeight = viewportHeight - searchBottom - reservedSpace
+
+      // Set min height of 200px and max based on position
+      // Footer searches get smaller max height to prevent page scroll
+      const maxHeight = isNearBottom ? 300 : 500
+      const calculatedHeight = Math.max(200, Math.min(availableHeight, maxHeight))
+
+      setMaxDropdownHeight(calculatedHeight)
+    }
+
+    // Calculate on mount and when results change
+    calculateMaxHeight()
+
+    // Recalculate on window resize
+    window.addEventListener('resize', calculateMaxHeight)
+    return () => window.removeEventListener('resize', calculateMaxHeight)
+  }, [showResults, results.length])
+
   useEffect(() => {
     const performSearch = async () => {
       const trimmedQuery = query.trim()
-      
+
       // Show results for any input (real-time search)
       if (trimmedQuery.length < 1) {
         setResults([])
@@ -114,7 +149,7 @@ function PropertySearch({
     setQuery(property.address)
     setShowResults(false)
     setShowRecentSearches(false)
-    
+
     // Save to recent searches
     const searchTerm = property.address
     const updatedRecentSearches = [
@@ -122,7 +157,7 @@ function PropertySearch({
       ...recentSearches.filter(s => s.term !== searchTerm)
     ].slice(0, 5) // Keep only last 5 searches
     setRecentSearches(updatedRecentSearches)
-    
+
     onSelectProperty(property)
   }
 
@@ -142,7 +177,7 @@ function PropertySearch({
   const handleSubmit = (e) => {
     e.preventDefault()
     const trimmedQuery = query.trim()
-    
+
     if (!trimmedQuery) {
       setValidationError('Please enter a property address')
       return
@@ -166,11 +201,10 @@ function PropertySearch({
     <div className={`relative ${className}`} ref={searchRef}>
       <form onSubmit={handleSubmit} className="w-full">
         <div
-          className={`flex md:flex-row flex-col rounded-lg overflow-hidden  transition-all ${
-            validationError
-              ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-200'
-              : 'border-gray-300 focus-within:border-primary-500 focus-within:ring-primary-200'
-          }`}
+          className={`flex md:flex-row flex-col rounded-lg overflow-hidden transition-all ${validationError
+            ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-200'
+            : 'border-gray-300 focus-within:border-primary-500 focus-within:ring-primary-200'
+            }`}
         >
           <div className="flex-1 relative">
             {/* Map/Address Icon */}
@@ -216,129 +250,12 @@ function PropertySearch({
                 }
               }}
               placeholder="Start typing to find your address..."
-              className={`w-full h-12 text-sm pl-12 pr-12 bg-white border-0 focus:outline-none focus:ring-0 placeholder:text-muted-500 placeholder:truncate ${
-                validationError ? 'text-red-600' : 'text-gray-900'
-              }`}
+              className={`w-full h-12 text-sm pl-12 pr-12 bg-white border-0 focus:outline-none focus:ring-0 placeholder:text-muted-500 placeholder:truncate ${validationError ? 'text-red-600' : 'text-gray-900'
+                }`}
               aria-label="Search Australian property address"
               aria-invalid={validationError ? 'true' : 'false'}
               aria-describedby={validationError ? 'search-error' : 'search-help'}
             />
-            {/* Recent Searches Dropdown */}
-            {showRecentSearches && query.trim().length === 0 && recentSearches.length > 0 && (
-              <div
-                ref={resultsRef}
-                className="absolute z-50 top-full left-0 right-0 mt-[6px] bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto"
-              >
-                <div className="py-2">
-                  <div className="px-4 py-2 flex items-center justify-between border-b border-gray-100">
-                    <div className="text-xs font-semibold text-muted-600 uppercase tracking-wide">
-                      Recent Searches
-                    </div>
-                    <button
-                      type="button"
-                      onClick={clearRecentSearches}
-                      className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                  <ul className="py-1">
-                    {recentSearches.map((recentSearch, index) => (
-                      <li key={`${recentSearch.term}-${index}`}>
-                        <button
-                          type="button"
-                          onClick={() => handleRecentSearchClick(recentSearch)}
-                          className="w-full text-left px-4 py-3 hover:bg-primary-50 transition-colors border-b border-gray-50 last:border-b-0 flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Clock className="w-4 h-4 text-muted-600 flex-shrink-0" strokeWidth={1.5} />
-                            <span className="text-sm text-gray-900">{recentSearch.term}</span>
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            {/* Suggestions Dropdown - positioned relative to input container
-                NOTE:
-                - When `onSearchResultsChange` is provided, the parent page (e.g. `Home`)
-                  is responsible for rendering the full results list.
-                - In that case, we HIDE this inline dropdown to avoid duplicated
-                  result summaries (especially noticeable on mobile, where both
-                  the inline "Matching Properties" bar and the overlay list
-                  were visible at the same time). */}
-            {showResults &&
-              !onSearchResultsChange &&
-              (results.length > 0 || isLoading) &&
-              query.trim().length >= 1 && (
-              <div
-                ref={resultsRef}
-                className="absolute z-50 top-full left-0 right-0 mt-[6px] bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto"
-              >
-                {isLoading ? (
-                  <div className="p-4 text-center text-muted-600 flex items-center justify-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin" strokeWidth={1.5} />
-                    <span>Searching...</span>
-                  </div>
-                ) : results.length > 0 ? (
-                  <div className="py-2">
-                    <div className="px-4 py-2 text-xs font-semibold text-muted-600 uppercase tracking-wide border-b border-gray-100">
-                      Matching Properties ({results.length})
-                    </div>
-                    <ul className="py-1">
-                      {results.map((property, index) => (
-                        <li key={property.id}>
-                          <button
-                            type="button"
-                            onClick={() => handleSelect(property)}
-                            className="w-full text-left px-4 py-3 hover:bg-primary-50 transition-colors border-b border-gray-50 last:border-b-0"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1">
-                                <div className="font-medium text-dark-green mb-1">
-                                  {property.shortAddress}
-                                </div>
-                                <div className="text-sm text-muted-600">
-                                  {property.suburb}, {property.state} {property.postcode}
-                                </div>
-                                <div className="flex items-center gap-3 mt-2 text-xs text-muted-600">
-                                  {property.beds > 0 && (
-                                    <span>{property.beds} bed{property.beds !== 1 ? 's' : ''}</span>
-                                  )}
-                                  {property.baths > 0 && (
-                                    <span>{property.baths} bath{property.baths !== 1 ? 's' : ''}</span>
-                                  )}
-                                  <span className="text-primary-600 font-medium">
-                                    {property.propertyType}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="text-right flex-shrink-0">
-                                <div className="text-sm font-semibold text-dark-green">
-                                  {new Intl.NumberFormat('en-AU', {
-                                    style: 'currency',
-                                    currency: 'AUD',
-                                    maximumFractionDigits: 0,
-                                  }).format(property.priceEstimate.mid)}
-                                </div>
-                              </div>
-                            </div>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : query.trim().length >= 1 ? (
-                  <div className="p-4 text-center text-muted-600">
-                    <p className="text-sm">No properties found matching "{query.trim()}"</p>
-                    <p className="text-xs mt-1">Try a different search term</p>
-                  </div>
-                ) : null}
-              </div>
-            )}
           </div>
           <div
             onClick={handleSubmit}
@@ -357,6 +274,121 @@ function PropertySearch({
           </div>
         </div>
       </form>
+
+      {/* Recent Searches Dropdown - Outside flex container */}
+      {showRecentSearches && query.trim().length === 0 && recentSearches.length > 0 && (
+        <div
+          ref={resultsRef}
+          className="absolute z-50 top-full left-0 right-0 mt-[6px] bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto"
+        >
+          <div className="py-2">
+            <div className="px-4 py-2 flex items-center justify-between border-b border-gray-100">
+              <div className="text-xs font-semibold text-muted-600 uppercase tracking-wide">
+                Recent Searches
+              </div>
+              <button
+                type="button"
+                onClick={clearRecentSearches}
+                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+              >
+                Clear All
+              </button>
+            </div>
+            <ul className="py-1">
+              {recentSearches.map((recentSearch, index) => (
+                <li key={`${recentSearch.term}-${index}`}>
+                  <button
+                    type="button"
+                    onClick={() => handleRecentSearchClick(recentSearch)}
+                    className="w-full text-left px-4 py-3 hover:bg-primary-50 transition-colors border-b border-gray-50 last:border-b-0 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-4 h-4 text-muted-600 flex-shrink-0" strokeWidth={1.5} />
+                      <span className="text-sm text-gray-900">{recentSearch.term}</span>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Suggestions Dropdown - Outside flex container */}
+      {showResults &&
+        (results.length > 0 || isLoading) &&
+        query.trim().length >= 1 && (
+          <div
+            ref={resultsRef}
+            className="absolute z-50 top-full left-0 right-0 mt-[6px] bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden"
+          >
+            {isLoading ? (
+              <div className="p-4 text-center text-muted-600 flex items-center justify-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" strokeWidth={1.5} />
+                <span>Searching...</span>
+              </div>
+            ) : results.length > 0 ? (
+              <div>
+                {/* Header with building icon and count - Light gray background */}
+                <div className="px-3 py-1.5 bg-gray-100 flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-dark-green" strokeWidth={1.5} />
+                  <span className="text-sm font-semibold text-dark-green">
+                    {results.length} {results.length === 1 ? 'Property' : 'Properties'} Found
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className="ml-auto text-xs text-muted-500 hover:text-red-500 font-medium flex items-center gap-1 transition-colors"
+                  >
+                    <X className="w-3 h-3" strokeWidth={1.5} />
+                    Clear
+                  </button>
+                </div>
+                {/* Results list with dividers */}
+                <ul
+                  className="divide-y divide-gray-100 overflow-y-auto min-h-[100px]"
+                  style={{ maxHeight: `${maxDropdownHeight}px` }}
+                >
+                  {results.map((property, index) => (
+                    <li key={property.id}>
+                      <button
+                        type="button"
+                        onClick={() => handleSelect(property)}
+                        className="w-full text-left px-3 py-1.5 landscape:py-1 md:landscape:py-1.5 hover:bg-primary-50/60 transition-colors group flex items-center justify-between"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-sm text-dark-green truncate group-hover:text-primary-600 transition-colors mb-0.5">
+                            {property.shortAddress}
+                          </div>
+                          <div className="text-[11px] text-muted-500 truncate">
+                            {property.suburb}, {property.state} {property.postcode}
+                          </div>
+                        </div>
+                        <div className="text-gray-400 group-hover:text-gray-600 transition-colors ml-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                {/* Footer text */}
+                {results.length > 5 && (
+                  <div className="px-4 py-2 text-center text-xs text-muted-400 bg-white">
+                    Scroll to see more results
+                  </div>
+                )}
+              </div>
+            ) : query.trim().length >= 1 ? (
+              <div className="p-4 text-center text-muted-600">
+                <p className="text-sm">No properties found matching "{query.trim()}"</p>
+                <p className="text-xs mt-1">Try a different search term</p>
+              </div>
+            ) : null}
+          </div>
+        )}
+
 
       {/* Validation Error */}
       {validationError && (

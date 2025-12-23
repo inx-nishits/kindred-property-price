@@ -1,21 +1,22 @@
-import { memo } from 'react'
+'use client'
 
 /**
- * ScrollReveal - Simple wrapper component (animations removed)
- * Just renders children normally
+ * ScrollReveal - Simple wrapper component for scroll animations
+ * Uses Framer Motion for smooth reveal effects
  */
-function ScrollReveal({
-  children,
-  delay = 0,
-  duration = 0.6,
-  direction = 'up',
-  distance = 30,
-  className = '',
-  once = true,
-}) {
-  return <div className={className}>{children}</div>
+import { motion } from 'framer-motion'
+
+function ScrollReveal({ children, delay = 0 }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.5, delay }}
+    >
+      {children}
+    </motion.div>
+  )
 }
 
-// Memoize component to prevent unnecessary re-renders
-export default memo(ScrollReveal)
-
+export default ScrollReveal

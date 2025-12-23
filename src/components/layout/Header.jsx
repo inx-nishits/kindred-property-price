@@ -1,7 +1,9 @@
+'use client'
+
 import { useState, useEffect } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import logoImage from '../../assets/images/logo.png'
+import logoImage from '@/assets/images/logo.png'
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -159,9 +161,9 @@ function Header() {
         <div className="flex items-center justify-between h-[64px] lg:h-[100px] gap-4">
           {/* Logo - left aligned */}
           <div className="flex-shrink-0">
-            <Link to="/" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <img
-                src={logoImage}
+                src={logoImage.src}
                 alt="Kindred Logo"
                 className="h-8 md:h-10 w-auto object-contain"
               />
@@ -169,7 +171,7 @@ function Header() {
           </div>
 
           {/* Center nav - Dropdown menus */}
-          <div className="hidden lg:flex flex-1 items-center justify-center gap-8">
+          <div className="hidden lg:flex flex-1 items-center justify-center gap-4 xl:gap-8">
             {menuItems.map((menu) => (
               <div
                 key={menu.id}
@@ -178,8 +180,8 @@ function Header() {
                 onMouseLeave={handleMouseLeave}
               >
                 <button
-                  className="flex items-center gap-1.5 py-2 text-[18px] font-semibold tracking-tight transition-colors"
-                  style={{ color: '#163B2A' }}
+                  className="flex items-center gap-1.5 py-2 text-[14px] xl:text-[18px] font-semibold tracking-tight transition-colors"
+                  style={{ color: 'var(--green-900)' }}
                   aria-expanded={activeDropdown === menu.id}
                 >
                   {menu.label}
@@ -215,7 +217,7 @@ function Header() {
                           item.isInternal ? (
                             <Link
                               key={index}
-                              to={item.link}
+                              href={item.link}
                               className="group block p-[18px] transition-colors"
                               style={{ borderRadius: '18px' }}
                             >
@@ -334,7 +336,7 @@ function Header() {
               href="https://www.kindred.com.au/property"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:inline-flex text-[18px] font-semibold tracking-tight transition-colors text-[color:var(--green-900)] opacity-80 hover:opacity-100"
+              className="hidden lg:inline-flex text-[14px] xl:text-[18px] font-semibold tracking-tight transition-colors text-[color:var(--green-900)] opacity-80 hover:opacity-100"
             >
               View properties
             </a>
@@ -418,12 +420,12 @@ function Header() {
                 {/* Sidebar Header - Sticky */}
                 <div className="flex-shrink-0 flex items-center justify-between h-[64px] md:h-20 px-4 md:px-6 border-b border-gray-200 bg-white">
                   <Link
-                    to="/"
+                    href="/"
                     onClick={closeSidebar}
                     className="flex items-center"
                   >
                     <img
-                      src={logoImage}
+                      src={logoImage.src}
                       alt="Kindred Logo"
                       className="h-8 md:h-10 w-auto object-contain"
                     />
@@ -469,14 +471,14 @@ function Header() {
                           className="w-full flex items-center justify-between px-4 py-4 text-left transition-colors hover:bg-gray-50"
                           aria-expanded={isExpanded}
                         >
-                          <span className="text-[18px] md:text-[20px] font-bold" style={{ color: '#163B2A' }}>
+                          <span className="text-[18px] md:text-[20px] font-bold" style={{ color: 'var(--green-900)' }}>
                             {menu.label}
                           </span>
                           <svg
                             className={`w-5 h-5 md:w-6 md:h-6 transition-transform duration-300 flex-shrink-0 ${isExpanded ? 'rotate-180' : ''
                               }`}
                             fill="none"
-                            stroke="#163B2A"
+                            stroke="var(--green-900)"
                             viewBox="0 0 24 24"
                           >
                             <path
@@ -503,7 +505,7 @@ function Header() {
                                   item.isInternal ? (
                                     <Link
                                       key={itemIndex}
-                                      to={item.link}
+                                      href={item.link}
                                       onClick={closeSidebar}
                                       className="group flex items-start justify-between px-3 py-3 rounded-lg transition-all duration-200 hover:bg-gray-50"
                                     >
@@ -599,7 +601,7 @@ function Header() {
                       rel="noopener noreferrer"
                       onClick={closeSidebar}
                       className="flex items-center px-4 py-4 text-[18px] md:text-[20px] font-bold transition-all duration-200 hover:bg-gray-50"
-                      style={{ color: '#163B2A' }}
+                      style={{ color: 'var(--green-900)' }}
                     >
                       View properties
                     </a>

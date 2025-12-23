@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * PageTransition - Simple wrapper component (animations removed)
  * Just renders children normally
@@ -7,4 +9,3 @@ function PageTransition({ children }) {
 }
 
 export default PageTransition
-
