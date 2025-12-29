@@ -8,7 +8,7 @@
  * - Recommended services: Brevo (Sendinblue), SendGrid, or AWS SES
  * - PDF generation can be done client-side (jsPDF) or server-side (better for complex layouts)
  * 
- * See docs/Email-Service-Proposal-Brevo.md for detailed integration guide
+ * 
  */
 
 // Simulate API delay
@@ -31,9 +31,9 @@ export const generatePDFReport = async (property, userData) => {
   // 3. Add sections: Price Estimate, Rental Estimate, Comparable Sales, etc.
   // 4. Add footer with disclaimer
   // 5. Return PDF blob or base64 string
-  
+
   await delay(500) // Simulate PDF generation time
-  
+
   // For now, return a mock response
   // In production, this would return actual PDF blob
   return {
@@ -66,12 +66,12 @@ export const sendPropertyReportEmail = async (userData, pdfData, property) => {
   // - Subject: "Your Property Report for [Address]"
   // - Body: Greeting, property summary, PDF attachment
   // - Footer: Contact info, unsubscribe link
-  
+
   await delay(800) // Simulate email sending time
-  
+
   // Construct full name from firstName and lastName for email
   const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.name || 'Valued Customer'
-  
+
   // For now, log to console (in production, this would actually send email)
   console.log('Email would be sent:', {
     to: userData.email,
@@ -81,7 +81,7 @@ export const sendPropertyReportEmail = async (userData, pdfData, property) => {
     propertyId: property.id,
     hasPDF: !!pdfData,
   })
-  
+
   return {
     success: true,
     message: 'Report sent successfully',
@@ -100,14 +100,14 @@ export const submitLeadFormAndSendReport = async (formData, property) => {
   try {
     // Step 1: Generate PDF report
     const pdfResult = await generatePDFReport(property, formData)
-    
+
     // Step 2: Send email with PDF
     const emailResult = await sendPropertyReportEmail(
       formData,
       pdfResult.pdfBlob || pdfResult.pdfUrl,
       property
     )
-    
+
     return {
       success: true,
       message: 'Your comprehensive property report has been sent to your email.',
@@ -129,6 +129,6 @@ export const isEmailServiceConfigured = () => {
   // In production, check environment variables or config
   const apiKey = import.meta.env.VITE_EMAIL_SERVICE_API_KEY
   const apiUrl = import.meta.env.VITE_EMAIL_SERVICE_API_URL
-  
+
   return !!(apiKey || apiUrl)
 }

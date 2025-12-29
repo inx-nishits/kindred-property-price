@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+
 import { Mail, Phone, MapPin, ArrowRight, CheckCircle } from 'lucide-react'
 
 import SEO from '../components/common/SEO'
@@ -39,6 +40,8 @@ function Contact() {
     })
 
   }
+
+
 
 
 
@@ -136,7 +139,7 @@ function Contact() {
 
               <p className="text-lg text-muted-600 mb-10 max-w-lg leading-relaxed">
 
-                Have a property question or need expert advice? Our friendly team 
+                Have a property question or need expert advice? Our friendly team
 
                 is ready to assist you with all your real estate needs.
 
@@ -208,269 +211,269 @@ function Contact() {
 
               <div className="bg-white rounded-md p-8 md:p-10 shadow-md border border-gray-200">
 
-                  <div className="mb-8">
+                <div className="mb-8">
 
-                    <h2 className="text-2xl font-heading font-bold text-dark-green mb-2">Send us a message</h2>
+                  <h2 className="text-2xl font-heading font-bold text-dark-green mb-2">Send us a message</h2>
 
-                    <p className="text-muted-500">Fill out the form and we'll be in touch soon</p>
+                  <p className="text-muted-500">Fill out the form and we'll be in touch soon</p>
 
-                  </div>
+                </div>
 
 
 
-                  {submitted ? (
+                {submitted ? (
 
-                    <div className="text-center py-12">
+                  <div className="text-center py-12">
 
-                      <div className="w-20 h-20 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <div className="w-20 h-20 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-6">
 
-                        <CheckCircle className="w-10 h-10 text-white" strokeWidth={2} />
-
-                      </div>
-
-                      <h3 className="text-2xl font-heading font-bold text-dark-green mb-3">Message sent!</h3>
-
-                      <p className="text-muted-600 mb-6">We'll get back to you within 48 hours.</p>
-
-                      <button
-
-                        onClick={() => setSubmitted(false)}
-
-                        className="text-primary-500 font-medium hover:text-primary-600 transition-colors inline-flex items-center gap-2"
-
-                      >
-
-                        Send another message
-
-                        <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
-
-                      </button>
+                      <CheckCircle className="w-10 h-10 text-white" strokeWidth={2} />
 
                     </div>
 
-                  ) : (
+                    <h3 className="text-2xl font-heading font-bold text-dark-green mb-3">Message sent!</h3>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <p className="text-muted-600 mb-6">We'll get back to you within 48 hours.</p>
 
-                      <div className="grid sm:grid-cols-2 gap-5">
+                    <button
 
-                        <div>
+                      onClick={() => setSubmitted(false)}
 
-                          <label htmlFor="firstName" className="block text-sm font-medium text-dark-green mb-2">
+                      className="text-primary-500 font-medium hover:text-primary-600 transition-colors inline-flex items-center gap-2"
 
-                            First Name
+                    >
 
-                          </label>
+                      Send another message
 
-                          <input
+                      <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
 
-                            type="text"
+                    </button>
 
-                            id="firstName"
+                  </div>
 
-                            name="firstName"
+                ) : (
 
-                            value={formData.firstName}
+                  <form onSubmit={handleSubmit} className="space-y-5">
 
-                            onChange={handleChange}
-
-                            required
-
-                            className="w-full px-4 py-3.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
-
-                            placeholder="John"
-
-                          />
-
-                        </div>
-
-                        <div>
-
-                          <label htmlFor="lastName" className="block text-sm font-medium text-dark-green mb-2">
-
-                            Last Name
-
-                          </label>
-
-                          <input
-
-                            type="text"
-
-                            id="lastName"
-
-                            name="lastName"
-
-                            value={formData.lastName}
-
-                            onChange={handleChange}
-
-                            required
-
-                            className="w-full px-4 py-3.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
-
-                            placeholder="Smith"
-
-                          />
-
-                        </div>
-
-                      </div>
-
-
+                    <div className="grid sm:grid-cols-2 gap-5">
 
                       <div>
 
-                        <label htmlFor="email" className="block text-sm font-medium text-dark-green mb-2">
+                        <label htmlFor="firstName" className="block text-sm font-medium text-dark-green mb-2">
 
-                          Email
+                          First Name
 
                         </label>
 
                         <input
 
-                          type="email"
+                          type="text"
 
-                          id="email"
+                          id="firstName"
 
-                          name="email"
+                          name="firstName"
 
-                          value={formData.email}
+                          value={formData.firstName}
 
                           onChange={handleChange}
 
                           required
 
-                          className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-300"
+                          className="w-full px-4 py-3.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
 
-                          placeholder="john@example.com"
+                          placeholder="John"
 
                         />
 
                       </div>
 
-
-
                       <div>
 
-                        <label htmlFor="phone" className="block text-sm font-medium text-dark-green mb-2">
+                        <label htmlFor="lastName" className="block text-sm font-medium text-dark-green mb-2">
 
-                          Phone <span className="text-muted-400 font-normal">(optional)</span>
+                          Last Name
 
                         </label>
 
                         <input
 
-                          type="tel"
+                          type="text"
 
-                          id="phone"
+                          id="lastName"
 
-                          name="phone"
+                          name="lastName"
 
-                          value={formData.phone}
-
-                          onChange={handleChange}
-
-                          className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-300"
-
-                          placeholder="04XX XXX XXX"
-
-                        />
-
-                      </div>
-
-
-
-                      <div>
-
-                        <label htmlFor="message" className="block text-sm font-medium text-dark-green mb-2">
-
-                          Message
-
-                        </label>
-
-                        <textarea
-
-                          id="message"
-
-                          name="message"
-
-                          value={formData.message}
+                          value={formData.lastName}
 
                           onChange={handleChange}
 
                           required
 
-                          rows={4}
+                          className="w-full px-4 py-3.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
 
-                          className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-300 resize-none"
-
-                          placeholder="How can we help you?"
+                          placeholder="Smith"
 
                         />
 
                       </div>
 
+                    </div>
 
 
-                      <button
 
-                        type="submit"
+                    <div>
 
-                        disabled={isSubmitting}
+                      <label htmlFor="email" className="block text-sm font-medium text-dark-green mb-2">
 
-                        className="w-full py-4 bg-primary-500 text-white font-semibold rounded-full shadow-sm hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                        Email
 
-                      >
+                      </label>
 
-                        {isSubmitting ? (
+                      <input
 
-                          <span className="flex items-center justify-center gap-2">
+                        type="email"
 
-                            <span className="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        id="email"
 
-                            Sending...
+                        name="email"
 
-                          </span>
+                        value={formData.email}
 
-                        ) : (
+                        onChange={handleChange}
 
-                          <span className="flex items-center justify-center gap-2">
+                        required
 
-                            Send Message
+                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-300"
 
-                            <svg
+                        placeholder="john@example.com"
 
-                              className="w-5 h-5 transform rotate-45"
+                      />
 
-                              fill="none"
+                    </div>
 
-                              viewBox="0 0 24 24"
 
-                              stroke="currentColor"
 
-                            >
+                    <div>
 
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      <label htmlFor="phone" className="block text-sm font-medium text-dark-green mb-2">
 
-                            </svg>
+                        Phone <span className="text-muted-400 font-normal">(optional)</span>
 
-                          </span>
+                      </label>
 
-                        )}
+                      <input
 
-                      </button>
+                        type="tel"
 
-                    </form>
+                        id="phone"
 
-                  )}
+                        name="phone"
 
-                </div>
+                        value={formData.phone}
+
+                        onChange={handleChange}
+
+                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-300"
+
+                        placeholder="04XX XXX XXX"
+
+                      />
+
+                    </div>
+
+
+
+                    <div>
+
+                      <label htmlFor="message" className="block text-sm font-medium text-dark-green mb-2">
+
+                        Message
+
+                      </label>
+
+                      <textarea
+
+                        id="message"
+
+                        name="message"
+
+                        value={formData.message}
+
+                        onChange={handleChange}
+
+                        required
+
+                        rows={4}
+
+                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-300 resize-none"
+
+                        placeholder="How can we help you?"
+
+                      />
+
+                    </div>
+
+
+
+                    <button
+
+                      type="submit"
+
+                      disabled={isSubmitting}
+
+                      className="w-full py-4 bg-primary-500 text-white font-semibold rounded-full shadow-sm hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+
+                    >
+
+                      {isSubmitting ? (
+
+                        <span className="flex items-center justify-center gap-2">
+
+                          <span className="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+
+                          Sending...
+
+                        </span>
+
+                      ) : (
+
+                        <span className="flex items-center justify-center gap-2">
+
+                          Send Message
+
+                          <svg
+
+                            className="w-5 h-5 transform rotate-45"
+
+                            fill="none"
+
+                            viewBox="0 0 24 24"
+
+                            stroke="currentColor"
+
+                          >
+
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+
+                          </svg>
+
+                        </span>
+
+                      )}
+
+                    </button>
+
+                  </form>
+
+                )}
 
               </div>
 
             </div>
 
           </div>
+
+        </div>
 
       </section>
 
