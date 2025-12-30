@@ -112,13 +112,7 @@ function PropertySearch({
       return
     }
 
-    // Minimum 2 characters before calling API
-    if (trimmedQuery.length < 2) {
-      setResults([])
-      setShowResults(false)
-      setIsLoading(false)
-      return
-    }
+
 
     let isCancelled = false
 
@@ -129,14 +123,14 @@ function PropertySearch({
     const performSearch = async () => {
       try {
         const searchResults = await searchPropertiesByQuery(trimmedQuery)
-        
+
         if (isCancelled) {
           return
         }
         setResults(searchResults)
         setShowResults(true) // Always show dropdown if we have query (even if no results)
         setIsLoading(false)
-        
+
         if (onSearchResultsChange) {
           onSearchResultsChange(searchResults)
         }
@@ -201,15 +195,11 @@ function PropertySearch({
       return
     }
 
-    const validation = validateAustralianAddress(trimmedQuery)
-    if (!validation.isValid) {
-      setValidationError(validation.error)
-      return
-    }
+
 
     if (results.length > 0) {
       handleSelect(results[0])
-    } else if (trimmedQuery.length >= 3) {
+    } else {
       setValidationError('No properties found. Please try a different address.')
     }
   }
@@ -246,8 +236,7 @@ function PropertySearch({
                 const newValue = e.target.value
                 setQuery(newValue)
                 setValidationError(null)
-                setHasSearched(false)
-                
+
                 // Show recent searches if input is empty
                 if (newValue.trim().length === 0) {
                   setShowResults(false)
@@ -317,7 +306,7 @@ function PropertySearch({
               </button>
             </div>
             <ul className="py-1">
-                  {recentSearches.map((recentSearch) => (
+              {recentSearches.map((recentSearch) => (
                 <li key={recentSearch.term}>
                   <button
                     type="button"
@@ -372,7 +361,7 @@ function PropertySearch({
                   style={{ maxHeight: `${maxDropdownHeight}px` }}
                 >
                   {results.map((property) => (
-                  <li key={property.id}>
+                    <li key={property.id}>
                       <button
                         type="button"
                         onClick={() => handleSelect(property)}
