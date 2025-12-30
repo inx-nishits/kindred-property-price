@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
-import { MapPin, X, Clock, Loader2, Home as HomeIcon, Building2, AlertCircle, Hash } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { MapPin, X, Clock, Loader2, Building2, AlertCircle } from 'lucide-react'
 import { searchPropertiesByQuery } from '../../services/propertyService'
 import { validateAustralianAddress } from '../../utils/helpers'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
@@ -7,7 +7,6 @@ import { useLocalStorage } from '../../hooks/useLocalStorage'
 function PropertySearch({
   onSelectProperty,
   className = '',
-  showHelpTagline = true,
   onSearchResultsChange,
   onClear,
 }) {
@@ -16,7 +15,6 @@ function PropertySearch({
   const [isLoading, setIsLoading] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [validationError, setValidationError] = useState(null)
-  const [hasSearched, setHasSearched] = useState(false)
   const [recentSearches, setRecentSearches] = useLocalStorage('property_recent_searches', [])
   const [showRecentSearches, setShowRecentSearches] = useState(false)
   const [maxDropdownHeight, setMaxDropdownHeight] = useState(400)
@@ -24,13 +22,12 @@ function PropertySearch({
   const resultsRef = useRef(null)
   const inputRef = useRef(null)
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setQuery('')
     setResults([])
     setShowResults(false)
     setShowRecentSearches(false)
     setValidationError(null)
-    setHasSearched(false)
     if (onSearchResultsChange) {
       onSearchResultsChange([])
     }
@@ -38,7 +35,7 @@ function PropertySearch({
       onClear()
     }
     inputRef.current?.focus()
-  }
+  }, [onSearchResultsChange, onClear])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -65,7 +62,7 @@ function PropertySearch({
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscape)
     }
-  }, [query, onSearchResultsChange, onClear])
+  }, [query, onSearchResultsChange, onClear, handleClear])
 
   // Dynamic height calculation
   useEffect(() => {
@@ -75,7 +72,6 @@ function PropertySearch({
       const searchRect = searchRef.current.getBoundingClientRect()
       const viewportHeight = window.innerHeight
       const searchBottom = searchRect.bottom
-      const searchTop = searchRect.top
 
       // Check if search box is in the lower part of viewport (likely footer)
       const isNearBottom = searchBottom > viewportHeight * 0.7
@@ -102,47 +98,69 @@ function PropertySearch({
   }, [showResults, results.length])
 
   useEffect(() => {
-    const performSearch = async () => {
-      const trimmedQuery = query.trim()
+    const trimmedQuery = query.trim()
 
-      // Show results for any input (real-time search)
-      if (trimmedQuery.length < 1) {
-        setResults([])
-        setShowResults(false)
-        setValidationError(null)
-        if (onSearchResultsChange) {
-          onSearchResultsChange([])
-        }
-        return
-      }
-
-      // For real-time dropdown, don't validate strictly - just search
-      // Validation will only show error on form submit
+    // If input is empty, clear everything and don't call API
+    if (trimmedQuery.length === 0) {
+      setResults([])
+      setShowResults(false)
       setValidationError(null)
-      setIsLoading(true)
+      setIsLoading(false)
+      if (onSearchResultsChange) {
+        onSearchResultsChange([])
+      }
+      return
+    }
+
+    // Minimum 2 characters before calling API
+    if (trimmedQuery.length < 2) {
+      setResults([])
+      setShowResults(false)
+      setIsLoading(false)
+      return
+    }
+
+    let isCancelled = false
+
+    // Set loading state immediately when we have enough characters
+    setIsLoading(true)
+    setShowResults(true)
+
+    const performSearch = async () => {
       try {
         const searchResults = await searchPropertiesByQuery(trimmedQuery)
+        
+        if (isCancelled) {
+          return
+        }
         setResults(searchResults)
-        // Show results dropdown immediately when there are matches
-        setShowResults(searchResults.length > 0)
+        setShowResults(true) // Always show dropdown if we have query (even if no results)
+        setIsLoading(false)
+        
         if (onSearchResultsChange) {
           onSearchResultsChange(searchResults)
         }
       } catch (error) {
+        if (isCancelled) {
+          return
+        }
         console.error('Search error:', error)
         setResults([])
-        setShowResults(false)
+        setShowResults(true) // Show "no results" message
+        setIsLoading(false)
         if (onSearchResultsChange) {
           onSearchResultsChange([])
         }
-      } finally {
-        setIsLoading(false)
       }
     }
 
-    // Ultra-fast debounce for instant real-time feel (30ms for immediate response)
-    const debounceTimer = setTimeout(performSearch, 30)
-    return () => clearTimeout(debounceTimer)
+    // Debounce API calls while typing (300ms delay)
+    const debounceTimer = setTimeout(performSearch, 300)
+
+    return () => {
+      isCancelled = true
+      clearTimeout(debounceTimer)
+    }
   }, [query, onSearchResultsChange])
 
   const handleSelect = (property) => {
@@ -189,7 +207,6 @@ function PropertySearch({
       return
     }
 
-    setHasSearched(true)
     if (results.length > 0) {
       handleSelect(results[0])
     } else if (trimmedQuery.length >= 3) {
@@ -226,18 +243,23 @@ function PropertySearch({
               type="text"
               value={query}
               onChange={(e) => {
-                setQuery(e.target.value)
+                const newValue = e.target.value
+                setQuery(newValue)
                 setValidationError(null)
                 setHasSearched(false)
-                // Show suggestions immediately when typing (real-time)
-                if (e.target.value.trim().length >= 1) {
-                  setShowResults(true)
-                  setShowRecentSearches(false)
-                } else {
+                
+                // Show recent searches if input is empty
+                if (newValue.trim().length === 0) {
                   setShowResults(false)
                   if (recentSearches.length > 0) {
                     setShowRecentSearches(true)
+                  } else {
+                    setShowRecentSearches(false)
                   }
+                } else {
+                  // Hide recent searches when typing
+                  setShowRecentSearches(false)
+                  // showResults will be managed by the useEffect based on API response
                 }
               }}
               ref={inputRef}
@@ -295,8 +317,8 @@ function PropertySearch({
               </button>
             </div>
             <ul className="py-1">
-              {recentSearches.map((recentSearch, index) => (
-                <li key={`${recentSearch.term}-${index}`}>
+                  {recentSearches.map((recentSearch) => (
+                <li key={recentSearch.term}>
                   <button
                     type="button"
                     onClick={() => handleRecentSearchClick(recentSearch)}
@@ -349,8 +371,8 @@ function PropertySearch({
                   className="divide-y divide-gray-100 overflow-y-auto min-h-[100px]"
                   style={{ maxHeight: `${maxDropdownHeight}px` }}
                 >
-                  {results.map((property, index) => (
-                    <li key={property.id}>
+                  {results.map((property) => (
+                  <li key={property.id}>
                       <button
                         type="button"
                         onClick={() => handleSelect(property)}

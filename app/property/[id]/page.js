@@ -13,6 +13,7 @@ export default function PropertyPage() {
     const params = useParams()
     const router = useRouter()
     const [property, setProperty] = useState(null)
+    console.log(property?.schools, "property.schools")
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -22,13 +23,7 @@ export default function PropertyPage() {
     const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-    // Mock property images
-    const propertyImages = [
-        { id: 1, url: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&h=800&fit=crop&q=80', alt: 'Property exterior' },
-        { id: 2, url: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&h=800&fit=crop&q=80', alt: 'Property interior' },
-        { id: 3, url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&h=800&fit=crop&q=80', alt: 'Property kitchen' },
-        { id: 4, url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200&h=800&fit=crop&q=80', alt: 'Property bedroom' },
-    ]
+    const propertyImages = property?.images || []
 
     // Fetch property details
     useEffect(() => {
@@ -115,6 +110,15 @@ export default function PropertyPage() {
         })
     }
 
+    const formatLandSize = (size) => {
+        if (!size) return ''
+        // If land size is very large (rural property), convert to hectares
+        if (size >= 10000) {
+            return `${(size / 10000).toFixed(2)}`
+        }
+        return `${size.toLocaleString()} m²`
+    }
+
     if (isLoading) {
         return (
             <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 py-12">
@@ -195,8 +199,8 @@ export default function PropertyPage() {
                         </ScrollReveal>
                     )}
 
-                    {/* Content with blur effect when locked */}
-                    <div className={!isUnlocked ? 'blur-md select-none pointer-events-none opacity-50' : ''}>
+                    {/* Content */}
+                    <div>
                         {/* Property Overview Section */}
                         <ScrollReveal>
                             <div className="mb-12">
@@ -205,22 +209,26 @@ export default function PropertyPage() {
                                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-[#163331] mb-4">
                                         {property.address}
                                     </h1>
-                                    <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-                                        <span>{property.beds} Bed</span>
-                                        <span>•</span>
-                                        <span>{property.baths} Bath</span>
+                                    <div className={`flex flex-wrap items-center gap-2 text-sm text-gray-600 ${!isUnlocked ? 'blur-sm select-none opacity-60' : ''}`}>
+                                        {property.beds > 0 && <span>{property.beds} Bed</span>}
+                                        {property.beds > 0 && property.baths > 0 && <span>•</span>}
+                                        {property.baths > 0 && <span>{property.baths} Bath</span>}
                                         {(property.parking > 0 || property.cars > 0) && (
                                             <>
                                                 <span>•</span>
-                                                <span>{property.parking || property.cars || 0} Car</span>
+                                                <span>{property.parking || property.cars} Car</span>
                                             </>
                                         )}
-                                        <span>•</span>
-                                        <span>{property.propertyType || 'House'}</span>
+                                        {property.propertyType && (
+                                            <>
+                                                <span>•</span>
+                                                <span>{property.propertyType}</span>
+                                            </>
+                                        )}
                                         {property.landSize > 0 && (
                                             <>
                                                 <span>•</span>
-                                                <span>Land: {property.landSize} m²</span>
+                                                <span>Land: {formatLandSize(property.landSize)}</span>
                                             </>
                                         )}
                                         {property.buildingSize > 0 && (
@@ -234,8 +242,8 @@ export default function PropertyPage() {
 
                                 {/* Estimated Value and Property Image */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                                    {/* Estimated Value Card */}
-                                    <div className="bg-[#163331] text-white rounded-xl p-8 md:p-10 relative overflow-hidden shadow-2xl">
+                                    {/* Estimated Value Card - Blurred if locked */}
+                                    <div className={`bg-[#163331] text-white rounded-xl p-8 md:p-10 relative overflow-hidden shadow-2xl ${!isUnlocked ? 'blur-md select-none pointer-events-none opacity-80' : ''}`}>
                                         <div className="absolute inset-0 bg-gradient-to-br from-[#163331] via-[#163331] to-[#0d1f1e] opacity-90"></div>
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
                                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
@@ -271,21 +279,21 @@ export default function PropertyPage() {
                                                     </p>
                                                 </div>
                                             ) : (
-                                                <div className="text-3xl md:text-4xl font-bold">Loading...</div>
+                                                <div className="text-3xl md:text-4xl font-bold">Price estimate not available</div>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Property Image */}
+                                    {/* Property Image - Always Visible */}
                                     <div
                                         className="relative rounded-xl overflow-hidden bg-gradient-to-br from-[#48D98E] via-[#3bc57d] to-[#2fb06d] shadow-2xl group cursor-pointer"
-                                        onClick={() => setIsImageGalleryOpen(true)}
+                                        onClick={() => propertyImages.length > 0 && setIsImageGalleryOpen(true)}
                                     >
                                         <div className="aspect-[4/3] relative">
                                             {propertyImages && propertyImages.length > 0 ? (
                                                 <img
                                                     src={propertyImages[0].url}
-                                                    alt={propertyImages[0].alt || 'Property image'}
+                                                    alt={propertyImages[0].alt || property.address}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                 />
                                             ) : (
@@ -306,7 +314,7 @@ export default function PropertyPage() {
                                                                 />
                                                             </svg>
                                                         </div>
-                                                        <div className="text-white text-base font-semibold tracking-wide">Property Image</div>
+                                                        <div className="text-white text-base font-semibold tracking-wide">No Image Available</div>
                                                     </div>
                                                 </div>
                                             )}
@@ -325,7 +333,9 @@ export default function PropertyPage() {
                                                     <svg className="w-5 h-5 text-[#163331]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                     </svg>
-                                                    <span className="text-sm font-semibold text-[#163331]">View Gallery</span>
+                                                    <span className="text-sm font-semibold text-[#163331]">
+                                                        View Gallery ({propertyImages.length})
+                                                    </span>
                                                 </button>
                                             </div>
                                         )}
@@ -334,248 +344,274 @@ export default function PropertyPage() {
                             </div>
                         </ScrollReveal>
 
-                        {/* Rental Estimate Section */}
-                        {property.rentalEstimate && (
-                            <ScrollReveal delay={0.1}>
-                                <div className="mb-12">
-                                    <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6">
-                                        Rental Estimate
-                                    </h2>
-                                    <div className="bg-gradient-to-br from-[#E9F2EE] to-[#d4e8e0] rounded-xl p-6 md:p-8 border border-[#48D98E]/20">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
-                                                <div className="text-sm text-gray-600 mb-2 uppercase tracking-wide font-medium">
-                                                    Weekly Rent Range
+                        {/* Below the Fold Content - Blurred if locked */}
+                        <div className={!isUnlocked ? 'blur-md select-none pointer-events-none opacity-50' : ''}>
+                            {/* Rental Estimate Section */}
+                            {property.rentalEstimate && (
+                                <ScrollReveal delay={0.1}>
+                                    <div className="mb-12">
+                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6">
+                                            Rental Estimate
+                                        </h2>
+                                        <div className="bg-gradient-to-br from-[#E9F2EE] to-[#d4e8e0] rounded-xl p-6 md:p-8 border border-[#48D98E]/20">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <div className="text-sm text-gray-600 mb-2 uppercase tracking-wide font-medium">
+                                                        Weekly Rent Range
+                                                    </div>
+                                                    <div className="text-3xl md:text-4xl font-bold text-[#163331] mb-2">
+                                                        {property.rentalEstimate.weekly?.low && property.rentalEstimate.weekly?.high ? (
+                                                            <>{formatCurrency(property.rentalEstimate.weekly.low)} - {formatCurrency(property.rentalEstimate.weekly.high)}/week</>
+                                                        ) : (
+                                                            <>{formatCurrency(property.rentalEstimate.weekly)}/week</>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-sm text-gray-600">
+                                                        Estimated weekly rental income range
+                                                    </div>
                                                 </div>
-                                                <div className="text-3xl md:text-4xl font-bold text-[#163331] mb-2">
-                                                    {formatCurrency(property.rentalEstimate.weekly?.low || property.rentalEstimate.weekly)} - {formatCurrency(property.rentalEstimate.weekly?.high || property.rentalEstimate.weekly)}/week
-                                                </div>
-                                                <div className="text-sm text-gray-600">
-                                                    Estimated weekly rental income range
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <div className="text-sm text-gray-600 mb-2 uppercase tracking-wide font-medium">
-                                                    Rental Yield
-                                                </div>
-                                                <div className="text-3xl md:text-4xl font-bold text-[#163331] mb-2">
-                                                    {property.rentalEstimate.yield}%
-                                                </div>
-                                                <div className="text-sm text-gray-600">
-                                                    Annual rental yield percentage
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </ScrollReveal>
-                        )}
-
-                        {/* Suburb Insights */}
-                        {property.suburbInsights && (
-                            <ScrollReveal delay={0.2}>
-                                <div className="mb-12">
-                                    <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6">
-                                        Suburb Insights
-                                    </h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        {[
-                                            {
-                                                value: formatCurrency(property.suburbInsights.medianPrice),
-                                                label: 'MEDIAN PRICE',
-                                                subtitle: property.suburb
-                                            },
-                                            {
-                                                value: `${property.suburbInsights.growthPercent}%`,
-                                                label: 'GROWTH %',
-                                                subtitle: 'Annual price growth'
-                                            },
-                                            {
-                                                value: property.suburbInsights.demand || 'N/A',
-                                                label: 'DEMAND',
-                                                subtitle: 'Market demand level'
-                                            },
-                                        ].map((stat, index) => (
-                                            <div
-                                                key={index}
-                                                className="bg-gray-100 rounded-lg p-6"
-                                            >
-                                                <div className="text-2xl md:text-3xl font-bold text-[#163331] mb-2">
-                                                    {stat.value}
-                                                </div>
-                                                <div className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide">
-                                                    {stat.label}
-                                                </div>
-                                                {stat.subtitle && (
-                                                    <div className="text-xs text-gray-500">
-                                                        {stat.subtitle}
+                                                {property.rentalEstimate.yield && (
+                                                    <div>
+                                                        <div className="text-sm text-gray-600 mb-2 uppercase tracking-wide font-medium">
+                                                            Rental Yield
+                                                        </div>
+                                                        <div className="text-3xl md:text-4xl font-bold text-[#163331] mb-2">
+                                                            {property.rentalEstimate.yield}%
+                                                        </div>
+                                                        <div className="text-sm text-gray-600">
+                                                            Annual rental yield percentage
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </ScrollReveal>
-                        )}
-
-                        {/* Comparable Sales */}
-                        {property.comparables && property.comparables.length > 0 && (
-                            <ScrollReveal delay={0.3}>
-                                <div className="mb-12">
-                                    <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-4">
-                                        Comparable Sales
-                                    </h2>
-                                    <p className="text-gray-600 mb-6 max-w-3xl">
-                                        Similar properties sold in the last 12 months
-                                    </p>
-                                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                        <div className="divide-y divide-gray-200">
-                                            {property.comparables.slice(0, 6).map((sale, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
-                                                >
-                                                    <div className="w-20 h-20 rounded-lg flex-shrink-0 overflow-hidden bg-gray-200">
-                                                        <img
-                                                            src={[
-                                                                'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=200&h=200&fit=crop&q=80',
-                                                                'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=200&h=200&fit=crop&q=80',
-                                                                'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=200&h=200&fit=crop&q=80',
-                                                                'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200&h=200&fit=crop&q=80',
-                                                                'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=200&h=200&fit=crop&q=80',
-                                                                'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=200&h=200&fit=crop&q=80'
-                                                            ][index % 6]}
-                                                            alt={sale.address}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-start justify-between gap-4 mb-1">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-semibold text-[#163331] text-sm mb-0.5 line-clamp-1">
-                                                                    {sale.address}
-                                                                </div>
-                                                                <div className="text-xs text-gray-600">
-                                                                    Sold {formatDate(sale.saleDate)}
-                                                                </div>
-                                                            </div>
-                                                            <div className="text-right flex-shrink-0">
-                                                                <div className="text-lg font-bold text-[#163331]">
-                                                                    {formatCurrency(sale.salePrice)}
-                                                                </div>
-                                                                <span className="inline-block px-2 py-0.5 bg-[#163331]/10 text-[#163331] text-xs font-medium rounded mt-1">
-                                                                    SOLD
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
-                                                            {sale.beds > 0 && <span>{sale.beds} Bed</span>}
-                                                            {sale.baths > 0 && <span>{sale.baths} Bath</span>}
-                                                            {(sale.parking > 0 || sale.cars > 0) && <span>{sale.parking || sale.cars || 0} Car</span>}
-                                                            {sale.landSize > 0 && <span className="ml-auto">{sale.landSize} m²</span>}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
                                         </div>
                                     </div>
-                                </div>
-                            </ScrollReveal>
-                        )}
+                                </ScrollReveal>
+                            )}
 
-                        {/* Nearby Schools */}
-                        {property.schools && property.schools.length > 0 && (
-                            <ScrollReveal delay={0.5}>
-                                <div className="mb-12">
-                                    <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6">
-                                        Nearby Schools
-                                    </h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {property.schools.map((school, index) => (
-                                            <div
-                                                key={index}
-                                                className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all"
-                                            >
-                                                <div className="font-semibold text-sm text-[#163331] mb-2">
-                                                    {school.name}
+                            {/* Suburb Insights */}
+                            {property.suburbInsights && (
+                                <ScrollReveal delay={0.2}>
+                                    <div className="mb-12">
+                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6">
+                                            Suburb Insights - {property.suburb}
+                                        </h2>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {property.suburbInsights.medianPrice > 0 && (
+                                                <div className="bg-gray-100 rounded-lg p-6">
+                                                    <div className="text-2xl md:text-3xl font-bold text-[#163331] mb-2">
+                                                        {formatCurrency(property.suburbInsights.medianPrice)}
+                                                    </div>
+                                                    <div className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide">
+                                                        MEDIAN PRICE
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">
+                                                        {property.suburb}
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                                                    <span className="px-2 py-0.5 bg-[#E9F2EE] text-[#163331] rounded-full text-xs font-medium">
-                                                        {school.type}
-                                                    </span>
-                                                    <span className="text-xs text-gray-600">{school.yearRange}</span>
+                                            )}
+
+                                            {property.suburbInsights.growthPercent !== undefined && property.suburbInsights.growthPercent !== null && (
+                                                <div className="bg-gray-100 rounded-lg p-6">
+                                                    <div className="text-2xl md:text-3xl font-bold text-[#163331] mb-2">
+                                                        {property.suburbInsights.growthPercent}%
+                                                    </div>
+                                                    <div className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide">
+                                                        GROWTH %
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">
+                                                        Annual price growth
+                                                    </div>
                                                 </div>
-                                                <div className="text-xs text-gray-600 mb-2">{school.distance} km away</div>
-                                                <div className="text-center px-3 py-2 bg-gradient-to-br from-[#E9F2EE] to-[#d4e8e0] rounded-lg inline-block">
-                                                    <div className="text-xl font-bold text-[#163331]">{school.rating}</div>
-                                                    <div className="text-xs text-[#163331] font-medium">Rating</div>
+                                            )}
+
+                                            {property.suburbInsights.demand && (
+                                                <div className="bg-gray-100 rounded-lg p-6">
+                                                    <div className="text-2xl md:text-3xl font-bold text-[#163331] mb-2">
+                                                        {property.suburbInsights.demand}
+                                                    </div>
+                                                    <div className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide">
+                                                        DEMAND
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">
+                                                        Market demand level
+                                                    </div>
                                                 </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </ScrollReveal>
+                            )}
+
+                            {/* Comparable Sales */}
+                            {property.comparables && property.comparables.length > 0 && (
+                                <ScrollReveal delay={0.3}>
+                                    <div className="mb-12">
+                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-4">
+                                            Comparable Sales
+                                        </h2>
+                                        <p className="text-gray-600 mb-6 max-w-3xl">
+                                            Similar properties in the area
+                                        </p>
+                                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                                            <div className="divide-y divide-gray-200">
+                                                {property.comparables.map((sale, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <div className="w-20 h-20 rounded-lg flex-shrink-0 overflow-hidden bg-gray-200">
+                                                            {sale.images && sale.images.length > 0 ? (
+                                                                <img
+                                                                    src={sale.images[0].url}
+                                                                    alt={sale.address}
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        e.target.onerror = null;
+                                                                        e.target.src = 'https://placehold.co/100x100?text=No+Image'; // Fallback
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                                                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                                                    </svg>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-start justify-between gap-4 mb-1">
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="font-semibold text-[#163331] text-sm mb-0.5 line-clamp-1">
+                                                                        {sale.address}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-600">
+                                                                        Sold {formatDate(sale.saleDate)}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="text-right flex-shrink-0">
+                                                                    <div className="text-lg font-bold text-[#163331]">
+                                                                        {formatCurrency(sale.salePrice)}
+                                                                    </div>
+                                                                    <span className="inline-block px-2 py-0.5 bg-[#163331]/10 text-[#163331] text-xs font-medium rounded mt-1">
+                                                                        SOLD
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
+                                                                {sale.beds > 0 && <span>{sale.beds} Bed</span>}
+                                                                {sale.baths > 0 && <span>{sale.baths} Bath</span>}
+                                                                {(sale.parking > 0 || sale.cars > 0) && <span>{sale.parking || sale.cars} Car</span>}
+                                                                {sale.landSize > 0 && <span className="ml-auto">{formatLandSize(sale.landSize)} m²</span>}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
+                                        </div>
                                     </div>
-                                </div>
-                            </ScrollReveal>
-                        )}
+                                </ScrollReveal>
+                            )}
 
-                        {/* Past Sales History */}
-                        {property.salesHistory && property.salesHistory.length > 0 && (
-                            <ScrollReveal delay={0.6}>
-                                <div className="mb-12">
-                                    <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-4">
-                                        Past Sales History
-                                    </h2>
-                                    <p className="text-gray-600 mb-6 max-w-3xl">
-                                        Historical sales data for this property
-                                    </p>
-                                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                        <div className="divide-y divide-gray-200">
-                                            {property.salesHistory.map((sale, index) => (
+                            {/* Nearby Schools */}
+                            {property.schools && property.schools.length > 0 && (
+                                <ScrollReveal delay={0.5}>
+                                    <div className="mb-12">
+                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6">
+                                            Nearby Schools
+                                        </h2>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {property.schools.map((school, index) => (
                                                 <div
                                                     key={index}
-                                                    className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                                                    className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all"
                                                 >
-                                                    <div className="w-16 h-16 rounded-lg flex-shrink-0 overflow-hidden bg-gray-200">
-                                                        <img
-                                                            src={[
-                                                                'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=200&h=200&fit=crop&q=80',
-                                                                'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=200&h=200&fit=crop&q=80',
-                                                                'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=200&h=200&fit=crop&q=80',
-                                                                'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200&h=200&fit=crop&q=80'
-                                                            ][index % 4]}
-                                                            alt={`Property sold on ${formatDate(sale.saleDate)}`}
-                                                            className="w-full h-full object-cover"
-                                                        />
+                                                    <div className="font-semibold text-sm text-[#163331] mb-2">
+                                                        {school.name}
                                                     </div>
-
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-start justify-between gap-4 mb-1">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-semibold text-[#163331] text-sm mb-0.5">
-                                                                    {formatDate(sale.saleDate)}
-                                                                </div>
-                                                                <div className="text-xs text-gray-600">
-                                                                    {sale.saleType || 'Sale'}
-                                                                </div>
-                                                            </div>
-                                                            <div className="text-right flex-shrink-0">
-                                                                <div className="text-lg font-bold text-[#163331]">
-                                                                    {formatCurrency(sale.salePrice)}
-                                                                </div>
-                                                                <span className="inline-block px-2 py-0.5 bg-[#E9F2EE] text-[#163331] text-xs font-medium rounded mt-1">
-                                                                    SOLD
-                                                                </span>
-                                                            </div>
+                                                    <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                                                        <span className="px-2 py-0.5 bg-[#E9F2EE] text-[#163331] rounded-full text-xs font-medium">
+                                                            {school.type}
+                                                        </span>
+                                                        <span className="text-xs text-gray-600">{school.yearRange}</span>
+                                                    </div>
+                                                    <div className="text-xs text-gray-600 mb-2">{school.distance} km away</div>
+                                                    {school.rating && (
+                                                        <div className="text-center px-2 py-1 bg-gradient-to-br from-[#E9F2EE] to-[#d4e8e0] rounded-lg inline-block">
+                                                            <div className="text-md font-bold text-[#163331]">{school.rating}</div>
+                                                            <div className="text-xs text-[#163331] font-medium">{school.rating > 10 ? 'ICSEA' : 'Rating'}</div>
                                                         </div>
-                                                    </div>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
-                                </div>
-                            </ScrollReveal>
-                        )}
+                                </ScrollReveal>
+                            )}
+
+                            {/* Past Sales History */}
+                            {property.salesHistory && property.salesHistory.length > 0 && (
+                                <ScrollReveal delay={0.6}>
+                                    <div className="mb-12">
+                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-4">
+                                            Past Sales History
+                                        </h2>
+                                        <p className="text-gray-600 mb-6 max-w-3xl">
+                                            Historical sales data for this property
+                                        </p>
+                                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                                            <div className="divide-y divide-gray-200">
+                                                {property.salesHistory.map((sale, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <div className="w-16 h-16 rounded-lg flex-shrink-0 overflow-hidden bg-gray-200">
+                                                            {propertyImages && propertyImages.length > 0 ? (
+                                                                <img
+                                                                    src={propertyImages[0].url}
+                                                                    alt={`Property sold on ${formatDate(sale.saleDate)}`}
+                                                                    className="w-full h-full object-cover opacity-80"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                                                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    </svg>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-start justify-between gap-4 mb-1">
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="font-semibold text-[#163331] text-sm mb-0.5">
+                                                                        {formatDate(sale.saleDate)}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-600">
+                                                                        {sale.saleType || 'Sale'}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="text-right flex-shrink-0">
+                                                                    <div className="text-lg font-bold text-[#163331]">
+                                                                        {formatCurrency(sale.salePrice)}
+                                                                    </div>
+                                                                    <span className="inline-block px-2 py-0.5 bg-[#E9F2EE] text-[#163331] text-xs font-medium rounded mt-1">
+                                                                        SOLD
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ScrollReveal>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -591,7 +627,7 @@ export default function PropertyPage() {
             />
 
             {/* Image Gallery Modal */}
-            {isImageGalleryOpen && typeof window !== 'undefined' && createPortal(
+            {isImageGalleryOpen && propertyImages.length > 0 && typeof window !== 'undefined' && createPortal(
                 <div
                     className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
                     style={{
@@ -622,8 +658,8 @@ export default function PropertyPage() {
                         <div className="relative bg-black rounded-xl overflow-hidden mb-4">
                             <div className="aspect-video flex items-center justify-center relative">
                                 <img
-                                    src={propertyImages[currentImageIndex]?.url || propertyImages[0]?.url}
-                                    alt={propertyImages[currentImageIndex]?.alt || 'Property image'}
+                                    src={propertyImages[currentImageIndex]?.url}
+                                    alt={propertyImages[currentImageIndex]?.alt || property.address}
                                     className="w-full h-full object-contain"
                                 />
                             </div>
@@ -656,7 +692,7 @@ export default function PropertyPage() {
                         </div>
 
                         {propertyImages.length > 1 && (
-                            <div className="flex gap-2 overflow-x-auto pb-2">
+                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
                                 {propertyImages.map((image, index) => (
                                     <button
                                         key={image.id}
@@ -668,7 +704,7 @@ export default function PropertyPage() {
                                     >
                                         <img
                                             src={image.url}
-                                            alt={image.alt}
+                                            alt={image.alt || `Gallery image ${index + 1}`}
                                             className="w-full h-full object-cover"
                                         />
                                     </button>
