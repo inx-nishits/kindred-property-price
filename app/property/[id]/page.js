@@ -598,7 +598,7 @@ export default function PropertyPage() {
                                                                     <div className="text-lg font-bold text-[#163331]">
                                                                         {formatCurrency(sale.salePrice)}
                                                                     </div>
-                                                                    <span className="inline-block px-2 py-0.5 bg-[#E9F2EE] text-[#163331] text-xs font-medium rounded mt-1">
+                                                                    <span className="inline-block px-2 py-0.5 bg-primary-100 text-primary-600 text-xs font-medium rounded mt-1">
                                                                         SOLD
                                                                     </span>
                                                                 </div>

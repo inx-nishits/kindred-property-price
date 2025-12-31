@@ -44,7 +44,7 @@ function Footer() {
                 <li key={link.path}>
                   <Link
                     href={link.path}
-                    className="text-lg text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+                    className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
                   >
                     {link.label}
                   </Link>
@@ -55,7 +55,7 @@ function Footer() {
                   href="https://www.kindred.com.au/contact-us"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-lg text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+                  className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
                 >
                   Contact
                 </a>
@@ -74,7 +74,7 @@ function Footer() {
                   href="https://www.kindred.com.au/legal/privacy-policy"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-lg text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+                  className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
                 >
                   Privacy Policy
                 </a>
@@ -85,7 +85,7 @@ function Footer() {
                 <li key={link.path}>
                   <Link
                     href={link.path}
-                    className="text-lg text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+                    className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
                   >
                     {link.label}
                   </Link>
@@ -104,7 +104,7 @@ function Footer() {
                 <Mail className="w-5 h-5 text-primary-500 flex-shrink-0" strokeWidth={1.5} />
                 <a
                   href="mailto:info@propertyinsights.com.au"
-                  className="text-lg text-gray-600 hover:text-primary-600 transition-colors font-medium break-all"
+                  className="text-sm text-gray-600 hover:text-primary-600 transition-colors font-medium break-all"
                 >
                   info@propertyinsights.com.au
                 </a>
@@ -113,7 +113,7 @@ function Footer() {
                 <Phone className="w-5 h-5 text-primary-500 flex-shrink-0" strokeWidth={1.5} />
                 <a
                   href="tel:+61280000000"
-                  className="text-lg text-gray-600 hover:text-primary-600 transition-colors font-medium"
+                  className="text-sm text-gray-600 hover:text-primary-600 transition-colors font-medium"
                 >
                   +61 2 8000 0000
                 </a>
