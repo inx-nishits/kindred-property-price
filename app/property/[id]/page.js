@@ -19,7 +19,6 @@ export default function PropertyPage() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isUnlocked, setIsUnlocked] = useState(false)
-    const [userEmail, setUserEmail] = useState('')
     const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
@@ -58,9 +57,7 @@ export default function PropertyPage() {
     useEffect(() => {
         if (typeof window !== 'undefined' && params.id) {
             const unlocked = localStorage.getItem(`property_${params.id}_unlocked`) === 'true'
-            const email = localStorage.getItem(`property_${params.id}_email`) || ''
             setIsUnlocked(unlocked)
-            setUserEmail(email)
         }
     }, [params.id])
 
@@ -84,7 +81,6 @@ export default function PropertyPage() {
                 localStorage.setItem(`property_${params.id}_email`, formData.email)
             }
             setIsUnlocked(true)
-            setUserEmail(formData.email)
             setIsModalOpen(false)
         } catch (error) {
             console.error('Error submitting form:', error)

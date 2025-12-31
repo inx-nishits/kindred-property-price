@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { MapPin, X, Clock, Loader2, Building2, AlertCircle } from 'lucide-react'
 import { searchPropertiesByQuery } from '../../services/propertyService'
-import { validateAustralianAddress } from '../../utils/helpers'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 
 function PropertySearch({

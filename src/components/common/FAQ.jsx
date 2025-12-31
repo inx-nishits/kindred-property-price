@@ -1,14 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { HelpCircle, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react'
+import { HelpCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import ScrollReveal from '../animations/ScrollReveal'
 
 function FAQ({
   items,
   faqContent,
   showHeader = true,
-  showHelpSection = true,
   variant = 'default' // 'default' or 'compact'
 }) {
   const [openIndex, setOpenIndex] = useState(0)

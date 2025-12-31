@@ -1,11 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Mail, FileText } from 'lucide-react'
 import KindredLogo from '@/assets/images/logo.png'
 import PropertySearch from '@/components/property/PropertySearch'
-import staticContent from '@/data/staticContent.json'
 import propertyValueEstimateImage from '@/assets/images/property-value-estimate.png'
 import comparableSalesImage from '@/assets/images/comparable-sales.png'
 import suburbPerformanceImage from '@/assets/images/suburb-performance.png'
@@ -13,8 +11,6 @@ import getPriceEstimateImage from '@/assets/images/get-price-estimate-a.jpg'
 
 export default function HomePage() {
     const router = useRouter()
-    const [searchResults, setSearchResults] = useState([])
-    const [footerSearchResults, setFooterSearchResults] = useState([])
 
     const handlePropertySelect = (property) => {
         router.push(`/property/${property.id}`)
@@ -82,8 +78,6 @@ export default function HomePage() {
                                 <PropertySearch
                                     onSelectProperty={handlePropertySelect}
                                     showHelpTagline={true}
-                                    onSearchResultsChange={setSearchResults}
-                                    onClear={() => setSearchResults([])}
                                 />
                             </div>
                         </div>
@@ -338,8 +332,6 @@ export default function HomePage() {
                                     <PropertySearch
                                         onSelectProperty={handleFooterPropertySelect}
                                         showHelpTagline={false}
-                                        onSearchResultsChange={setFooterSearchResults}
-                                        onClear={() => setFooterSearchResults([])}
                                     />
                                 </div>
                             </div>
