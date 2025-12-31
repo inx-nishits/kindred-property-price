@@ -109,7 +109,9 @@ export default {
         'dark-green': '#065f46', // Updated to match Kindred theme
 
         'deepest-green': '#064e3b', // Updated to match Kindred theme
-
+        'brand-dark': '#163331',
+        'brand-mint': '#48D98E',
+        'soft-gray': '#F8FAF9',
       },
 
       fontFamily: {

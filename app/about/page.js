@@ -11,7 +11,7 @@ export default function AboutPage() {
             <section className="bg-white py-16 md:py-24">
                 <div className="container px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto text-center">
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-[#163331] mb-6">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-brand-dark mb-6">
                             About Kindred
                         </h1>
                         <p className="text-xl md:text-2xl text-gray-700 mb-6 leading-relaxed">
@@ -25,7 +25,7 @@ export default function AboutPage() {
             </section>
 
             {/* Section 2: We do things differently */}
-            <section className="bg-[#163331] py-16 md:py-24">
+            <section className="bg-brand-dark py-16 md:py-24">
                 <div className="container px-6 lg:px-8">
                     <div className="max-w-6xl mx-auto">
                         <div className="text-center mb-12 md:mb-16">
@@ -45,7 +45,7 @@ export default function AboutPage() {
                                             fillRule="evenodd"
                                             clipRule="evenodd"
                                             d="M95.4142 14.2774C79.2509 12.7025 34.6058 11.6607 11.3734 15.4478C7.66859 16.0517 3.86646 14.398 2.0943 11.0889V11.0889C1.57679 10.1226 2.0935 8.92907 3.16244 8.68626C28.0014 3.04417 80.9272 3.68224 98.5286 5.39729C98.8659 5.43016 98.1906 5.36431 98.5286 5.39729C114.684 6.97382 152.543 8.19785 179.385 6.19142C183.345 5.89535 187.154 7.84824 189.114 11.3025L189.247 11.537C189.593 12.1464 189.232 12.9114 188.538 13.0111C158.795 17.2865 112.931 15.9877 95.4142 14.2774C95.0266 14.2395 95.7994 14.3149 95.4142 14.2774Z"
-                                            fill="#48D98E"
+                                            className="fill-brand-mint"
                                         />
                                     </svg>
                                 </span>
@@ -96,7 +96,7 @@ export default function AboutPage() {
             </section>
 
             {/* Section 3: Property insights, built around you */}
-            <section className="bg-[#F8FAF9] py-16 md:py-24">
+            <section className="bg-soft-gray py-16 md:py-24">
                 <div className="container px-6 lg:px-8">
                     <div className="max-w-6xl mx-auto">
                         <div className="text-center mb-12 md:mb-16">
@@ -201,10 +201,10 @@ export default function AboutPage() {
             </section>
 
             {/* Section 5: Final CTA with Tree */}
-            <section className="pb-16 md:pb-20 bg-[#F8FAF9]">
+            <section className="pb-16 md:pb-20 bg-soft-gray">
                 <div className="container px-6 lg:px-8 pt-10 md:pt-16 max-w-6xl mx-auto">
                     <div
-                        className="relative rounded-[40px] md:rounded-[48px] bg-[#163331] overflow-hidden"
+                        className="relative rounded-[40px] md:rounded-[48px] bg-brand-dark overflow-hidden"
                     >
                         <div className="px-6 sm:px-10 lg:px-16 pt-12 md:pt-16 pb-32 md:pb-24 text-center text-white">
                             <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-semibold mb-4 text-white">

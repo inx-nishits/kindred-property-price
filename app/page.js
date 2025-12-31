@@ -60,7 +60,7 @@ export default function HomePage() {
                                                 fillRule="evenodd"
                                                 clipRule="evenodd"
                                                 d="M95.4142 14.2774C79.2509 12.7025 34.6058 11.6607 11.3734 15.4478C7.66859 16.0517 3.86646 14.398 2.0943 11.0889V11.0889C1.57679 10.1226 2.0935 8.92907 3.16244 8.68626C28.0014 3.04417 80.9272 3.68224 98.5286 5.39729C98.8659 5.43016 98.1906 5.36431 98.5286 5.39729C114.684 6.97382 152.543 8.19785 179.385 6.19142C183.345 5.89535 187.154 7.84824 189.114 11.3025L189.247 11.537C189.593 12.1464 189.232 12.9114 188.538 13.0111C158.795 17.2865 112.931 15.9877 95.4142 14.2774C95.0266 14.2395 95.7994 14.3149 95.4142 14.2774Z"
-                                                fill="#48D98E"
+                                                className="fill-brand-mint"
                                             />
                                         </svg>
                                     </span>
@@ -105,7 +105,7 @@ export default function HomePage() {
                                         fillRule="evenodd"
                                         clipRule="evenodd"
                                         d="M95.4142 14.2774C79.2509 12.7025 34.6058 11.6607 11.3734 15.4478C7.66859 16.0517 3.86646 14.398 2.0943 11.0889V11.0889C1.57679 10.1226 2.0935 8.92907 3.16244 8.68626C28.0014 3.04417 80.9272 3.68224 98.5286 5.39729C98.8659 5.43016 98.1906 5.36431 98.5286 5.39729C114.684 6.97382 152.543 8.19785 179.385 6.19142C183.345 5.89535 187.154 7.84824 189.114 11.3025L189.247 11.537C189.593 12.1464 189.232 12.9114 188.538 13.0111C158.795 17.2865 112.931 15.9877 95.4142 14.2774C95.0266 14.2395 95.7994 14.3149 95.4142 14.2774Z"
-                                        fill="#48D98E"
+                                        className="fill-brand-mint"
                                     />
                                 </svg>
                             </span>{' '}
@@ -139,15 +139,15 @@ export default function HomePage() {
                         ].map((step, index) => (
                             <div
                                 key={index}
-                                className="bg-[#E9F2EE] rounded-xl p-9 shadow-sm"
+                                className="bg-primary-50 rounded-xl p-9 shadow-sm"
                             >
-                                <div className="flex items-center justify-start mb-6 text-[#219358]">
+                                <div className="flex items-center justify-start mb-6 text-primary-600">
                                     {step.icon}
                                 </div>
-                                <h3 className="text-2xl font-heading font-bold text-dark-green mb-3">
+                                <h3 className="text-xl font-heading font-bold text-dark-green mb-3">
                                     {step.number}. {step.title}
                                 </h3>
-                                <p className="text-lg text-[#4B5563] leading-relaxed">
+                                <p className="text-base text-muted-600 leading-relaxed">
                                     {step.description}
                                 </p>
                             </div>
@@ -314,7 +314,7 @@ export default function HomePage() {
                                                     fillRule="evenodd"
                                                     clipRule="evenodd"
                                                     d="M95.4142 14.2774C79.2509 12.7025 34.6058 11.6607 11.3734 15.4478C7.66859 16.0517 3.86646 14.398 2.0943 11.0889V11.0889C1.57679 10.1226 2.0935 8.92907 3.16244 8.68626C28.0014 3.04417 80.9272 3.68224 98.5286 5.39729C98.8659 5.43016 98.1906 5.36431 98.5286 5.39729C114.684 6.97382 152.543 8.19785 179.385 6.19142C183.345 5.89535 187.154 7.84824 189.114 11.3025L189.247 11.537C189.593 12.1464 189.232 12.9114 188.538 13.0111C158.795 17.2865 112.931 15.9877 95.4142 14.2774C95.0266 14.2395 95.7994 14.3149 95.4142 14.2774Z"
-                                                    fill="#48D98E"
+                                                    className="fill-brand-mint"
                                                 />
                                             </svg>
                                         </span>
