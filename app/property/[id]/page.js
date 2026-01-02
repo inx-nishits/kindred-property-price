@@ -8,6 +8,7 @@ import { getPropertyDetails, submitLeadForm } from '@/services/propertyService'
 import LeadCaptureModal from '@/components/property/LeadCaptureModal'
 import { PropertyCardSkeleton } from '@/components/common/SkeletonLoader'
 import ScrollReveal from '@/components/animations/ScrollReveal'
+import SuccessModal from '@/components/common/SuccessModal'
 import {
     Bed,
     Bath,
@@ -25,7 +26,11 @@ import {
     ArrowUpRight,
     Building2,
     Ruler,
-    Clock
+    Clock,
+    Share2,
+    ArrowRight,
+    Maximize2,
+    FileText
 } from 'lucide-react'
 
 export default function PropertyPage() {
@@ -90,6 +95,9 @@ export default function PropertyPage() {
         }
     }, [isUnlocked, property, isLoading])
 
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
+    const [userEmail, setUserEmail] = useState('')
+
     // Handle form submission
     const handleFormSubmit = async (formData) => {
         setIsSubmitting(true)
@@ -98,9 +106,13 @@ export default function PropertyPage() {
             if (typeof window !== 'undefined') {
                 localStorage.setItem(`property_${params.id}_unlocked`, 'true')
                 localStorage.setItem(`property_${params.id}_email`, formData.email)
+                // Save global user profile for auto-fill
+                localStorage.setItem('kindred_user_details', JSON.stringify(formData))
             }
+            setUserEmail(formData.email)
             setIsUnlocked(true)
-            setIsModalOpen(false)
+            setIsModalOpen(false)     // Close the form modal
+            setIsSuccessModalOpen(true) // Open the success modal
         } catch (error) {
             console.error('Error submitting form:', error)
             alert('There was an error. Please try again.')
@@ -752,6 +764,12 @@ export default function PropertyPage() {
                 </div>,
                 document.body
             )}
+            {/* Success Modal */}
+            <SuccessModal
+                isOpen={isSuccessModalOpen}
+                onClose={() => setIsSuccessModalOpen(false)}
+                email={userEmail}
+            />
         </>
     )
 }

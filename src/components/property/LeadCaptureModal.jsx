@@ -24,6 +24,24 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, property, p
       document.body.style.position = 'fixed'
       document.body.style.top = `-${scrollY}px`
       document.body.style.width = '100%'
+
+      // AUTO-FILL: Check for saved user details
+      try {
+        const savedDetails = localStorage.getItem('kindred_user_details')
+        if (savedDetails) {
+          const parsed = JSON.parse(savedDetails)
+          setFormData(prev => ({
+            ...prev,
+            firstName: parsed.firstName || '',
+            lastName: parsed.lastName || '',
+            email: parsed.email || '',
+            mobile: parsed.mobile || ''
+          }))
+        }
+      } catch (e) {
+        console.error('Failed to auto-fill form', e)
+      }
+
     } else {
       // Restore body scrolling
       const scrollY = document.body.style.top
