@@ -8,6 +8,25 @@ import { getPropertyDetails, submitLeadForm } from '@/services/propertyService'
 import LeadCaptureModal from '@/components/property/LeadCaptureModal'
 import { PropertyCardSkeleton } from '@/components/common/SkeletonLoader'
 import ScrollReveal from '@/components/animations/ScrollReveal'
+import {
+    Bed,
+    Bath,
+    Car,
+    Maximize,
+    Home,
+    Calendar,
+    ChevronLeft,
+    ChevronRight,
+    X,
+    ImageOff,
+    MapPin,
+    School,
+    ArrowLeft,
+    ArrowUpRight,
+    Building2,
+    Ruler,
+    Clock
+} from 'lucide-react'
 
 export default function PropertyPage() {
     const params = useParams()
@@ -110,7 +129,7 @@ export default function PropertyPage() {
         if (!size) return ''
         // If land size is very large (rural property), convert to hectares
         if (size >= 10000) {
-            return `${(size / 10000).toFixed(2)}`
+            return `${(size / 10000).toFixed(2)} ha`
         }
         return `${size.toLocaleString()} m²`
     }
@@ -126,15 +145,24 @@ export default function PropertyPage() {
     if (!property && !isLoading) {
         return (
             <div className="container mx-auto px-4 sm:px-5 md:px-6 lg:px-8 py-12 text-center">
-                <h1 className="text-2xl font-bold text-dark-green mb-4">
-                    Property Not Found
-                </h1>
-                {error && (
-                    <p className="text-red-600 mb-4">{error}</p>
-                )}
-                <button onClick={() => router.push('/')} className="btn btn-primary">
-                    Back to Home
-                </button>
+                <div className="flex flex-col items-center justify-center py-12">
+                    <div className="bg-red-50 p-4 rounded-full mb-4">
+                        <Home className="w-8 h-8 text-red-500" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-dark-green mb-2">
+                        Property Not Found
+                    </h1>
+                    {error && (
+                        <p className="text-red-600 mb-6 max-w-md">{error}</p>
+                    )}
+                    <button
+                        onClick={() => router.push('/')}
+                        className="btn btn-primary flex items-center gap-2"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Home
+                    </button>
+                </div>
             </div>
         )
     }
@@ -150,19 +178,7 @@ export default function PropertyPage() {
                                 onClick={() => router.push('/')}
                                 className="text-gray-600 hover:text-[#163331] text-sm font-medium transition-colors flex items-center gap-2 group"
                             >
-                                <svg
-                                    className="w-4 h-4 group-hover:-translate-x-1 transition-transform"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M15 19l-7-7 7-7"
-                                    />
-                                </svg>
+                                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                                 BACK TO MAIN SITE
                             </button>
                         </div>
@@ -171,7 +187,7 @@ export default function PropertyPage() {
                     {/* Lead Capture Banner - Show when locked */}
                     {!isUnlocked && (
                         <ScrollReveal delay={0.05}>
-                            <div className="mb-8 rounded-xl bg-gradient-to-br from-[#48D98E] via-[#3bc57d] to-[#2fb06d] text-white relative overflow-hidden p-6 md:p-8">
+                            <div className="mb-8 rounded-xl bg-gradient-to-br from-[#48D98E] via-[#3bc57d] to-[#2fb06d] text-white relative overflow-hidden p-6 md:p-8 shadow-lg">
                                 <div className="relative z-10">
                                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                                         <div className="flex-1">
@@ -201,37 +217,49 @@ export default function PropertyPage() {
                         <ScrollReveal>
                             <div className="mb-12">
                                 <div className="mb-6">
-                                    <p className="text-sm text-gray-600 mb-2">Property report for</p>
-                                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-[#163331] mb-4">
+                                    <p className="text-sm text-gray-600 mb-2 flex items-center gap-1.5">
+                                        <MapPin className="w-4 h-4 text-primary-500" />
+                                        Property report for
+                                    </p>
+                                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-[#163331] mb-6">
                                         {property.address}
                                     </h1>
-                                    <div className={`flex flex-wrap items-center gap-2 text-sm text-gray-600 ${!isUnlocked ? 'blur-sm select-none opacity-60' : ''}`}>
-                                        {property.beds > 0 && <span>{property.beds} Bed</span>}
-                                        {property.beds > 0 && property.baths > 0 && <span>•</span>}
-                                        {property.baths > 0 && <span>{property.baths} Bath</span>}
+                                    <div className={`flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-700 ${!isUnlocked ? 'blur-sm select-none opacity-60' : ''}`}>
+                                        {property.beds > 0 && (
+                                            <div className="flex items-center gap-2" title="Bedrooms">
+                                                <Bed className="w-5 h-5 text-gray-400" strokeWidth={1.5} />
+                                                <span className="font-medium">{property.beds} Bed</span>
+                                            </div>
+                                        )}
+                                        {property.baths > 0 && (
+                                            <div className="flex items-center gap-2" title="Bathrooms">
+                                                <Bath className="w-5 h-5 text-gray-400" strokeWidth={1.5} />
+                                                <span className="font-medium">{property.baths} Bath</span>
+                                            </div>
+                                        )}
                                         {(property.parking > 0 || property.cars > 0) && (
-                                            <>
-                                                <span>•</span>
-                                                <span>{property.parking || property.cars} Car</span>
-                                            </>
+                                            <div className="flex items-center gap-2" title="Car Spaces">
+                                                <Car className="w-5 h-5 text-gray-400" strokeWidth={1.5} />
+                                                <span className="font-medium">{property.parking || property.cars} Car</span>
+                                            </div>
                                         )}
                                         {property.propertyType && (
-                                            <>
-                                                <span>•</span>
+                                            <div className="flex items-center gap-2 hidden sm:flex">
+                                                <Home className="w-4 h-4 text-gray-400" strokeWidth={1.5} />
                                                 <span>{property.propertyType}</span>
-                                            </>
+                                            </div>
                                         )}
                                         {property.landSize > 0 && (
-                                            <>
-                                                <span>•</span>
-                                                <span>Land: {formatLandSize(property.landSize)}</span>
-                                            </>
+                                            <div className="flex items-center gap-2 hidden sm:flex">
+                                                <Maximize className="w-4 h-4 text-gray-400" strokeWidth={1.5} />
+                                                <span>{formatLandSize(property.landSize)}</span>
+                                            </div>
                                         )}
                                         {property.buildingSize > 0 && (
-                                            <>
-                                                <span>•</span>
-                                                <span>Building: {property.buildingSize} m²</span>
-                                            </>
+                                            <div className="flex items-center gap-2 hidden sm:flex">
+                                                <Building2 className="w-4 h-4 text-gray-400" strokeWidth={1.5} />
+                                                <span>{property.buildingSize} m²</span>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -245,7 +273,8 @@ export default function PropertyPage() {
                                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
 
                                         <div className="relative z-10">
-                                            <h2 className="text-lg font-heading font-semibold mb-6 text-white/95 uppercase tracking-wider">
+                                            <h2 className="text-lg font-heading font-semibold mb-6 text-white/95 uppercase tracking-wider flex items-center gap-2">
+                                                <ArrowUpRight className="w-5 h-5 text-[#48D98E]" />
                                                 Estimated Value
                                             </h2>
                                             {property.priceEstimate ? (
@@ -255,7 +284,7 @@ export default function PropertyPage() {
                                                             {formatCurrency(property.priceEstimate.low)} - {formatCurrency(property.priceEstimate.high)}
                                                         </div>
                                                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/15 backdrop-blur-sm rounded-full">
-                                                            <div className="w-2 h-2 bg-white/80 rounded-full"></div>
+                                                            <div className="w-2 h-2 bg-[#48D98E] rounded-full animate-pulse"></div>
                                                             <span className="text-sm font-medium text-white/90">Medium Confidence</span>
                                                         </div>
                                                     </div>
@@ -296,19 +325,7 @@ export default function PropertyPage() {
                                                 <div className="absolute inset-0 flex items-center justify-center">
                                                     <div className="text-center relative z-10">
                                                         <div className="mb-4">
-                                                            <svg
-                                                                className="w-28 h-28 text-white/90 mx-auto drop-shadow-lg"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    strokeWidth={1.5}
-                                                                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                                                                />
-                                                            </svg>
+                                                            <ImageOff className="w-20 h-20 text-white/80 mx-auto drop-shadow-sm" strokeWidth={1} />
                                                         </div>
                                                         <div className="text-white text-base font-semibold tracking-wide">No Image Available</div>
                                                     </div>
@@ -326,9 +343,7 @@ export default function PropertyPage() {
                                                         setIsImageGalleryOpen(true)
                                                     }}
                                                 >
-                                                    <svg className="w-5 h-5 text-[#163331]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                    </svg>
+                                                    <Maximize className="w-4 h-4 text-[#163331]" />
                                                     <span className="text-sm font-semibold text-[#163331]">
                                                         View Gallery ({propertyImages.length})
                                                     </span>
@@ -346,20 +361,22 @@ export default function PropertyPage() {
                             {property.rentalEstimate && (
                                 <ScrollReveal delay={0.1}>
                                     <div className="mb-12">
-                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6">
+                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6 flex items-center gap-3">
+                                            <Home className="w-6 h-6 md:w-8 md:h-8 text-primary-500" strokeWidth={1.5} />
                                             Rental Estimate
                                         </h2>
                                         <div className="bg-gradient-to-br from-[#E9F2EE] to-[#d4e8e0] rounded-xl p-6 md:p-8 border border-[#48D98E]/20">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
-                                                    <div className="text-sm text-gray-600 mb-2 uppercase tracking-wide font-medium">
+                                                    <div className="text-sm text-gray-600 mb-2 uppercase tracking-wide font-medium flex items-center gap-2">
+                                                        <Calendar className="w-4 h-4" />
                                                         Weekly Rent Range
                                                     </div>
                                                     <div className="text-3xl md:text-4xl font-bold text-[#163331] mb-2">
                                                         {property.rentalEstimate.weekly?.low && property.rentalEstimate.weekly?.high ? (
-                                                            <>{formatCurrency(property.rentalEstimate.weekly.low)} - {formatCurrency(property.rentalEstimate.weekly.high)}/week</>
+                                                            <>{formatCurrency(property.rentalEstimate.weekly.low)} - {formatCurrency(property.rentalEstimate.weekly.high)}<span className="text-base text-gray-500 font-normal">/week</span></>
                                                         ) : (
-                                                            <>{formatCurrency(property.rentalEstimate.weekly)}/week</>
+                                                            <>{formatCurrency(property.rentalEstimate.weekly)}<span className="text-base text-gray-500 font-normal">/week</span></>
                                                         )}
                                                     </div>
                                                     <div className="text-sm text-gray-600">
@@ -368,7 +385,8 @@ export default function PropertyPage() {
                                                 </div>
                                                 {property.rentalEstimate.yield && (
                                                     <div>
-                                                        <div className="text-sm text-gray-600 mb-2 uppercase tracking-wide font-medium">
+                                                        <div className="text-sm text-gray-600 mb-2 uppercase tracking-wide font-medium flex items-center gap-2">
+                                                            <ArrowUpRight className="w-4 h-4" />
                                                             Rental Yield
                                                         </div>
                                                         <div className="text-3xl md:text-4xl font-bold text-[#163331] mb-2">
@@ -389,16 +407,18 @@ export default function PropertyPage() {
                             {property.suburbInsights && (
                                 <ScrollReveal delay={0.2}>
                                     <div className="mb-12">
-                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6">
+                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6 flex items-center gap-3">
+                                            <Building2 className="w-6 h-6 md:w-8 md:h-8 text-primary-500" strokeWidth={1.5} />
                                             Suburb Insights - {property.suburb}
                                         </h2>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                             {property.suburbInsights.medianPrice > 0 && (
-                                                <div className="bg-gray-100 rounded-lg p-6">
+                                                <div className="bg-gray-100 rounded-lg p-6 hover:shadow-md transition-shadow">
                                                     <div className="text-2xl md:text-3xl font-bold text-[#163331] mb-2">
                                                         {formatCurrency(property.suburbInsights.medianPrice)}
                                                     </div>
-                                                    <div className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide">
+                                                    <div className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide flex items-center gap-1.5">
+                                                        <Home className="w-3.5 h-3.5" />
                                                         MEDIAN PRICE
                                                     </div>
                                                     <div className="text-xs text-gray-500">
@@ -408,11 +428,12 @@ export default function PropertyPage() {
                                             )}
 
                                             {property.suburbInsights.growthPercent !== undefined && property.suburbInsights.growthPercent !== null && (
-                                                <div className="bg-gray-100 rounded-lg p-6">
-                                                    <div className="text-2xl md:text-3xl font-bold text-[#163331] mb-2">
-                                                        {property.suburbInsights.growthPercent}%
+                                                <div className="bg-gray-100 rounded-lg p-6 hover:shadow-md transition-shadow">
+                                                    <div className={`text-2xl md:text-3xl font-bold mb-2 ${property.suburbInsights.growthPercent >= 0 ? 'text-[#163331]' : 'text-red-600'}`}>
+                                                        {property.suburbInsights.growthPercent > 0 ? '+' : ''}{property.suburbInsights.growthPercent}%
                                                     </div>
-                                                    <div className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide">
+                                                    <div className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide flex items-center gap-1.5">
+                                                        <ArrowUpRight className={`w-3.5 h-3.5 ${property.suburbInsights.growthPercent < 0 ? 'rotate-90' : ''}`} />
                                                         GROWTH %
                                                     </div>
                                                     <div className="text-xs text-gray-500">
@@ -422,11 +443,12 @@ export default function PropertyPage() {
                                             )}
 
                                             {property.suburbInsights.demand && (
-                                                <div className="bg-gray-100 rounded-lg p-6">
+                                                <div className="bg-gray-100 rounded-lg p-6 hover:shadow-md transition-shadow">
                                                     <div className="text-2xl md:text-3xl font-bold text-[#163331] mb-2">
                                                         {property.suburbInsights.demand}
                                                     </div>
-                                                    <div className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide">
+                                                    <div className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide flex items-center gap-1.5">
+                                                        <Maximize className="w-3.5 h-3.5" />
                                                         DEMAND
                                                     </div>
                                                     <div className="text-xs text-gray-500">
@@ -443,20 +465,21 @@ export default function PropertyPage() {
                             {property.comparables && property.comparables.length > 0 && (
                                 <ScrollReveal delay={0.3}>
                                     <div className="mb-12">
-                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-4">
+                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-4 flex items-center gap-3">
+                                            <Ruler className="w-6 h-6 md:w-8 md:h-8 text-primary-500" strokeWidth={1.5} />
                                             Comparable Sales
                                         </h2>
                                         <p className="text-gray-600 mb-6 max-w-3xl">
                                             Similar properties in the area
                                         </p>
-                                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                                             <div className="divide-y divide-gray-200">
                                                 {property.comparables.map((sale, index) => (
                                                     <div
                                                         key={index}
                                                         className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
                                                     >
-                                                        <div className="w-20 h-20 rounded-lg flex-shrink-0 overflow-hidden bg-gray-200">
+                                                        <div className="w-20 h-20 rounded-lg flex-shrink-0 overflow-hidden bg-gray-200 relative">
                                                             {sale.images && sale.images.length > 0 ? (
                                                                 <img
                                                                     src={sale.images[0].url}
@@ -464,16 +487,15 @@ export default function PropertyPage() {
                                                                     className="w-full h-full object-cover"
                                                                     onError={(e) => {
                                                                         e.target.onerror = null;
-                                                                        e.target.src = 'https://placehold.co/100x100?text=No+Image'; // Fallback
+                                                                        e.target.style.display = 'none';
+                                                                        e.target.nextSibling.style.display = 'flex';
                                                                     }}
                                                                 />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                                                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                                                    </svg>
-                                                                </div>
-                                                            )}
+                                                            ) : null}
+                                                            {/* Fallback in case image is missing or fails to load */}
+                                                            <div className="w-full h-full flex items-center justify-center bg-gray-100" style={{ display: sale.images && sale.images.length > 0 ? 'none' : 'flex' }}>
+                                                                <ImageOff className="w-6 h-6 text-gray-300" />
+                                                            </div>
                                                         </div>
 
                                                         <div className="flex-1 min-w-0">
@@ -482,8 +504,8 @@ export default function PropertyPage() {
                                                                     <div className="font-semibold text-[#163331] text-sm mb-0.5 line-clamp-1">
                                                                         {sale.address}
                                                                     </div>
-                                                                    <div className="text-xs text-gray-600">
-                                                                        Sold {formatDate(sale.saleDate)}
+                                                                    <div className="text-xs text-gray-600 flex items-center gap-1">
+                                                                        <span>Sold {formatDate(sale.saleDate)}</span>
                                                                     </div>
                                                                 </div>
                                                                 <div className="text-right flex-shrink-0">
@@ -496,11 +518,31 @@ export default function PropertyPage() {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
-                                                                {sale.beds > 0 && <span>{sale.beds} Bed</span>}
-                                                                {sale.baths > 0 && <span>{sale.baths} Bath</span>}
-                                                                {(sale.parking > 0 || sale.cars > 0) && <span>{sale.parking || sale.cars} Car</span>}
-                                                                {sale.landSize > 0 && <span className="ml-auto">{formatLandSize(sale.landSize)} m²</span>}
+                                                            <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                                                {sale.beds > 0 && (
+                                                                    <span className="flex items-center gap-1">
+                                                                        <Bed className="w-3.5 h-3.5" />
+                                                                        {sale.beds}
+                                                                    </span>
+                                                                )}
+                                                                {sale.baths > 0 && (
+                                                                    <span className="flex items-center gap-1">
+                                                                        <Bath className="w-3.5 h-3.5" />
+                                                                        {sale.baths}
+                                                                    </span>
+                                                                )}
+                                                                {(sale.parking > 0 || sale.cars > 0) && (
+                                                                    <span className="flex items-center gap-1">
+                                                                        <Car className="w-3.5 h-3.5" />
+                                                                        {sale.parking || sale.cars}
+                                                                    </span>
+                                                                )}
+                                                                {sale.landSize > 0 && (
+                                                                    <span className="ml-auto flex items-center gap-1">
+                                                                        <Maximize className="w-3.5 h-3.5" />
+                                                                        {formatLandSize(sale.landSize)}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -515,7 +557,8 @@ export default function PropertyPage() {
                             {property.schools && property.schools.length > 0 && (
                                 <ScrollReveal delay={0.5}>
                                     <div className="mb-12">
-                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6">
+                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6 flex items-center gap-3">
+                                            <School className="w-6 h-6 md:w-8 md:h-8 text-primary-500" strokeWidth={1.5} />
                                             Nearby Schools
                                         </h2>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -533,7 +576,10 @@ export default function PropertyPage() {
                                                         </span>
                                                         <span className="text-xs text-gray-600">{school.yearRange}</span>
                                                     </div>
-                                                    <div className="text-xs text-gray-600 mb-2">{school.distance} km away</div>
+                                                    <div className="text-xs text-gray-600 mb-2 flex items-center gap-1">
+                                                        <MapPin className="w-3 h-3" />
+                                                        {school.distance} km away
+                                                    </div>
                                                     {school.rating && (
                                                         <div className="text-center px-2 py-1 bg-gradient-to-br from-[#E9F2EE] to-[#d4e8e0] rounded-lg inline-block">
                                                             <div className="text-md font-bold text-[#163331]">{school.rating}</div>
@@ -551,13 +597,14 @@ export default function PropertyPage() {
                             {property.salesHistory && property.salesHistory.length > 0 && (
                                 <ScrollReveal delay={0.6}>
                                     <div className="mb-12">
-                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-4">
+                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-4 flex items-center gap-3">
+                                            <Clock className="w-6 h-6 md:w-8 md:h-8 text-primary-500" strokeWidth={1.5} />
                                             Past Sales History
                                         </h2>
                                         <p className="text-gray-600 mb-6 max-w-3xl">
                                             Historical sales data for this property
                                         </p>
-                                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                                             <div className="divide-y divide-gray-200">
                                                 {property.salesHistory.map((sale, index) => (
                                                     <div
@@ -573,9 +620,7 @@ export default function PropertyPage() {
                                                                 />
                                                             ) : (
                                                                 <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                                                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                                    </svg>
+                                                                    <ImageOff className="w-6 h-6 text-gray-300" />
                                                                 </div>
                                                             )}
                                                         </div>
@@ -636,77 +681,73 @@ export default function PropertyPage() {
                     }}
                 >
                     <div
-                        className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/95 backdrop-blur-sm"
                         onClick={() => setIsImageGalleryOpen(false)}
                     />
 
-                    <div className="relative z-10 w-full max-w-6xl mx-auto">
+                    <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col items-center">
                         <button
                             onClick={() => setIsImageGalleryOpen(false)}
-                            className="absolute top-4 right-4 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-colors z-30"
+                            className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-colors z-30"
                             aria-label="Close gallery"
                         >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            <X className="w-6 h-6" />
                         </button>
 
-                        <div className="relative bg-black rounded-xl overflow-hidden mb-4">
-                            <div className="aspect-video flex items-center justify-center relative">
-                                <img
-                                    src={propertyImages[currentImageIndex]?.url}
-                                    alt={propertyImages[currentImageIndex]?.alt || property.address}
-                                    className="w-full h-full object-contain"
-                                />
-                            </div>
+                        <div className="relative w-full max-h-[80vh] flex items-center justify-center mb-6">
+                            {propertyImages.length > 1 && (
+                                <button
+                                    onClick={() => setCurrentImageIndex((prev) => prev === 0 ? propertyImages.length - 1 : prev - 1)}
+                                    className="absolute left-2 md:left-4 p-3 bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full text-white transition-colors z-20"
+                                    aria-label="Previous image"
+                                >
+                                    <ChevronLeft className="w-6 h-6" />
+                                </button>
+                            )}
+
+                            <img
+                                src={propertyImages[currentImageIndex]?.url}
+                                alt={propertyImages[currentImageIndex]?.alt || property.address}
+                                className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+                            />
 
                             {propertyImages.length > 1 && (
-                                <>
-                                    <button
-                                        onClick={() => setCurrentImageIndex((prev) => prev === 0 ? propertyImages.length - 1 : prev - 1)}
-                                        className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-colors z-20"
-                                        aria-label="Previous image"
-                                    >
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                        </svg>
-                                    </button>
-                                    <button
-                                        onClick={() => setCurrentImageIndex((prev) => prev === propertyImages.length - 1 ? 0 : prev + 1)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-colors z-20"
-                                        aria-label="Next image"
-                                    >
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </button>
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 backdrop-blur-md rounded-full text-white text-sm font-medium z-20">
-                                        {currentImageIndex + 1} / {propertyImages.length}
-                                    </div>
-                                </>
+                                <button
+                                    onClick={() => setCurrentImageIndex((prev) => prev === propertyImages.length - 1 ? 0 : prev + 1)}
+                                    className="absolute right-2 md:right-4 p-3 bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full text-white transition-colors z-20"
+                                    aria-label="Next image"
+                                >
+                                    <ChevronRight className="w-6 h-6" />
+                                </button>
                             )}
                         </div>
 
                         {propertyImages.length > 1 && (
-                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-                                {propertyImages.map((image, index) => (
-                                    <button
-                                        key={image.id}
-                                        onClick={() => setCurrentImageIndex(index)}
-                                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${currentImageIndex === index
-                                            ? 'border-[#48D98E] ring-2 ring-[#48D98E]/50'
-                                            : 'border-transparent hover:border-white/50'
-                                            }`}
-                                    >
-                                        <img
-                                            src={image.url}
-                                            alt={image.alt || `Gallery image ${index + 1}`}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </button>
-                                ))}
+                            <div className="w-full overflow-x-auto pb-4 scrollbar-hide">
+                                <div className="flex gap-2 justify-center px-4">
+                                    {propertyImages.map((image, index) => (
+                                        <button
+                                            key={image.id}
+                                            onClick={() => setCurrentImageIndex(index)}
+                                            className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${currentImageIndex === index
+                                                ? 'border-[#48D98E] opacity-100 scale-105'
+                                                : 'border-transparent opacity-60 hover:opacity-100'
+                                                }`}
+                                        >
+                                            <img
+                                                src={image.url}
+                                                alt={image.alt || `Gallery image ${index + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
+
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-black/60 backdrop-blur-md rounded-full text-white text-sm font-medium">
+                            {currentImageIndex + 1} / {propertyImages.length}
+                        </div>
                     </div>
                 </div>,
                 document.body
