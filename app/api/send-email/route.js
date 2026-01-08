@@ -12,27 +12,46 @@ export async function POST(request) {
             );
         }
 
-        const apiKey = process.env.BREVO_API_KEY;
-        const senderEmail = process.env.SENDER_EMAIL || 'noreply@kindred-property.com.au';
-        const senderName = process.env.SENDER_NAME || 'Kindred Property';
-        const smtpLogin = process.env.BREVO_SMTP_LOGIN || senderEmail; // Fallback to senderEmail if specific login not set
+        /* 
+        // FUTURE BREVO SETUP (Commented out for now)
+        // ------------------------------------------
+        // const apiKey = process.env.BREVO_API_KEY;
+        // const smtpLogin = process.env.BREVO_SMTP_LOGIN;
+        // const smtpHost = 'smtp-relay.brevo.com';
+        // const smtpPort = 587;
+        // ------------------------------------------
+        */
 
-        if (!apiKey) {
-            console.error('Brevo API Key (SMTP Key) is missing in environment variables');
+        // CURRENT ACTIVE SETUP (Gmail / Generic SMTP)
+        const gmailUser = process.env.GMAIL_USER?.trim();
+        const gmailPass = process.env.GMAIL_APP_PASSWORD?.trim();
+
+        const smtpHost = process.env.SMTP_HOST?.trim() || 'smtp.gmail.com';
+        const smtpPort = process.env.SMTP_PORT?.trim() || '587';
+        const smtpUser = gmailUser || process.env.SMTP_USER?.trim();
+        const smtpPass = gmailPass || process.env.SMTP_PASS?.trim();
+        const senderEmail = process.env.SENDER_EMAIL?.trim() || smtpUser;
+        const senderName = process.env.SENDER_NAME?.trim() || 'Kindred Property';
+
+        if (!smtpUser || !smtpPass) {
+            console.error('Missing SMTP configuration: (GMAIL_USER/GMAIL_APP_PASSWORD) or (SMTP_USER/SMTP_PASS)');
             return NextResponse.json(
-                { success: false, message: 'Server Configuration Error: API Key missing' },
+                {
+                    success: false,
+                    message: 'Server Configuration Error: Email credentials missing'
+                },
                 { status: 500 }
             );
         }
 
-        // Create a Nodemailer transporter using Brevo SMTP
+        // Create a Nodemailer transporter
         const transporter = nodemailer.createTransport({
-            host: 'smtp-relay.brevo.com',
-            port: 587,
-            secure: false, // Use STARTTLS
+            host: smtpHost,
+            port: parseInt(smtpPort),
+            secure: smtpPort === '465', // true for 465, false for 587
             auth: {
-                user: smtpLogin,
-                pass: apiKey,
+                user: smtpUser,
+                pass: smtpPass,
             },
         });
 
@@ -44,23 +63,23 @@ export async function POST(request) {
             html: htmlContent,
         });
 
-        console.log('Message sent: %s', info.messageId);
+        console.log('Email sent successfully:', info.messageId);
 
-        return NextResponse.json({ success: true, messageId: info.messageId });
+        return NextResponse.json({
+            success: true,
+            message: 'Email sent successfully',
+            messageId: info.messageId
+        });
 
     } catch (error) {
-        console.error('Server Error sending email:', JSON.stringify(error, null, 2));
-
-        // Provide a more helpful error message if auth fails
-        if (error.responseCode === 535) {
-            return NextResponse.json(
-                { success: false, message: 'SMTP Error: Authentication Failed. Check your SENDER_EMAIL matches your Brevo login.' },
-                { status: 500 }
-            );
-        }
+        console.error('SMTP Server Error:', error);
 
         return NextResponse.json(
-            { success: false, message: 'Failed to send email' },
+            {
+                success: false,
+                message: error.message || 'Failed to send email. Please check your SMTP configuration.',
+                error: process.env.NODE_ENV === 'development' ? error.toString() : undefined
+            },
             { status: 500 }
         );
     }
