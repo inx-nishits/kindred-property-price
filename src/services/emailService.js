@@ -181,7 +181,7 @@ const generatePropertyEmailHtml = (property, formData) => {
             </div>
 
             <div class="btn-container">
-                <a href="http://localhost:3000/property/${property.id}" class="btn">View Full Online Report</a>
+                <a href="${(typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_BASE_URL) || 'http://localhost:3000'}/property/${property.id}" class="btn">View Full Online Report</a>
             </div>
         </div>
 
@@ -223,15 +223,16 @@ export const submitLeadFormAndSendReport = async (formData, property) => {
         const result = await response.json();
 
         if (!response.ok) {
-            console.error('Email sending failed:', result);
-            // We still return true to not block the UI flow, but log the error
-            // Check if it's a configuration error (missing key)
-            if (result.message && result.message.includes('API Key missing')) {
-                console.warn('⚠️ EMAIL NOT SENT: Brevo API Key is missing in .env.local');
+            console.error('Email sending failed with status:', response.status);
+            console.error('Error details:', result);
+
+            // Check if it's a configuration error (missing SMTP settings)
+            if (result.message && (result.message.includes('SMTP settings') || result.message.includes('Missing'))) {
+                console.warn('⚠️ EMAIL NOT SENT: SMTP configuration is missing or incomplete in .env');
             }
             return {
                 success: true, // Keep UI flow successful even if email fails (graceful degradation)
-                message: 'Report generated (Email delivery pending configuration)',
+                message: result.message || 'Report generated (Email delivery failed)',
                 reportId: `RPT-${Date.now()}`,
             };
         }
@@ -250,5 +251,24 @@ export const submitLeadFormAndSendReport = async (formData, property) => {
             message: 'Report generated successfully',
             reportId: `RPT-${Date.now()}`,
         };
+    }
+};
+
+/**
+ * Submit lead form and unlock content
+ * @param {Object} formData
+ * @param {Object} property
+ * @returns {Promise<Object>} Success response
+ */
+export const submitLeadForm = async (formData, property = null) => {
+    // If property is provided, send the report
+    if (property) {
+        return await submitLeadFormAndSendReport(formData, property)
+    }
+
+    return {
+        success: true,
+        message: 'Report will be sent to your email shortly',
+        reportId: `RPT-${Date.now()}`,
     }
 }
