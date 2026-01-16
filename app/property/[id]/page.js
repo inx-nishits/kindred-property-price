@@ -27,17 +27,25 @@ import {
     Building2,
     Ruler,
     Clock,
-    Share2,
     ArrowRight,
-    Maximize2,
-    FileText
+    TrendingUp
 } from 'lucide-react'
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer
+} from 'recharts'
 
 export default function PropertyPage() {
     const params = useParams()
     const router = useRouter()
     const [property, setProperty] = useState(null)
-    console.log(property?.schools, "property.schools")
+    console.log(property,"property")
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -487,6 +495,128 @@ export default function PropertyPage() {
                                 </ScrollReveal>
                             )}
 
+                            {/* Historical Performance Charts */}
+                            {property.suburbInsights?.historicalData && property.suburbInsights.historicalData.length > 0 && (
+                                <ScrollReveal delay={0.25}>
+                                    <div className="mb-12">
+                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6 flex items-center gap-3">
+                                            <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-primary-500" strokeWidth={1.5} />
+                                            5-Year Suburb Performance - {property.suburb}
+                                        </h2>
+                                        
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                            {/* Median Value Chart */}
+                                            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                                                <h3 className="text-lg font-semibold text-[#163331] mb-4 flex items-center gap-2">
+                                                    <Home className="w-5 h-5 text-primary-500" />
+                                                    Median Property Value
+                                                </h3>
+                                                <ResponsiveContainer width="100%" height={300}>
+                                                    <LineChart data={property.suburbInsights.historicalData}>
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                        <XAxis 
+                                                            dataKey="period" 
+                                                            stroke="#6b7280"
+                                                            fontSize={12}
+                                                            tick={{ fill: '#6b7280' }}
+                                                            angle={-45}
+                                                            textAnchor="end"
+                                                            height={60}
+                                                        />
+                                                        <YAxis 
+                                                            stroke="#6b7280"
+                                                            fontSize={12}
+                                                            tick={{ fill: '#6b7280' }}
+                                                            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                                                        />
+                                                        <Tooltip 
+                                                            contentStyle={{ 
+                                                                backgroundColor: '#fff', 
+                                                                border: '1px solid #e5e7eb',
+                                                                borderRadius: '8px',
+                                                                padding: '8px'
+                                                            }}
+                                                            formatter={(value) => formatCurrency(value)}
+                                                            labelStyle={{ color: '#163331', fontWeight: 'bold' }}
+                                                        />
+                                                        <Legend />
+                                                        <Line 
+                                                            type="monotone" 
+                                                            dataKey="medianPrice" 
+                                                            stroke="#163331" 
+                                                            strokeWidth={2}
+                                                            dot={{ fill: '#163331', r: 3 }}
+                                                            activeDot={{ r: 5 }}
+                                                            name="Median Value"
+                                                            connectNulls={false}
+                                                        />
+                                                    </LineChart>
+                                                </ResponsiveContainer>
+                                            </div>
+
+                                            {/* Median Rent Chart */}
+                                            {property.suburbInsights.historicalData.some(d => d.medianRent && d.medianRent > 0) && (
+                                                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                                                    <h3 className="text-lg font-semibold text-[#163331] mb-4 flex items-center gap-2">
+                                                        <Calendar className="w-5 h-5 text-primary-500" />
+                                                        Median Weekly Rent
+                                                    </h3>
+                                                    <ResponsiveContainer width="100%" height={300}>
+                                                        <LineChart data={property.suburbInsights.historicalData}>
+                                                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                            <XAxis 
+                                                                dataKey="period" 
+                                                                stroke="#6b7280"
+                                                                fontSize={12}
+                                                                tick={{ fill: '#6b7280' }}
+                                                                angle={-45}
+                                                                textAnchor="end"
+                                                                height={60}
+                                                            />
+                                                            <YAxis 
+                                                                stroke="#6b7280"
+                                                                fontSize={12}
+                                                                tick={{ fill: '#6b7280' }}
+                                                                tickFormatter={(value) => `$${value}/wk`}
+                                                            />
+                                                            <Tooltip 
+                                                                contentStyle={{ 
+                                                                    backgroundColor: '#fff', 
+                                                                    border: '1px solid #e5e7eb',
+                                                                    borderRadius: '8px',
+                                                                    padding: '8px'
+                                                                }}
+                                                                formatter={(value) => value ? `$${value}/week` : 'N/A'}
+                                                                labelStyle={{ color: '#163331', fontWeight: 'bold' }}
+                                                            />
+                                                            <Legend />
+                                                            <Line 
+                                                                type="monotone" 
+                                                                dataKey="medianRent" 
+                                                                stroke="#48D98E" 
+                                                                strokeWidth={2}
+                                                                dot={{ fill: '#48D98E', r: 3 }}
+                                                                activeDot={{ r: 5 }}
+                                                                name="Median Rent"
+                                                                connectNulls={false}
+                                                            />
+                                                        </LineChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        {!property.suburbInsights.historicalData.some(d => d.medianRent > 0) && (
+                                            <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                                                <p className="text-sm text-gray-600 text-center">
+                                                    Rental data is not available for this suburb at this time.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </ScrollReveal>
+                            )}
+
                             {/* Comparable Sales */}
                             {property.comparables && property.comparables.length > 0 && (
                                 <ScrollReveal delay={0.3}>
@@ -676,62 +806,136 @@ export default function PropertyPage() {
                             )}
 
 
-                            {/* Past Sales History */}
+                            {/* Property Sales History */}
                             {property.salesHistory && property.salesHistory.length > 0 && (
                                 <ScrollReveal delay={0.6}>
                                     <div className="mb-12">
                                         <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-4 flex items-center gap-3">
                                             <Clock className="w-6 h-6 md:w-8 md:h-8 text-primary-500" strokeWidth={1.5} />
-                                            Past Sales History
+                                            Property Sales History
                                         </h2>
                                         <p className="text-gray-600 mb-6 max-w-3xl">
-                                            Historical sales data for this property
+                                            Complete transaction history showing all times this property has been sold
                                         </p>
                                         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                                             <div className="divide-y divide-gray-200">
-                                                {property.salesHistory.map((sale, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
-                                                    >
-                                                        <div className="w-16 h-16 rounded-lg flex-shrink-0 overflow-hidden bg-gray-200">
-                                                            {propertyImages && propertyImages.length > 0 ? (
-                                                                <img
-                                                                    src={propertyImages[0].url}
-                                                                    alt={`Property sold on ${formatDate(sale.saleDate)}`}
-                                                                    className="w-full h-full object-cover opacity-80"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                                                    <ImageOff className="w-6 h-6 text-gray-300" />
-                                                                </div>
-                                                            )}
-                                                        </div>
+                                                {property.salesHistory.map((sale, index) => {
+                                                    // Calculate time since sale
+                                                    const saleDateObj = new Date(sale.saleDate)
+                                                    const now = new Date()
+                                                    const yearsSince = Math.floor((now - saleDateObj) / (365.25 * 24 * 60 * 60 * 1000))
+                                                    const monthsSince = Math.floor((now - saleDateObj) / (30.44 * 24 * 60 * 60 * 1000))
+                                                    const timeSince = yearsSince > 0 
+                                                        ? `${yearsSince} year${yearsSince > 1 ? 's' : ''} ago`
+                                                        : monthsSince > 0
+                                                        ? `${monthsSince} month${monthsSince > 1 ? 's' : ''} ago`
+                                                        : 'Recently'
+                                                    
+                                                    // Calculate time between sales
+                                                    let timeBetweenSales = null
+                                                    if (index < property.salesHistory.length - 1) {
+                                                        const nextSale = property.salesHistory[index + 1]
+                                                        const nextSaleDate = new Date(nextSale.saleDate)
+                                                        const yearsBetween = Math.floor((saleDateObj - nextSaleDate) / (365.25 * 24 * 60 * 60 * 1000))
+                                                        const monthsBetween = Math.floor((saleDateObj - nextSaleDate) / (30.44 * 24 * 60 * 60 * 1000))
+                                                        if (yearsBetween > 0) {
+                                                            timeBetweenSales = `${yearsBetween} year${yearsBetween > 1 ? 's' : ''}`
+                                                        } else if (monthsBetween > 0) {
+                                                            timeBetweenSales = `${monthsBetween} month${monthsBetween > 1 ? 's' : ''}`
+                                                        } else {
+                                                            timeBetweenSales = 'Less than a month'
+                                                        }
+                                                    }
 
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-start justify-between gap-4 mb-1">
+                                                    return (
+                                                        <div
+                                                            key={index}
+                                                            className="p-4 md:p-6 hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            <div className="flex flex-col md:flex-row gap-4">
+                                                                {/* Left side - Date and details */}
                                                                 <div className="flex-1 min-w-0">
-                                                                    <div className="font-semibold text-[#163331] text-sm mb-0.5">
-                                                                        {formatDate(sale.saleDate)}
+                                                                    <div className="flex items-start justify-between gap-4 mb-3">
+                                                                        <div className="flex-1">
+                                                                            <div className="flex items-center gap-2 mb-1">
+                                                                                <div className="font-semibold text-lg text-[#163331]">
+                                                                                    {formatDate(sale.saleDate)}
+                                                                                </div>
+                                                                                {index === 0 && (
+                                                                                    <span className="px-2 py-0.5 bg-[#48D98E]/20 text-[#163331] text-xs font-semibold rounded">
+                                                                                        MOST RECENT
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="text-sm text-gray-600 mb-2">
+                                                                                {sale.saleType || 'Sale'} • {timeSince}
+                                                                            </div>
+                                                                            {timeBetweenSales && (
+                                                                                <div className="text-xs text-gray-500 mb-2">
+                                                                                    Held for {timeBetweenSales} before this sale
+                                                                                </div>
+                                                                            )}
+                                                                            {sale.daysOnMarket && (
+                                                                                <div className="text-xs text-gray-500">
+                                                                                    On market for {sale.daysOnMarket} day{sale.daysOnMarket > 1 ? 's' : ''}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                        {/* Right side - Price */}
+                                                                        <div className="text-right flex-shrink-0">
+                                                                            <div className="text-2xl md:text-3xl font-bold text-[#163331] mb-1">
+                                                                                {formatCurrency(sale.salePrice)}
+                                                                            </div>
+                                                                            {sale.priceChange !== null && sale.priceChangePercent && (
+                                                                                <div className={`text-sm font-semibold ${sale.priceChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                                                    {sale.priceChange >= 0 ? '+' : ''}{formatCurrency(sale.priceChange)} 
+                                                                                    {' '}({sale.priceChangePercent}%)
+                                                                                </div>
+                                                                            )}
+                                                                            <span className="inline-block px-2.5 py-1 bg-[#163331] text-white text-xs font-semibold rounded mt-2">
+                                                                                SOLD
+                                                                            </span>
+                                                                        </div>
                                                                     </div>
-                                                                    <div className="text-xs text-gray-600">
-                                                                        {sale.saleType || 'Sale'}
-                                                                    </div>
-                                                                </div>
-                                                                <div className="text-right flex-shrink-0">
-                                                                    <div className="text-lg font-bold text-[#163331]">
-                                                                        {formatCurrency(sale.salePrice)}
-                                                                    </div>
-                                                                    <span className="inline-block px-2 py-0.5 bg-primary-100 text-primary-600 text-xs font-medium rounded mt-1">
-                                                                        SOLD
-                                                                    </span>
+                                                                    {/* Additional details row */}
+                                                                    {(sale.agency || sale.agent) && (
+                                                                        <div className="pt-3 border-t border-gray-100">
+                                                                            <div className="text-xs text-gray-500">
+                                                                                {sale.agency && <span>Agency: {sale.agency}</span>}
+                                                                                {sale.agency && sale.agent && <span> • </span>}
+                                                                                {sale.agent && <span>Agent: {sale.agent}</span>}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    )
+                                                })}
                                             </div>
                                         </div>
+                                        {property.salesHistory.length > 1 && (
+                                            <div className="mt-4 p-4 bg-gradient-to-br from-[#E9F2EE] to-[#d4e8e0] rounded-lg border border-[#48D98E]/20">
+                                                <div className="flex items-start gap-3">
+                                                    <TrendingUp className="w-5 h-5 text-[#163331] flex-shrink-0 mt-0.5" />
+                                                    <div>
+                                                        <div className="font-semibold text-[#163331] text-sm mb-1">
+                                                            Price Growth Summary
+                                                        </div>
+                                                        <div className="text-xs text-gray-700">
+                                                            This property has been sold {property.salesHistory.length} time{property.salesHistory.length > 1 ? 's' : ''} since {
+                                                                formatDate(property.salesHistory[property.salesHistory.length - 1].saleDate)
+                                                            }. 
+                                                            {property.salesHistory.length > 1 && (
+                                                                <> The most recent sale was {formatCurrency(property.salesHistory[0].salePrice - property.salesHistory[property.salesHistory.length - 1].salePrice)} 
+                                                                ({((property.salesHistory[0].salePrice / property.salesHistory[property.salesHistory.length - 1].salePrice - 1) * 100).toFixed(1)}%) 
+                                                                higher than the first recorded sale.</>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </ScrollReveal>
                             )}

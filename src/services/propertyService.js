@@ -180,15 +180,16 @@ export const searchPropertiesByQuery = async (query) => {
 }
 
 /**
- * Fetch suburb performance statistics
+ * Fetch suburb performance statistics with historical data (5 years)
  */
 const fetchSuburbPerformance = async (state, suburb, postcode) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
   if (!apiKey || !state || !suburb || !postcode) return null
 
   try {
+    // Fetch 5 years of data (60 months)
     const response = await fetch(
-      `${DOMAIN_API_V2_BASE_URL}/suburbPerformanceStatistics/${state}/${suburb}/${postcode}?propertyCategory=House&chronologicalSpan=12&tPeriod=1`,
+      `${DOMAIN_API_V2_BASE_URL}/suburbPerformanceStatistics/${state}/${suburb}/${postcode}?propertyCategory=House&chronologicalSpan=60&tPeriod=1`,
       {
         method: 'GET',
         headers: {
@@ -204,8 +205,61 @@ const fetchSuburbPerformance = async (state, suburb, postcode) => {
 
     const series = data?.series?.seriesInfo || []
 
+    // Process historical data for charts
+    // API structure: seriesInfo array with { year, month, values }
+    const historicalData = series
+      .map((stat) => {
+        const v = stat?.values || {}
+        // Year and month are directly on the stat object, not in a period object
+        const year = stat.year
+        const month = stat.month
+        
+        // Get median price with better fallback logic
+        let medianPrice = v.medianSoldPrice
+        if (!medianPrice || medianPrice === 0) {
+          medianPrice = v.medianSaleListingPrice
+        }
+        // If still no median, calculate from highest/lowest sold prices
+        if ((!medianPrice || medianPrice === 0) && v.lowestSoldPrice && v.highestSoldPrice) {
+          medianPrice = Math.round((v.lowestSoldPrice + v.highestSoldPrice) / 2)
+        }
+        // Last resort: use listing price range
+        if ((!medianPrice || medianPrice === 0) && v.lowestSaleListingPrice && v.highestSaleListingPrice) {
+          medianPrice = Math.round((v.lowestSaleListingPrice + v.highestSaleListingPrice) / 2)
+        }
+
+        // Get median rent (if available)
+        let medianRent = v.medianRentListingPrice || v.medianRent || null
+        // Calculate median rent from range if available
+        if (!medianRent && v.lowestRentListingPrice && v.highestRentListingPrice) {
+          medianRent = Math.round((v.lowestRentListingPrice + v.highestRentListingPrice) / 2)
+        }
+
+        // Include data even if only one metric is available
+        if (medianPrice > 0 || medianRent > 0) {
+          return {
+            period: year && month 
+              ? `${year}-${String(month).padStart(2, '0')}`
+              : year 
+              ? `${year}`
+              : null,
+            year: year,
+            month: month,
+            medianPrice: medianPrice > 0 ? medianPrice : null,
+            medianRent: medianRent > 0 ? medianRent : null,
+            growthPercent: v.annualGrowth || null,
+          }
+        }
+        return null
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        // Sort by year, then month
+        if (a.year !== b.year) return a.year - b.year
+        return (a.month || 0) - (b.month || 0)
+      })
+
     // Reverse to find the most recent valid data first
-    // Since many fields are null (like medianSoldPrice), we need smarter fallbacks
     const validStat = [...series].reverse().find(stat => {
       const v = stat?.values
       return v && (v.medianSoldPrice > 0 || v.medianSaleListingPrice > 0 || v.highestSoldPrice > 0)
@@ -214,7 +268,7 @@ const fetchSuburbPerformance = async (state, suburb, postcode) => {
     const latestStat = validStat || series[series.length - 1] || {}
     const values = latestStat.values || {}
 
-    // Calculate generic auction clearance rate if not provided: Sold / (Sold + Withdrawn)
+    // Calculate generic auction clearance rate if not provided
     let clearanceRate = values.auctionClearanceRate
     if (!clearanceRate && values.auctionNumberAuctioned > 0) {
       const sold = values.auctionNumberSold || 0
@@ -222,24 +276,21 @@ const fetchSuburbPerformance = async (state, suburb, postcode) => {
       clearanceRate = Math.round((sold / total) * 100)
     }
 
-    // Median price fallback logic:
-    // 1. Median Sold Price
-    // 2. Median Listing Price
-    // 3. 50th percentile (derived average of highest/lowest sold if desperate, but risky. Let's stick to listing price)
+    // Median price fallback logic
     let medianPrice = values.medianSoldPrice
     if (!medianPrice) medianPrice = values.medianSaleListingPrice
     if (!medianPrice && values.lowestSoldPrice && values.highestSoldPrice) {
-      // Very rough estimate if no median avail
       medianPrice = Math.round((values.lowestSoldPrice + values.highestSoldPrice) / 2)
     }
 
     return {
       medianPrice: medianPrice || 0,
       growthPercent: values.annualGrowth || 0,
-      demand: 'Medium', // API doesn't provide demand score directly
-      population: 0, // Not in this endpoint
+      demand: 'Medium',
+      population: 0,
       averageDaysOnMarket: values.daysOnMarket || 0,
       auctionClearanceRate: clearanceRate || 0,
+      historicalData, // Add historical data for charts
     }
 
   } catch (error) {
@@ -304,10 +355,10 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
 
   if (history?.sales && Array.isArray(history.sales)) {
     for (const sale of history.sales) {
-      // Check standard fields or possible variants in API response
+      // Check price at top level first (most common), then nested fields
       const price = sale.price || sale.soldPrice || sale.advertisedPrice
-        || sale.first?.price || sale.first?.advertisedPrice
-        || sale.last?.price || sale.last?.advertisedPrice
+        || sale.last?.advertisedPrice || sale.last?.price
+        || sale.first?.advertisedPrice || sale.first?.price
 
       if (typeof price === 'number' && price > 0) {
         basePrice = price
@@ -383,16 +434,66 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
     }
   }
 
-  // Build sales history
-  const salesHistory =
+  // Build sales history with enhanced details
+  const salesHistoryRaw =
     history?.sales?.map((sale) => {
-      const seg = sale.last || sale.first || {}
+      // Price can be at top level (sale.price) or in last/first segments
+      const salePrice = sale.price || sale.soldPrice || sale.advertisedPrice
+        || sale.last?.advertisedPrice || sale.last?.price
+        || sale.first?.advertisedPrice || sale.first?.price
+      
+      // Date can be at top level (sale.date) or in segments
+      const saleDate = sale.date || sale.soldDate
+        || sale.last?.advertisedDate || sale.last?.date
+        || sale.first?.advertisedDate || sale.first?.date
+      
+      // Type can be at top level or in segments
+      const saleType = sale.type || sale.last?.type || sale.first?.type || 'Sale'
+      
+      // Extract additional details if available
+      const daysOnMarket = sale.daysOnMarket || sale.last?.daysOnMarket || null
+      const agency = sale.agency || sale.last?.agency || null
+      const agent = sale.agent || sale.last?.agent || null
+      const listingId = sale.listingId || sale.advertId || null
+
       return {
-        salePrice: seg.price || seg.advertisedPrice || null,
-        saleDate: seg.date || seg.advertisedDate || null,
-        saleType: seg.type || null,
+        salePrice: salePrice || null,
+        saleDate: saleDate || null,
+        saleType: saleType,
+        daysOnMarket: daysOnMarket,
+        agency: agency,
+        agent: agent,
+        listingId: listingId,
       }
     }).filter(s => s.salePrice && s.saleDate) || []
+
+  // Sort by date descending (most recent first)
+  const salesHistory = salesHistoryRaw
+    .sort((a, b) => {
+      const dateA = new Date(a.saleDate)
+      const dateB = new Date(b.saleDate)
+      return dateB - dateA
+    })
+    .map((sale, index, array) => {
+      // Calculate price change from previous sale (chronologically earlier, which is next in sorted array)
+      let priceChange = null
+      let priceChangePercent = null
+      if (index < array.length - 1) {
+        const previousSale = array[index + 1] // Previous sale chronologically (older)
+        const previousPrice = previousSale.salePrice
+        
+        if (previousPrice && sale.salePrice) {
+          priceChange = sale.salePrice - previousPrice
+          priceChangePercent = ((priceChange / previousPrice) * 100).toFixed(1)
+        }
+      }
+
+      return {
+        ...sale,
+        priceChange: priceChange,
+        priceChangePercent: priceChangePercent,
+      }
+    })
 
   // Basic photo gallery from Domain photos
   const propertyImages =
