@@ -1,5 +1,5 @@
 export const metadata = {
-    title: 'Terms & Conditions | Property Insights Australia',
+    title: 'Terms & Conditions | Property Price Estimate | Instant & Free Value',
     description: 'Terms and conditions for using Property Insights Australia services.',
 }
 

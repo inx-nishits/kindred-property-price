@@ -2,7 +2,7 @@ import FAQ from '@/components/common/FAQ'
 import staticContent from '@/data/staticContent.json'
 
 export const metadata = {
-    title: 'FAQ | Property Insights Australia',
+    title: 'FAQ | Property Price Estimate | Instant & Free Value',
     description: 'Frequently asked questions about property estimates, reports, and our services.',
 }
 

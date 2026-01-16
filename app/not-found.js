@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-    title: 'Page Not Found | Property Insights Australia',
+    title: 'Page Not Found | Property Price Estimate | Instant & Free Value',
     description: 'The page you are looking for could not be found.',
 }
 

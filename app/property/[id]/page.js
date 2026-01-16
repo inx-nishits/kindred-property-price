@@ -45,6 +45,7 @@ export default function PropertyPage() {
     const [isUnlocked, setIsUnlocked] = useState(false)
     const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
+    const [isSchoolsModalOpen, setIsSchoolsModalOpen] = useState(false)
 
     const propertyImages = property?.images || []
 
@@ -94,6 +95,19 @@ export default function PropertyPage() {
             return () => clearTimeout(timer)
         }
     }, [isUnlocked, property, isLoading])
+
+    useEffect(() => {
+        if (isSchoolsModalOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        // Cleanup on unmount
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isSchoolsModalOpen]);
 
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
     const [userEmail, setUserEmail] = useState('')
@@ -566,7 +580,9 @@ export default function PropertyPage() {
                             )}
 
                             {/* Nearby Schools */}
-                            {property.schools && property.schools.length > 0 && (
+
+                            {/* Display all nearby schools */}
+                            {/* {property.schools && property.schools.length > 0 && (
                                 <ScrollReveal delay={0.5}>
                                     <div className="mb-12">
                                         <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6 flex items-center gap-3">
@@ -603,7 +619,62 @@ export default function PropertyPage() {
                                         </div>
                                     </div>
                                 </ScrollReveal>
+                            )} */}
+
+                            {/* Only 3 nearby schools are displayed */}
+                            {property.schools && property.schools.length > 0 && (
+                                <ScrollReveal delay={0.5}>
+                                    <div className="mb-12">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] flex items-center gap-3">
+                                                <School className="w-6 h-6 md:w-8 md:h-8 text-primary-500" strokeWidth={1.5} />
+                                                Nearby Schools
+                                            </h2>
+                                            {property.schools.length > 3 && (
+                                                <button
+                                                    onClick={() => setIsSchoolsModalOpen(true)}
+                                                    className="text-primary-600 hover:text-primary-700 font-semibold text-sm flex items-center gap-1 transition-colors group"
+                                                >
+                                                    View all schools
+                                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {[...property.schools]
+                                                .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
+                                                .slice(0, 3)
+                                                .map((school, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all"
+                                                    >
+                                                        <div className="font-semibold text-sm text-[#163331] mb-2">
+                                                            {school.name}
+                                                        </div>
+                                                        <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                                                            <span className="px-2 py-0.5 bg-[#E9F2EE] text-[#163331] rounded-full text-xs font-medium">
+                                                                {school.type}
+                                                            </span>
+                                                            <span className="text-xs text-gray-600">{school.yearRange}</span>
+                                                        </div>
+                                                        <div className="text-xs text-gray-600 mb-0 flex items-center gap-1">
+                                                            <MapPin className="w-3 h-3" />
+                                                            {school.distance} km away
+                                                        </div>
+                                                        {school.rating && school.rating <= 10 && (
+                                                            <div className="mt-3 text-center px-2 py-1 bg-gradient-to-br from-[#E9F2EE] to-[#d4e8e0] rounded-lg inline-block">
+                                                                <div className="text-md font-bold text-[#163331]">{school.rating}</div>
+                                                                <div className="text-xs text-[#163331] font-medium">Rating</div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+                                </ScrollReveal>
                             )}
+
 
                             {/* Past Sales History */}
                             {property.salesHistory && property.salesHistory.length > 0 && (
@@ -764,6 +835,82 @@ export default function PropertyPage() {
                 </div>,
                 document.body
             )}
+            {/* Schools Modal */}
+            {isSchoolsModalOpen && property.schools && typeof window !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setIsSchoolsModalOpen(false)}
+                    />
+                    <div className="relative z-10 w-full max-w-4xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                            <div>
+                                <h3 className="text-2xl font-heading font-bold text-[#163331] flex items-center gap-2">
+                                    <School className="w-6 h-6 text-primary-500" />
+                                    All Nearby Schools
+                                </h3>
+                                <p className="text-sm text-gray-600 mt-1">Sorted by closest to {property.address}</p>
+                            </div>
+                            <button
+                                onClick={() => setIsSchoolsModalOpen(false)}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <X className="w-6 h-6 text-gray-400" />
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {[...property.schools]
+                                    .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
+                                    .map((school, index) => (
+                                        <div
+                                            key={index}
+                                            className="p-4 bg-gray-50 border border-gray-200 rounded-xl hover:border-primary-200 hover:shadow-md transition-all group"
+                                        >
+                                            <div className="font-semibold text-[#163331] mb-2 group-hover:text-primary-600 transition-colors">
+                                                {school.name}
+                                            </div>
+                                            <div className="flex flex-wrap items-center gap-2 mb-3">
+                                                <span className="px-2.5 py-0.5 bg-[#E9F2EE] text-[#163331] rounded-full text-xs font-semibold">
+                                                    {school.type}
+                                                </span>
+                                                <span className="text-xs text-gray-600 font-medium">{school.yearRange}</span>
+                                            </div>
+
+                                            <div className="flex items-center justify-between mt-auto">
+                                                <div className="text-xs text-gray-600 flex items-center gap-1.5">
+                                                    <MapPin className="w-3.5 h-3.5 text-primary-500" />
+                                                    {school.distance} km away
+                                                </div>
+                                                {school.rating && school.rating <= 10 && (
+                                                    <div className="px-3 py-1 bg-gradient-to-br from-[#E9F2EE] to-[#d4e8e0] rounded-lg text-right">
+                                                        <span className="text-md font-bold text-[#163331]">{school.rating}</span>
+                                                        <span className="text-[10px] text-[#163331] font-medium block leading-none">Rating</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end">
+                            <button
+                                onClick={() => setIsSchoolsModalOpen(false)}
+                                className="px-6 py-2 bg-[#163331] text-white font-semibold rounded-lg hover:bg-[#0d1f1e] transition-colors shadow-lg"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
             {/* Success Modal */}
             <SuccessModal
                 isOpen={isSuccessModalOpen}
