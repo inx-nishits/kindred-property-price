@@ -12,52 +12,36 @@ export async function POST(request) {
             );
         }
 
-        /* 
-        // FUTURE BREVO SETUP (Commented out for now)
-        // ------------------------------------------
-        // const apiKey = process.env.BREVO_API_KEY;
-        // const smtpLogin = process.env.BREVO_SMTP_LOGIN;
-        // const smtpHost = 'smtp-relay.brevo.com';
-        // const smtpPort = 587;
-        // ------------------------------------------
-        */
-
-        // CURRENT ACTIVE SETUP (Gmail / Generic SMTP)
+        // Gmail Configuration
         const gmailUser = process.env.GMAIL_USER?.trim();
         const gmailPass = process.env.GMAIL_APP_PASSWORD?.trim();
-
-        const smtpHost = process.env.SMTP_HOST?.trim() || 'smtp.gmail.com';
-        const smtpPort = process.env.SMTP_PORT?.trim() || '587';
-        const smtpUser = gmailUser || process.env.SMTP_USER?.trim();
-        const smtpPass = gmailPass || process.env.SMTP_PASS?.trim();
-        const senderEmail = process.env.SENDER_EMAIL?.trim() || smtpUser;
         const senderName = process.env.SENDER_NAME?.trim() || 'Kindred Property';
 
-        if (!smtpUser || !smtpPass) {
-            console.error('Missing SMTP configuration: (GMAIL_USER/GMAIL_APP_PASSWORD) or (SMTP_USER/SMTP_PASS)');
+        if (!gmailUser || !gmailPass) {
+            console.error('Missing Gmail configuration: GMAIL_USER and GMAIL_APP_PASSWORD are required');
             return NextResponse.json(
                 {
                     success: false,
-                    message: 'Server Configuration Error: Email credentials missing'
+                    message: 'Server Configuration Error: Gmail credentials missing. Please provide GMAIL_USER and GMAIL_APP_PASSWORD'
                 },
                 { status: 500 }
             );
         }
 
-        // Create a Nodemailer transporter
+        // Create a Nodemailer transporter for Gmail
         const transporter = nodemailer.createTransport({
-            host: smtpHost,
-            port: parseInt(smtpPort),
-            secure: smtpPort === '465', // true for 465, false for 587
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false, // true for 465, false for 587
             auth: {
-                user: smtpUser,
-                pass: smtpPass,
+                user: gmailUser,
+                pass: gmailPass,
             },
         });
 
         // Send the email
         const info = await transporter.sendMail({
-            from: `"${senderName}" <${senderEmail}>`,
+            from: `"${senderName}" <${gmailUser}>`,
             to: email,
             subject: subject || 'Property Report',
             html: htmlContent,
@@ -77,7 +61,7 @@ export async function POST(request) {
         return NextResponse.json(
             {
                 success: false,
-                message: error.message || 'Failed to send email. Please check your SMTP configuration.',
+                message: error.message || 'Failed to send email. Please check your Gmail configuration.',
                 error: process.env.NODE_ENV === 'development' ? error.toString() : undefined
             },
             { status: 500 }
