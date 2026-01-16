@@ -2,7 +2,7 @@ import './globals.css'
 import LayoutWrapper from '@/components/layout/LayoutWrapper'
 
 export const metadata = {
-    title: 'Property Insights Australia | Search Property Prices & Market Data',
+    title: 'Property Price Estimate | Instant & Free Value',
     description: 'Get instant property estimates, comparable sales, suburb insights, and rental data for any Australian property. Free property reports delivered to your email.',
     keywords: 'property prices, property estimates, Australian property, property data, suburb insights, property reports',
     authors: [{ name: 'Property Insights Australia' }],
@@ -10,7 +10,7 @@ export const metadata = {
         type: 'website',
         locale: 'en_AU',
         siteName: 'Property Insights Australia',
-        title: 'Property Insights Australia | Search Property Prices & Market Data',
+        title: 'Property Price Estimate | Instant & Free Value',
         description: 'Get instant property estimates, comparable sales, suburb insights, and rental data for any Australian property. Free property reports delivered to your email.',
         images: [
             {
@@ -23,7 +23,7 @@ export const metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Property Insights Australia | Search Property Prices & Market Data',
+        title: 'Property Price Estimate | Instant & Free Value',
         description: 'Get instant property estimates, comparable sales, suburb insights, and rental data for any Australian property. Free property reports delivered to your email.',
         images: ['/og-image.png'],
     },
