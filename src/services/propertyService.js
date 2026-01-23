@@ -213,7 +213,7 @@ const fetchSuburbPerformance = async (state, suburb, postcode) => {
         // Year and month are directly on the stat object, not in a period object
         const year = stat.year
         const month = stat.month
-        
+
         // Get median price with better fallback logic
         let medianPrice = v.medianSoldPrice
         if (!medianPrice || medianPrice === 0) {
@@ -238,11 +238,11 @@ const fetchSuburbPerformance = async (state, suburb, postcode) => {
         // Include data even if only one metric is available
         if (medianPrice > 0 || medianRent > 0) {
           return {
-            period: year && month 
+            period: year && month
               ? `${year}-${String(month).padStart(2, '0')}`
-              : year 
-              ? `${year}`
-              : null,
+              : year
+                ? `${year}`
+                : null,
             year: year,
             month: month,
             medianPrice: medianPrice > 0 ? medianPrice : null,
@@ -283,7 +283,51 @@ const fetchSuburbPerformance = async (state, suburb, postcode) => {
       medianPrice = Math.round((values.lowestSoldPrice + values.highestSoldPrice) / 2)
     }
 
+    // Calculate aggregated statistics across the series
+    let totalMedianPrice = 0
+    let countMedianPrice = 0
+    let totalDaysOnMarket = 0
+    let countDaysOnMarket = 0
+    let totalNumberSold = 0
+    let countNumberSold = 0
+    let totalAuctionsAuctioned = 0
+    let totalAuctionsSold = 0
+
+    series.forEach(stat => {
+      const v = stat.values || {}
+      if (v.medianSoldPrice > 0) {
+        totalMedianPrice += v.medianSoldPrice
+        countMedianPrice++
+      }
+      if (v.daysOnMarket > 0) {
+        totalDaysOnMarket += v.daysOnMarket
+        countDaysOnMarket++
+      }
+      if (v.numberSold > 0) {
+        totalNumberSold += v.numberSold
+        countNumberSold++
+      }
+      if (v.auctionNumberAuctioned > 0) {
+        totalAuctionsAuctioned += v.auctionNumberAuctioned
+        totalAuctionsSold += (v.auctionNumberSold || 0)
+      }
+    })
+
+    const avgMedianSoldPrice = countMedianPrice > 0 ? Math.round(totalMedianPrice / countMedianPrice) : 0
+    const avgDaysOnMarket = countDaysOnMarket > 0 ? totalDaysOnMarket / countDaysOnMarket : 0
+    const avgNumberSold = countNumberSold > 0 ? Math.round(totalNumberSold / countNumberSold) : 0
+    const overallClearanceRate = totalAuctionsAuctioned > 0 ? (totalAuctionsSold / totalAuctionsAuctioned) * 100 : 0
+
+    // Determine period range
+    let periodRange = ''
+    if (historicalData.length > 0) {
+      const first = historicalData[0]
+      const last = historicalData[historicalData.length - 1]
+      periodRange = `${String(first.month).padStart(2, '0')}-${first.year} to ${String(last.month).padStart(2, '0')}-${last.year}`
+    }
+
     return {
+      ...data,
       medianPrice: medianPrice || 0,
       growthPercent: values.annualGrowth || 0,
       demand: 'Medium',
@@ -291,6 +335,14 @@ const fetchSuburbPerformance = async (state, suburb, postcode) => {
       averageDaysOnMarket: values.daysOnMarket || 0,
       auctionClearanceRate: clearanceRate || 0,
       historicalData, // Add historical data for charts
+      // Added aggregated statistics
+      avgMedianSoldPrice,
+      avgDaysOnMarket,
+      avgNumberSold,
+      overallClearanceRate,
+      periodRange,
+      totalAuctionsAuctioned,
+      totalAuctionsSold
     }
 
   } catch (error) {
@@ -377,7 +429,12 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
     const mid = apiPriceEstimate.midPrice || (lower && upper ? Math.round((lower + upper) / 2) : null)
 
     if (lower && upper) {
-      priceEstimate = { low: lower, mid: mid, high: upper }
+      priceEstimate = {
+        ...apiPriceEstimate,
+        low: lower,
+        mid: mid,
+        high: upper
+      }
     }
   }
 
@@ -407,6 +464,7 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
     const weeklyHigh = Math.round(weeklyMid * 1.1) // estimate range
 
     rentalEstimate = {
+      ...apiRentalEstimate,
       weekly: {
         low: weeklyLow,
         mid: weeklyMid,
@@ -441,15 +499,15 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
       const salePrice = sale.price || sale.soldPrice || sale.advertisedPrice
         || sale.last?.advertisedPrice || sale.last?.price
         || sale.first?.advertisedPrice || sale.first?.price
-      
+
       // Date can be at top level (sale.date) or in segments
       const saleDate = sale.date || sale.soldDate
         || sale.last?.advertisedDate || sale.last?.date
         || sale.first?.advertisedDate || sale.first?.date
-      
+
       // Type can be at top level or in segments
       const saleType = sale.type || sale.last?.type || sale.first?.type || 'Sale'
-      
+
       // Extract additional details if available
       const daysOnMarket = sale.daysOnMarket || sale.last?.daysOnMarket || null
       const agency = sale.agency || sale.last?.agency || null
@@ -457,6 +515,7 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
       const listingId = sale.listingId || sale.advertId || null
 
       return {
+        ...sale,
         salePrice: salePrice || null,
         saleDate: saleDate || null,
         saleType: saleType,
@@ -481,7 +540,7 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
       if (index < array.length - 1) {
         const previousSale = array[index + 1] // Previous sale chronologically (older)
         const previousPrice = previousSale.salePrice
-        
+
         if (previousPrice && sale.salePrice) {
           priceChange = sale.salePrice - previousPrice
           priceChangePercent = ((priceChange / previousPrice) * 100).toFixed(1)
@@ -504,6 +563,7 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
     })) || []
 
   return {
+    ...domainProperty,
     id,
     address,
     shortAddress: streetAddress || (address ? address.split(',')[0] : ''),
@@ -533,6 +593,7 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
       }
 
       return {
+        ...c,
         id: listing.id,
         address: listing.propertyDetails?.displayableAddress || listing.addressParts?.displayAddress || 'Address hidden',
         salePrice: listing.saleDetails?.soldPrice || cleanPrice,
@@ -549,6 +610,7 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
       // The API returns the structure { distance: number, school: { name, schoolType, ... } }
       const schoolData = s.school || s
       return {
+        ...s,
         name: schoolData.name,
         type: schoolData.schoolType,
         yearRange: schoolData.profile?.yearRange || 'K-12',
