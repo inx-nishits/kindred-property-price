@@ -45,7 +45,6 @@ export default function PropertyPage() {
     const params = useParams()
     const router = useRouter()
     const [property, setProperty] = useState(null)
-    console.log(property,"property")
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -319,7 +318,9 @@ export default function PropertyPage() {
                                                         </div>
                                                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/15 backdrop-blur-sm rounded-full">
                                                             <div className="w-2 h-2 bg-[#48D98E] rounded-full animate-pulse"></div>
-                                                            <span className="text-sm font-medium text-white/90">Medium Confidence</span>
+                                                            <span className="text-sm font-medium text-white/90">
+                                                                {(property.priceEstimate.priceConfidence || '').charAt(0).toUpperCase() + (property.priceEstimate.priceConfidence || '').slice(1)} Confidence
+                                                            </span>
                                                         </div>
                                                     </div>
 
@@ -333,8 +334,9 @@ export default function PropertyPage() {
                                                     </div>
 
                                                     <p className="text-xs text-white/70 leading-relaxed pt-2">
-                                                        This estimate may not include recent renovations or improvements.
-                                                        For a personal appraisal, please contact us.
+                                                        {/* This estimate may not include recent renovations or improvements.
+                                                        For a personal appraisal, please contact us. */}
+                                                        This estimate may not have factored in your current home condition or any recent renovations. For a more accurate sale price contact Town for a personal appraisal.
                                                     </p>
                                                 </div>
                                             ) : (
@@ -438,7 +440,7 @@ export default function PropertyPage() {
                             )}
 
                             {/* Suburb Insights */}
-                            {property.suburbInsights && (
+                            {/* {property.suburbInsights && (
                                 <ScrollReveal delay={0.2}>
                                     <div className="mb-12">
                                         <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6 flex items-center gap-3">
@@ -493,6 +495,89 @@ export default function PropertyPage() {
                                         </div>
                                     </div>
                                 </ScrollReveal>
+                            )} */}
+
+                            {/* Suburb Sales Statistics */}
+                            {property.suburbInsights && (
+                                <ScrollReveal delay={0.2}>
+                                    <div className="mb-16">
+                                        <div className="text-center mb-10">
+                                            <h2 className="text-3xl md:text-4xl font-heading font-bold text-[#163331] mb-2 leading-tight">
+                                                {property.suburb} Sales Statistics
+                                            </h2>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                                            {/* Auction Clearance Rate */}
+                                            <div className="flex flex-col h-full bg-[#f8f9f9] rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden transform transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+                                                <div className="flex-1 p-6 md:p-8 flex flex-col items-center justify-center text-center">
+                                                    <div className="text-4xl md:text-5xl font-heading font-bold text-[#163331] mb-4">
+                                                        {property.suburbInsights.overallClearanceRate?.toFixed(2)}%
+                                                    </div>
+                                                    <div className="text-[11px] md:text-xs font-bold text-[#163331]/60 uppercase tracking-[0.1em] leading-relaxed">
+                                                        AUCTION CLEARANCE RATE
+                                                    </div>
+                                                </div>
+                                                <div className="bg-[#ecedee] py-3 px-4 text-center">
+                                                    <span className="text-[10px] md:text-[11px] font-bold text-[#163331]/40 uppercase tracking-wider">
+                                                        {property.suburbInsights.periodRange}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Average Days on Market */}
+                                            <div className="flex flex-col h-full bg-[#f8f9f9] rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden transform transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+                                                <div className="flex-1 p-6 md:p-8 flex flex-col items-center justify-center text-center">
+                                                    <div className="text-4xl md:text-5xl font-heading font-bold text-[#163331] mb-4">
+                                                        {property.suburbInsights.avgDaysOnMarket?.toFixed(2)}
+                                                    </div>
+                                                    <div className="text-[11px] md:text-xs font-bold text-[#163331]/60 uppercase tracking-[0.1em] leading-relaxed">
+                                                        AVERAGE DAYS ON MARKET
+                                                    </div>
+                                                </div>
+                                                <div className="bg-[#ecedee] py-3 px-4 text-center">
+                                                    <span className="text-[10px] md:text-[11px] font-bold text-[#163331]/40 uppercase tracking-wider">
+                                                        {property.suburbInsights.periodRange}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Median Sold Price */}
+                                            <div className="flex flex-col h-full bg-[#f8f9f9] rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden transform transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+                                                <div className="flex-1 p-6 md:p-8 flex flex-col items-center justify-center text-center">
+                                                    <div className="text-3xl md:text-4xl lg:text-4xl font-heading font-bold text-[#163331] mb-4 lg:whitespace-nowrap">
+                                                        {formatCurrency(property.suburbInsights.avgMedianSoldPrice || property.suburbInsights.medianPrice)}
+                                                    </div>
+                                                    <div className="text-[11px] md:text-xs font-bold text-[#163331]/60 uppercase tracking-[0.1em] leading-relaxed">
+                                                        MEDIAN SOLD PRICE
+                                                    </div>
+                                                </div>
+                                                <div className="bg-[#ecedee] py-3 px-4 text-center">
+                                                    <span className="text-[10px] md:text-[11px] font-bold text-[#163331]/40 uppercase tracking-wider">
+                                                        {property.suburbInsights.periodRange}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Average Number of Sales */}
+                                            <div className="flex flex-col h-full bg-[#f8f9f9] rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden transform transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+                                                <div className="flex-1 p-6 md:p-8 flex flex-col items-center justify-center text-center">
+                                                    <div className="text-4xl md:text-5xl font-heading font-bold text-[#163331] mb-4">
+                                                        {property.suburbInsights.avgNumberSold}
+                                                    </div>
+                                                    <div className="text-[11px] md:text-xs font-bold text-[#163331]/60 uppercase tracking-[0.1em] leading-relaxed">
+                                                        AVERAGE NUMBER OF SALES<br />PER QUARTER
+                                                    </div>
+                                                </div>
+                                                <div className="bg-[#ecedee] py-3 px-4 text-center">
+                                                    <span className="text-[10px] md:text-[11px] font-bold text-[#163331]/40 uppercase tracking-wider">
+                                                        {property.suburbInsights.periodRange}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ScrollReveal>
                             )}
 
                             {/* Historical Performance Charts */}
@@ -503,7 +588,7 @@ export default function PropertyPage() {
                                             <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-primary-500" strokeWidth={1.5} />
                                             5-Year Suburb Performance - {property.suburb}
                                         </h2>
-                                        
+
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                             {/* Median Value Chart */}
                                             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
@@ -514,8 +599,8 @@ export default function PropertyPage() {
                                                 <ResponsiveContainer width="100%" height={300}>
                                                     <LineChart data={property.suburbInsights.historicalData}>
                                                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                        <XAxis 
-                                                            dataKey="period" 
+                                                        <XAxis
+                                                            dataKey="period"
                                                             stroke="#6b7280"
                                                             fontSize={12}
                                                             tick={{ fill: '#6b7280' }}
@@ -523,15 +608,15 @@ export default function PropertyPage() {
                                                             textAnchor="end"
                                                             height={60}
                                                         />
-                                                        <YAxis 
+                                                        <YAxis
                                                             stroke="#6b7280"
                                                             fontSize={12}
                                                             tick={{ fill: '#6b7280' }}
                                                             tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                                                         />
-                                                        <Tooltip 
-                                                            contentStyle={{ 
-                                                                backgroundColor: '#fff', 
+                                                        <Tooltip
+                                                            contentStyle={{
+                                                                backgroundColor: '#fff',
                                                                 border: '1px solid #e5e7eb',
                                                                 borderRadius: '8px',
                                                                 padding: '8px'
@@ -540,10 +625,10 @@ export default function PropertyPage() {
                                                             labelStyle={{ color: '#163331', fontWeight: 'bold' }}
                                                         />
                                                         <Legend />
-                                                        <Line 
-                                                            type="monotone" 
-                                                            dataKey="medianPrice" 
-                                                            stroke="#163331" 
+                                                        <Line
+                                                            type="monotone"
+                                                            dataKey="medianPrice"
+                                                            stroke="#163331"
                                                             strokeWidth={2}
                                                             dot={{ fill: '#163331', r: 3 }}
                                                             activeDot={{ r: 5 }}
@@ -564,8 +649,8 @@ export default function PropertyPage() {
                                                     <ResponsiveContainer width="100%" height={300}>
                                                         <LineChart data={property.suburbInsights.historicalData}>
                                                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                            <XAxis 
-                                                                dataKey="period" 
+                                                            <XAxis
+                                                                dataKey="period"
                                                                 stroke="#6b7280"
                                                                 fontSize={12}
                                                                 tick={{ fill: '#6b7280' }}
@@ -573,15 +658,15 @@ export default function PropertyPage() {
                                                                 textAnchor="end"
                                                                 height={60}
                                                             />
-                                                            <YAxis 
+                                                            <YAxis
                                                                 stroke="#6b7280"
                                                                 fontSize={12}
                                                                 tick={{ fill: '#6b7280' }}
                                                                 tickFormatter={(value) => `$${value}/wk`}
                                                             />
-                                                            <Tooltip 
-                                                                contentStyle={{ 
-                                                                    backgroundColor: '#fff', 
+                                                            <Tooltip
+                                                                contentStyle={{
+                                                                    backgroundColor: '#fff',
                                                                     border: '1px solid #e5e7eb',
                                                                     borderRadius: '8px',
                                                                     padding: '8px'
@@ -590,10 +675,10 @@ export default function PropertyPage() {
                                                                 labelStyle={{ color: '#163331', fontWeight: 'bold' }}
                                                             />
                                                             <Legend />
-                                                            <Line 
-                                                                type="monotone" 
-                                                                dataKey="medianRent" 
-                                                                stroke="#48D98E" 
+                                                            <Line
+                                                                type="monotone"
+                                                                dataKey="medianRent"
+                                                                stroke="#48D98E"
                                                                 strokeWidth={2}
                                                                 dot={{ fill: '#48D98E', r: 3 }}
                                                                 activeDot={{ r: 5 }}
@@ -605,7 +690,7 @@ export default function PropertyPage() {
                                                 </div>
                                             )}
                                         </div>
-                                        
+
                                         {!property.suburbInsights.historicalData.some(d => d.medianRent > 0) && (
                                             <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                                                 <p className="text-sm text-gray-600 text-center">
@@ -825,12 +910,12 @@ export default function PropertyPage() {
                                                     const now = new Date()
                                                     const yearsSince = Math.floor((now - saleDateObj) / (365.25 * 24 * 60 * 60 * 1000))
                                                     const monthsSince = Math.floor((now - saleDateObj) / (30.44 * 24 * 60 * 60 * 1000))
-                                                    const timeSince = yearsSince > 0 
+                                                    const timeSince = yearsSince > 0
                                                         ? `${yearsSince} year${yearsSince > 1 ? 's' : ''} ago`
                                                         : monthsSince > 0
-                                                        ? `${monthsSince} month${monthsSince > 1 ? 's' : ''} ago`
-                                                        : 'Recently'
-                                                    
+                                                            ? `${monthsSince} month${monthsSince > 1 ? 's' : ''} ago`
+                                                            : 'Recently'
+
                                                     // Calculate time between sales
                                                     let timeBetweenSales = null
                                                     if (index < property.salesHistory.length - 1) {
@@ -888,7 +973,7 @@ export default function PropertyPage() {
                                                                             </div>
                                                                             {sale.priceChange !== null && sale.priceChangePercent && (
                                                                                 <div className={`text-sm font-semibold ${sale.priceChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                                                    {sale.priceChange >= 0 ? '+' : ''}{formatCurrency(sale.priceChange)} 
+                                                                                    {sale.priceChange >= 0 ? '+' : ''}{formatCurrency(sale.priceChange)}
                                                                                     {' '}({sale.priceChangePercent}%)
                                                                                 </div>
                                                                             )}
@@ -925,11 +1010,11 @@ export default function PropertyPage() {
                                                         <div className="text-xs text-gray-700">
                                                             This property has been sold {property.salesHistory.length} time{property.salesHistory.length > 1 ? 's' : ''} since {
                                                                 formatDate(property.salesHistory[property.salesHistory.length - 1].saleDate)
-                                                            }. 
+                                                            }.
                                                             {property.salesHistory.length > 1 && (
-                                                                <> The most recent sale was {formatCurrency(property.salesHistory[0].salePrice - property.salesHistory[property.salesHistory.length - 1].salePrice)} 
-                                                                ({((property.salesHistory[0].salePrice / property.salesHistory[property.salesHistory.length - 1].salePrice - 1) * 100).toFixed(1)}%) 
-                                                                higher than the first recorded sale.</>
+                                                                <> The most recent sale was {formatCurrency(property.salesHistory[0].salePrice - property.salesHistory[property.salesHistory.length - 1].salePrice)}
+                                                                    ({((property.salesHistory[0].salePrice / property.salesHistory[property.salesHistory.length - 1].salePrice - 1) * 100).toFixed(1)}%)
+                                                                    higher than the first recorded sale.</>
                                                             )}
                                                         </div>
                                                     </div>
