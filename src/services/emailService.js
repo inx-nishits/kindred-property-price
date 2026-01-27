@@ -13,7 +13,7 @@
  * @returns {string} HTML string
  */
 const generatePropertyEmailHtml = (property, formData) => {
-    const { address, beds, baths, cars, landSize, priceEstimate, rentalEstimate, propertyType } = property;
+    const { address, beds, baths, cars, landSize, priceEstimate, rentalEstimate, propertyType, id, postcode, suburb, state, coordinates, buildingSize, shortAddress } = property;
     const { firstName } = formData;
 
     // Format currency helper
@@ -97,7 +97,8 @@ const generatePropertyEmailHtml = (property, formData) => {
             <p style="color: #666; margin-bottom: 25px;">Please find below the detailed property report you requested.</p>
             
             <h2 class="property-title">${address}</h2>
-            <div class="property-subtitle">${propertyType} · ${property.suburb}, ${property.state}</div>
+            <div class="property-subtitle">${propertyType} · ${suburb}, ${state} ${postcode} · ID: ${id}</div>
+                        <div class="property-subtitle" style="font-size: 14px; margin-top: 5px;">Location: ${coordinates ? `${coordinates.lat}, ${coordinates.lng}` : 'N/A'}</div>
 
             <div class="features-grid">
                 <div class="feature-item">
@@ -140,7 +141,7 @@ const generatePropertyEmailHtml = (property, formData) => {
 
             <!-- Additional Details Sections -->
             ${property.suburbInsights ? `
-            <div class="section-title">Suburb Performance (${property.suburb})</div>
+            <div class="section-title">Suburb Performance (${suburb})</div>
             <div style="background: #fff; border: 1px solid #eee; border-radius: 6px; padding: 15px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                     <span style="color: #666;">Median Price</span>
@@ -161,23 +162,59 @@ const generatePropertyEmailHtml = (property, formData) => {
             </div>
             ` : ''}
 
-            <div class="section-title">Comparable Sales</div>
-            <div style="background: #fff; padding: 5px;">
-                ${generateListFromItems(property.comparables)}
-            </div>
-
-            <div class="section-title">Property Sales History</div>
-            <div style="background: #fff; padding: 5px;">
-                ${property.salesHistory && property.salesHistory.length > 0 ? property.salesHistory.map(history => `
-                    <div style="margin-bottom: 8px; font-size: 14px; color: #555;">
-                        • <strong>${new Date(history.saleDate).getFullYear()}</strong> - ${formatCurrency(history.salePrice)} <span style="color: #888; font-size: 12px;">(${history.saleType})</span>
+            
+            <!-- Detailed Comparable Sales -->
+            <div class="section-title">Detailed Comparable Sales (${property.comparables?.length || 0} total)</div>
+            <div style="background: #fff; border: 1px solid #eee; border-radius: 6px; padding: 15px;">
+                ${(property.comparables && property.comparables.length > 0) ? property.comparables.map(comp => `
+                    <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">
+                        <div style="font-weight: 600; color: #163331;">${comp.address || 'N/A'}</div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                            <span style="color: #666;">Sale Date: ${comp.saleDate ? new Date(comp.saleDate).toLocaleDateString('en-AU') : 'N/A'}</span>
+                            <span style="font-weight: 600; color: #163331;">${formatCurrency(comp.salePrice)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 3px; font-size: 13px;">
+                            <span>Beds: ${comp.beds || 'N/A'}, Baths: ${comp.baths || 'N/A'}</span>
+                            <span>Distance: ${comp.distance ? comp.distance + 'km' : 'N/A'}</span>
+                        </div>
+                        ${comp.landSize ? `<div style="margin-top: 3px; font-size: 13px; color: #666;">Land Size: ${formatNumber(comp.landSize)}m²</div>` : ''}
                     </div>
-                `).join('') : '<p style="color: #666; font-style: italic;">No sales history available</p>'}
+                `).join('') : '<p style="color: #666; font-style: italic; margin: 0; padding: 10px;">No comparable sales available</p>'}
             </div>
-
-            <div class="section-title">Nearby Schools</div>
-            <div style="background: #fff; padding: 5px;">
-                ${generateListFromItems(property.schools)}
+            
+            <!-- Detailed Sales History -->
+            <div class="section-title">Detailed Property Sales History (${property.salesHistory?.length || 0} records)</div>
+            <div style="background: #fff; border: 1px solid #eee; border-radius: 6px; padding: 15px;">
+                ${(property.salesHistory && property.salesHistory.length > 0) ? property.salesHistory.map(history => `
+                    <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="font-weight: 600; color: #163331;">${history.saleDate ? new Date(history.saleDate).toLocaleDateString('en-AU') : 'N/A'}</span>
+                            <span style="font-weight: 600; color: #163331;">${formatCurrency(history.salePrice)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 3px; font-size: 13px;">
+                            <span>Sale Type: ${history.saleType || 'N/A'}</span>
+                            <span>Days on Market: ${history.daysOnMarket || 'N/A'}</span>
+                        </div>
+                        ${history.agency || history.agent ? `<div style="margin-top: 3px; font-size: 13px; color: #666;">${history.agency ? 'Agency: ' + history.agency : ''}${history.agency && history.agent ? ', ' : ''}${history.agent ? 'Agent: ' + history.agent : ''}</div>` : ''}
+                        ${history.priceChangePercent ? `<div style="margin-top: 3px; font-size: 13px; color: ${history.priceChange >= 0 ? '#163331' : '#e53935'};">Price Change: ${history.priceChange >= 0 ? '+' : ''}${formatCurrency(history.priceChange)} (${history.priceChangePercent}%)</div>` : ''}
+                    </div>
+                `).join('') : '<p style="color: #666; font-style: italic; margin: 0; padding: 10px;">No sales history available</p>'}
+            </div>
+            
+            <!-- School Details -->
+            <div class="section-title">Nearby Schools (${property.schools?.length || 0} total)</div>
+            <div style="background: #fff; border: 1px solid #eee; border-radius: 6px; padding: 15px;">
+                ${(property.schools && property.schools.length > 0) ? property.schools.map(school => `
+                    <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">
+                        <div style="font-weight: 600; color: #163331;">${school.name || 'N/A'}</div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 13px;">
+                            <span>Type: ${school.type || 'N/A'}</span>
+                            <span>Distance: ${school.distance ? school.distance + 'km' : 'N/A'}</span>
+                        </div>
+                        ${school.rating ? `<div style="margin-top: 3px; font-size: 13px; color: #666;">Rating: ${school.rating} ${school.rating > 10 ? '(ICSEA)' : '(Rating)'}</div>` : ''}
+                        ${school.yearRange ? `<div style="margin-top: 3px; font-size: 13px; color: #666;">Years: ${school.yearRange}</div>` : ''}
+                    </div>
+                `).join('') : '<p style="color: #666; font-style: italic; margin: 0; padding: 10px;">No schools data available</p>'}
             </div>
 
             <div class="btn-container">

@@ -197,7 +197,7 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
         sortKey: 'SoldDate',
         direction: 'Descending'
       },
-      pageSize: 6,
+      pageSize: 12,
     }
 
     const response = await fetch(`${DOMAIN_API_BASE_URL}/listings/residential/_search`, {
@@ -215,6 +215,7 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
       return [];
     }
     const data = await response.json()
+    console.log(`Fetched ${data?.length || 0} comparable sales`)
     return data || []
   } catch (error) {
     console.error('Error fetching comparables:', error)
@@ -756,7 +757,11 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
         baths: listing.propertyDetails?.bathrooms || 0,
         parking: listing.propertyDetails?.carspaces || 0,
         landSize: listing.propertyDetails?.landArea || 0,
-        images: listing.media?.filter(m => m.type === 'photo').map(m => ({ url: m.url })) || []
+        // Extract images from various possible sources in the API response
+        images: listing.media?.filter(m => m.category === 'Image').map(m => ({ url: m.url, alt: 'Property image' })) || 
+                listing.images?.map(img => ({ url: img.url || img, alt: 'Property image' })) || 
+                (listing.propertyPhotos || []).map(photo => ({ url: photo.medium || photo.small || photo, alt: 'Property image' })) || 
+                []
       }
     }).filter(c => c.salePrice > 0),
     suburbInsights,
