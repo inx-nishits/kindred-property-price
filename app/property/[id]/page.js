@@ -158,7 +158,6 @@ export default function PropertyPage() {
             day: 'numeric',
         })
     }
-
     const formatLandSize = (size) => {
         if (!size) return ''
         // If land size is very large (rural property), convert to hectares

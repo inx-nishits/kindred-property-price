@@ -1,6 +1,15 @@
 'use client'
 
 import { submitLeadFormAndSendReport } from './emailService'
+import { 
+  isValidPropertyId, 
+  isMockPropertyId, 
+  isValidPostcode, 
+  isValidState, 
+  isValidSuburb,
+  validateSearchCriteria,
+  createApiError,
+} from '../utils/propertyValidation'
 
 const DOMAIN_API_BASE_URL = 'https://api.domain.com.au/v1'
 const DOMAIN_API_V2_BASE_URL = 'https://api.domain.com.au/v2'
@@ -8,9 +17,25 @@ const DOMAIN_API_V2_BASE_URL = 'https://api.domain.com.au/v2'
 /**
  * Fetch price estimate for a property
  */
-const fetchPriceEstimate = async (id) => {
+export const fetchPriceEstimate = async (id) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
-  if (!apiKey || !id) return null
+  
+  // Validate property ID to prevent 404 errors
+  if (!id) {
+    return null;
+  }
+  
+  if (!isValidPropertyId(id)) {
+    return null;
+  }
+  
+  if (isMockPropertyId(id)) {
+    return null;
+  }
+  
+  if (!apiKey) {
+    return null;
+  }
 
   try {
     const response = await fetch(`${DOMAIN_API_BASE_URL}/properties/${id}/priceEstimate`, {
@@ -33,9 +58,29 @@ const fetchPriceEstimate = async (id) => {
 /**
  * Fetch nearby schools based on location
  */
-const fetchSchools = async (lat, lng) => {
+export const fetchSchools = async (lat, lng) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
-  if (!apiKey || !lat || !lng) return []
+  
+  // Validate coordinates
+  if (!apiKey) {
+    return [];
+  }
+  
+  if (!lat || !lng) {
+    return [];
+  }
+  
+  // Validate coordinate ranges
+  const latNum = Number(lat);
+  const lngNum = Number(lng);
+  
+  if (isNaN(latNum) || latNum < -90 || latNum > 90) {
+    return [];
+  }
+  
+  if (isNaN(lngNum) || lngNum < -180 || lngNum > 180) {
+    return [];
+  }
 
   try {
     const response = await fetch(`${DOMAIN_API_V2_BASE_URL}/schools/${lat}/${lng}`, {
@@ -59,14 +104,83 @@ const fetchSchools = async (lat, lng) => {
 /**
  * Fetch comparable sold listings
  */
-const fetchComparables = async (state, suburb, postcode, propertyType, beds) => {
+export const fetchComparables = async (state, suburb, postcode, propertyType, beds) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
-  if (!apiKey || !suburb || !postcode) return []
+  
+  // Validate required parameters to prevent 400 errors
+  if (!apiKey) {
+    return [];
+  }
+  
+  if (!suburb || !postcode || !state) {
+    return [];
+  }
 
   try {
+    // Valid property types for Domain API
+    const VALID_PROPERTY_TYPES = [
+      'House', 'ApartmentUnitFlat', 'Townhouse', 'Villa', 'Semi-detached',
+      'Terrace', 'Duplex', 'Acreage', 'AcreageSemi-rural', 'Retirement',
+      'BlockOfUnits', 'Other'
+    ];
+
+    // Function to validate and normalize property types for the API
+    const validatePropertyType = (type) => {
+      if (!type) return null
+      
+      // Normalize the property type to match API expectations
+      const normalized = type.trim()
+      
+      // Check if it's already a valid API property type
+      if (VALID_PROPERTY_TYPES.includes(normalized)) {
+        return normalized
+      }
+      
+      // Map common variations to valid types
+      const mapping = {
+        'house': 'House',
+        'apartment': 'ApartmentUnitFlat',
+        'unit': 'ApartmentUnitFlat',
+        'flat': 'ApartmentUnitFlat',
+        'townhouse': 'Townhouse',
+        'villa': 'Villa',
+        'semidetached': 'Semi-detached',
+        'semi_detached': 'Semi-detached',
+        'terrace': 'Terrace',
+        'duplex': 'Duplex',
+        'acreage': 'Acreage',
+        'retirement': 'Retirement',
+        'blockofunits': 'BlockOfUnits',
+        'other': 'Other',
+        // Handle capitalized versions
+        'ApartmentUnit': 'ApartmentUnitFlat',
+        'SemiDetached': 'Semi-detached',
+        'Semi_Detached': 'Semi-detached',
+        'AcreageSemiRural': 'AcreageSemi-rural',
+        'AcreageSemi_Rural': 'AcreageSemi-rural',
+      }
+      
+      const lowerCaseType = normalized.toLowerCase().replace(/[^a-z]/g, '')
+      
+      if (mapping[lowerCaseType]) {
+        return mapping[lowerCaseType]
+      }
+      
+      // If we can't map it, return null to not include it
+      return null
+    };
+
+    let propertyTypes = []
+    if (propertyType) {
+      const validatedType = validatePropertyType(propertyType)
+      if (validatedType) {
+        propertyTypes = [validatedType]
+      }
+    }
+    
     const searchBody = {
       listingType: 'Sale',
-      propertyTypes: propertyType ? [propertyType] : [],
+      propertyTypes,
       status: 'Sold',
       searchMode: 'exact',
       locations: [
@@ -97,7 +211,9 @@ const fetchComparables = async (state, suburb, postcode, propertyType, beds) => 
       body: JSON.stringify(searchBody)
     })
 
-    if (!response.ok) return []
+    if (!response.ok) {
+      return [];
+    }
     const data = await response.json()
     return data || []
   } catch (error) {
@@ -115,6 +231,8 @@ const fetchComparables = async (state, suburb, postcode, propertyType, beds) => 
  */
 export const searchPropertiesByQuery = async (query) => {
   const trimmedQuery = query?.trim()
+  
+  // Validate query
   if (!trimmedQuery) {
     return []
   }
@@ -122,7 +240,6 @@ export const searchPropertiesByQuery = async (query) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
 
   if (!apiKey) {
-    console.error('NEXT_PUBLIC_DOMAIN_API_KEY not found.')
     return []
   }
 
@@ -144,14 +261,12 @@ export const searchPropertiesByQuery = async (query) => {
       })
 
     if (!response.ok) {
-      console.error('Domain API error:', response.status, response.statusText)
       return []
     }
 
     const data = await response.json()
 
     if (!Array.isArray(data)) {
-      console.warn('API response is not an array:', typeof data)
       return []
     }
 
@@ -182,9 +297,32 @@ export const searchPropertiesByQuery = async (query) => {
 /**
  * Fetch suburb performance statistics with historical data (5 years)
  */
-const fetchSuburbPerformance = async (state, suburb, postcode) => {
+export const fetchSuburbPerformance = async (state, suburb, postcode) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
-  if (!apiKey || !state || !suburb || !postcode) return null
+  
+  // Validate required parameters
+  if (!apiKey) {
+    return null;
+  }
+  
+  if (!state || !suburb || !postcode) {
+    return null;
+  }
+  
+  // Validate postcode format
+  if (!isValidPostcode(postcode)) {
+    return null;
+  }
+  
+  // Validate state abbreviation
+  if (!isValidState(state)) {
+    return null;
+  }
+  
+  // Validate suburb name
+  if (!isValidSuburb(suburb)) {
+    return null;
+  }
 
   try {
     // Fetch 5 years of data (60 months)
@@ -302,9 +440,25 @@ const fetchSuburbPerformance = async (state, suburb, postcode) => {
 /**
  * Fetch rental estimate for a property
  */
-const fetchRentalEstimate = async (id) => {
+export const fetchRentalEstimate = async (id) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
-  if (!apiKey || !id) return null
+  
+  // Validate property ID to prevent 404 errors
+  if (!id) {
+    return null;
+  }
+  
+  if (!isValidPropertyId(id)) {
+    return null;
+  }
+  
+  if (isMockPropertyId(id)) {
+    return null;
+  }
+  
+  if (!apiKey) {
+    return null;
+  }
 
   try {
     const response = await fetch(`${DOMAIN_API_BASE_URL}/properties/${id}/rentalEstimate`, {
@@ -573,8 +727,20 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
 export const getPropertyDetails = async (id) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
 
+  // Validate property ID to prevent 404 errors
+  if (!id) {
+    throw createApiError(400, 'Property ID is required');
+  }
+  
+  if (!isValidPropertyId(id)) {
+    throw createApiError(400, `Invalid property ID format: ${id}`);
+  }
+  
+  if (isMockPropertyId(id)) {
+    throw createApiError(404, `Property not found: ${id}`);
+  }
+
   if (!apiKey) {
-    console.error("Missing API Key")
     throw new Error("API Key configuration missing")
   }
 
@@ -589,7 +755,10 @@ export const getPropertyDetails = async (id) => {
     })
 
     if (!response.ok) {
-      throw new Error(`Domain API error: ${response.status}`)
+      if (response.status === 404) {
+        throw createApiError(404, `Property not found: ${id}`);
+      }
+      throw createApiError(response.status, `Domain API error: ${response.status}`);
     }
 
     const domainProperty = await response.json()
