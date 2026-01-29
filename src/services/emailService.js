@@ -220,16 +220,18 @@ const generatePropertyEmailHtml = (property, formData) => {
                                 ` : ''}
 
                                 <!-- Market Comparables -->
+                                ${(property.comparables && property.comparables.length > 0) ? `
+                                <!-- Detailed Comparable Sales -->
                                 <div style="margin-bottom: 40px;">
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
                                         <tr>
                                             <td style="border-bottom: 2px solid ${colors.primary}; padding-bottom: 8px;">
-                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;">Market Comparables</h3>
+                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;">Detailed Comparable Sales (${property.comparables?.length || 0} total)</h3>
                                             </td>
                                         </tr>
                                     </table>
                                     
-                                    ${(property.comparables && property.comparables.length > 0) ? property.comparables.slice(0, 5).map(comp => `
+                                    ${property.comparables.slice(0, 10).map(comp => `
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 15px; background-color: #ffffff; border: 1px solid ${colors.border}; border-radius: 8px; overflow: hidden;">
                                         <tr>
                                             <td style="padding: 15px;">
@@ -237,7 +239,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                                     <tr>
                                                         <td valign="top" style="padding-bottom: 12px;">
                                                             <div style="font-weight: 700; font-size: 16px; color: ${colors.brandDark}; margin-bottom: 4px;">${comp.address || 'N/A'}</div>
-                                                            <div style="font-size: 13px; color: ${colors.textMuted};">Sold ${comp.saleDate ? new Date(comp.saleDate).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }) : 'N/A'}</div>
+                                                            <div style="font-size: 13px; color: ${colors.textMuted};">Sold ${comp.saleDate ? new Date(comp.saleDate).toLocaleDateString('en-AU') : 'N/A'}</div>
                                                         </td>
                                                         <td align="right" valign="top">
                                                             <div style="font-weight: 700; font-size: 16px; color: ${colors.brandDark}; whitespace: nowrap;">${formatCurrency(comp.salePrice)}</div>
@@ -245,15 +247,117 @@ const generatePropertyEmailHtml = (property, formData) => {
                                                     </tr>
                                                 </table>
                                                 <div style="padding-top: 12px; border-top: 1px dashed ${colors.border}; font-size: 13px; color: ${colors.textMuted};">
-                                                    <span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${comp.beds}</strong> Beds</span>
-                                                    <span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${comp.baths}</strong> Baths</span>
-                                                    <span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${comp.distance ? comp.distance + 'km' : 'N/A'}</strong> away</span>
+                                                    <div style="display: flex; justify-content: space-between;">
+                                                        <div>
+                                                            <span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${comp.beds || 'N/A'}</strong> Beds</span>
+                                                            <span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${comp.baths || 'N/A'}</strong> Baths</span>
+                                                            <span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${comp.cars || 'N/A'}</strong> Cars</span>
+                                                        </div>
+                                                        <div style="text-align: right;">
+                                                            <span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${comp.distance ? comp.distance + 'km' : 'N/A'}</strong> away</span>
+                                                        </div>
+                                                    </div>
+                                                    ${comp.landSize ? `<div style="margin-top: 5px; font-size: 13px; color: ${colors.textMuted};"><strong style="color: ${colors.brandDark};">Land Size:</strong> ${formatNumber(comp.landSize)}m²</div>` : ''}
                                                 </div>
                                             </td>
                                         </tr>
                                     </table>
-                                    `).join('') : '<p style="color: #999; font-style: italic;">No comparable sales available</p>'}
+                                    `).join('')}
+                                    ${property.comparables.length > 10 ? `<p style="text-align: center; font-style: italic; color: ${colors.textMuted}; margin-top: 20px;">For more details, visit the website</p>` : ''}
                                 </div>
+                                ` : ''}
+
+                                <!-- Detailed Sales History -->
+                                ${(property.salesHistory && property.salesHistory.length > 0) ? `
+                                <!-- Detailed Property Sales History -->
+                                <div style="margin-bottom: 40px;">
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
+                                        <tr>
+                                            <td style="border-bottom: 2px solid ${colors.primary}; padding-bottom: 8px;">
+                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;">Detailed Property Sales History (${property.salesHistory?.length || 0} records)</h3>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    
+                                    ${property.salesHistory.slice(0, 10).map(history => `
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 15px; background-color: #ffffff; border: 1px solid ${colors.border}; border-radius: 8px; overflow: hidden;">
+                                        <tr>
+                                            <td style="padding: 15px;">
+                                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                    <tr>
+                                                        <td valign="top" style="padding-bottom: 12px;">
+                                                            <div style="font-weight: 700; font-size: 16px; color: ${colors.brandDark}; margin-bottom: 4px;">${history.saleDate ? new Date(history.saleDate).toLocaleDateString('en-AU') : 'N/A'}</div>
+                                                            <div style="font-size: 13px; color: ${colors.textMuted};">${history.saleType || 'N/A'}</div>
+                                                        </td>
+                                                        <td align="right" valign="top">
+                                                            <div style="font-weight: 700; font-size: 16px; color: ${colors.brandDark}; whitespace: nowrap;">${formatCurrency(history.salePrice)}</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                                <div style="padding-top: 12px; border-top: 1px dashed ${colors.border}; font-size: 13px; color: ${colors.textMuted};">
+                                                    <div style="display: flex; justify-content: space-between;">
+                                                        <div>
+                                                            ${history.daysOnMarket ? `<span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${history.daysOnMarket}</strong> Days on Market</span>` : ''}
+                                                            ${history.agency ? `<span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${history.agency}</strong></span>` : ''}
+                                                        </div>
+                                                        <div style="text-align: right;">
+                                                            ${history.priceChangePercent ? `<span style="display: inline-block; color: ${history.priceChange >= 0 ? colors.brandDark : colors.error};"><strong>${history.priceChange >= 0 ? '+' : ''}${formatCurrency(history.priceChange)} (${history.priceChangePercent}%)</strong></span>` : ''}
+                                                        </div>
+                                                    </div>
+                                                    ${history.agent ? `<div style="margin-top: 5px; font-size: 13px; color: ${colors.textMuted};"><strong style="color: ${colors.brandDark};">Agent:</strong> ${history.agent}</div>` : ''}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    `).join('')}
+                                    ${property.salesHistory.length > 4 ? `<p style="text-align: center; font-style: italic; color: ${colors.textMuted}; margin-top: 20px;">For more details, visit the website</p>` : ''}
+                                </div>
+                                ` : ''}
+
+                                <!-- School Details -->
+                                ${(property.schools && property.schools.length > 0) ? `
+                                <!-- School Details -->
+                                <div style="margin-bottom: 40px;">
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
+                                        <tr>
+                                            <td style="border-bottom: 2px solid ${colors.primary}; padding-bottom: 8px;">
+                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;">Nearby Schools (${property.schools?.length || 0} total)</h3>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    
+                                    ${property.schools.slice(0, 10).map(school => `
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 15px; background-color: #ffffff; border: 1px solid ${colors.border}; border-radius: 8px; overflow: hidden;">
+                                        <tr>
+                                            <td style="padding: 15px;">
+                                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                    <tr>
+                                                        <td valign="top" style="padding-bottom: 12px;">
+                                                            <div style="font-weight: 700; font-size: 16px; color: ${colors.brandDark}; margin-bottom: 4px;">${school.name || 'N/A'}</div>
+                                                            <div style="font-size: 13px; color: ${colors.textMuted};">
+                                                                <span>${school.type || 'N/A'}</span>
+                                                                ${school.yearRange ? `<span> • Years: ${school.yearRange}</span>` : ''}
+                                                            </div>
+                                                        </td>
+                                                        <td align="right" valign="top">
+                                                            ${school.rating ? `<div style="font-weight: 700; font-size: 16px; color: ${colors.brandDark}; whitespace: nowrap;">${school.rating} ${school.rating > 10 ? 'ICSEA' : 'Rating'}</div>` : ''}
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                                <div style="padding-top: 12px; border-top: 1px dashed ${colors.border}; font-size: 13px; color: ${colors.textMuted};">
+                                                    <div style="display: flex; justify-content: space-between;">
+                                                        <div>
+                                                            <span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${school.distance ? school.distance + 'km' : 'N/A'}</strong> away</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    `).join('')}
+                                    ${property.schools.length > 10 ? `<p style="text-align: center; font-style: italic; color: ${colors.textMuted}; margin-top: 20px;">For more details, visit the website</p>` : ''}
+                                </div>
+                                ` : ''}
 
                                 <!-- CTA Section -->
                                 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 40px; margin-bottom: 20px;">
@@ -326,9 +430,9 @@ export const submitLeadFormAndSendReport = async (formData, property) => {
             console.error('Email sending failed with status:', response.status);
             console.error('Error details:', result);
 
-            // Check if it's a configuration error (missing SMTP settings)
-            if (result.message && (result.message.includes('SMTP settings') || result.message.includes('Missing'))) {
-                console.warn('⚠️ EMAIL NOT SENT: SMTP configuration is missing or incomplete in .env');
+            // Check if it's a configuration error (missing SMTP settings or AWS SES issues)
+            if (result.message && (result.message.includes('SMTP settings') || result.message.includes('Missing') || result.message.includes('signature') || result.message.includes('access') || result.message.includes('credential'))) {
+                console.warn('⚠️ EMAIL NOT SENT: Email configuration is missing or invalid in .env');
             }
             return {
                 success: true, // Keep UI flow successful even if email fails (graceful degradation)
