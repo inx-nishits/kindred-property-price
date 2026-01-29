@@ -111,7 +111,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                 <!-- Introduction -->
                                 <p style="margin: 0 0 15px 0; font-size: 18px; color: ${colors.textMain}; font-weight: 400;">Hi ${firstName},</p>
                                 <p style="margin: 0 0 30px 0; font-size: 16px; color: ${colors.textMuted}; line-height: 1.6;">
-                                    Here is the detailed property report you requested. This comprehensive overview includes valuation estimates, rental potential, and recent market activity for your property.
+                                    Here is the property report you requested. This comprehensive overview includes valuation estimates, rental potential, and recent market activity for your property.
                                 </p>
 
                                 <!-- Property Title Block -->
@@ -221,12 +221,12 @@ const generatePropertyEmailHtml = (property, formData) => {
 
                                 <!-- Market Comparables -->
                                 ${(property.comparables && property.comparables.length > 0) ? `
-                                <!-- Detailed Comparable Sales -->
+                                <!-- Comparable Sales -->
                                 <div style="margin-bottom: 40px;">
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
                                         <tr>
                                             <td style="border-bottom: 2px solid ${colors.primary}; padding-bottom: 8px;">
-                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;">Detailed Comparable Sales (${property.comparables?.length || 0} total)</h3>
+                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;"> Comparable Sales (${property.comparables?.length || 0} total)</h3>
                                             </td>
                                         </tr>
                                     </table>
@@ -267,14 +267,14 @@ const generatePropertyEmailHtml = (property, formData) => {
                                 </div>
                                 ` : ''}
 
-                                <!-- Detailed Sales History -->
+                                <!--  Sales History -->
                                 ${(property.salesHistory && property.salesHistory.length > 0) ? `
-                                <!-- Detailed Property Sales History -->
+                                <!--  Property Sales History -->
                                 <div style="margin-bottom: 40px;">
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
                                         <tr>
                                             <td style="border-bottom: 2px solid ${colors.primary}; padding-bottom: 8px;">
-                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;">Detailed Property Sales History (${property.salesHistory?.length || 0} records)</h3>
+                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;"> Property Sales History (${property.salesHistory?.length || 0} records)</h3>
                                             </td>
                                         </tr>
                                     </table>
