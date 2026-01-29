@@ -72,7 +72,7 @@ export default function PropertyPage() {
                 const data = await getPropertyDetails(params.id)
                 if (data) {
                     setProperty(data)
-                    console.log('Property data:', data);
+                    // console.log('Property data:', data);
                     
                 } else {
                     setError('Property not found')
@@ -121,25 +121,33 @@ export default function PropertyPage() {
 
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
     const [userEmail, setUserEmail] = useState('')
+    const [formError, setFormError] = useState('')
 
     // Handle form submission
     const handleFormSubmit = async (formData) => {
         setIsSubmitting(true)
+        setFormError('') // Clear previous errors
         try {
-            await submitLeadForm(formData, property)
-            if (typeof window !== 'undefined') {
-                localStorage.setItem(`property_${params.id}_unlocked`, 'true')
-                localStorage.setItem(`property_${params.id}_email`, formData.email)
-                // Save global user profile for auto-fill
-                localStorage.setItem('kindred_user_details', JSON.stringify(formData))
+            const result = await submitLeadForm(formData, property)
+            
+            if (result.success) {
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem(`property_${params.id}_unlocked`, 'true')
+                    localStorage.setItem(`property_${params.id}_email`, formData.email)
+                    // Save global user profile for auto-fill
+                    localStorage.setItem('kindred_user_details', JSON.stringify(formData))
+                }
+                setUserEmail(formData.email)
+                setIsUnlocked(true)
+                setIsModalOpen(false)     // Close the form modal
+                setIsSuccessModalOpen(true) // Open the success modal
+            } else {
+                // Set error message to show below form
+                setFormError(result.message || 'There was an error sending your report. Please try again.')
             }
-            setUserEmail(formData.email)
-            setIsUnlocked(true)
-            setIsModalOpen(false)     // Close the form modal
-            setIsSuccessModalOpen(true) // Open the success modal
         } catch (error) {
             console.error('Error submitting form:', error)
-            alert('There was an error. Please try again.')
+            setFormError('There was an error processing your request. Please try again.')
         } finally {
             setIsSubmitting(false)
         }
@@ -1051,6 +1059,7 @@ export default function PropertyPage() {
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
+                formError={formError}
                 property={property}
                 primaryImageUrl={propertyImages[0]?.url}
             />

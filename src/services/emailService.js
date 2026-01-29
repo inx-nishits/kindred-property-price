@@ -431,12 +431,12 @@ export const submitLeadFormAndSendReport = async (formData, property) => {
             console.error('Error details:', result);
 
             // Check if it's a configuration error (missing SMTP settings or AWS SES issues)
-            if (result.message && (result.message.includes('SMTP settings') || result.message.includes('Missing') || result.message.includes('signature') || result.message.includes('access') || result.message.includes('credential'))) {
+            if (result.message && (result.message.includes('SMTP settings') || result.message.includes('Missing') || result.message.includes('signature') || result.message.includes('access') || result.message.includes('credential') || result.message.includes('authentication'))) {
                 console.warn('⚠️ EMAIL NOT SENT: Email configuration is missing or invalid in .env');
             }
             return {
-                success: true, // Keep UI flow successful even if email fails (graceful degradation)
-                message: result.message || 'Report generated (Email delivery failed)',
+                success: false, // Return false to indicate actual failure
+                message: result.message || 'Email delivery failed',
                 reportId: `RPT-${Date.now()}`,
             };
         }
@@ -449,10 +449,10 @@ export const submitLeadFormAndSendReport = async (formData, property) => {
 
     } catch (error) {
         console.error('Error in property report service:', error);
-        // Always fail gracefully so the user still gets "unlocked"
+        // Return failure to properly indicate the email wasn't sent
         return {
-            success: true,
-            message: 'Report generated successfully',
+            success: false,
+            message: 'Report generation failed',
             reportId: `RPT-${Date.now()}`,
         };
     }

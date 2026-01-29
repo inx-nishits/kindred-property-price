@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Loader2 } from 'lucide-react'
 
-function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, property, primaryImageUrl }) {
+function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, formError, property, primaryImageUrl }) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -274,6 +274,11 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, property, p
                     'View Property Details'
                   )}
                 </button>
+                {formError && (
+                  <div className="mt-3 text-sm text-red-600 text-center">
+                    {formError}
+                  </div>
+                )}
               </div>
 
               <p className="text-xs text-muted-600 text-center mt-4 leading-relaxed">
