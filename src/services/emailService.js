@@ -3,7 +3,7 @@
  * 
  * Handles generation of professional HTML emails for property reports.
  * Currently configured to LOG the email content to console (Stub Mode).
- * Ready to be connected to EmailJS, SendGrid, or AWS SES.
+ * Ready to be connected to EmailJS, SendGrid, AWS SES, or Brevo.
  */
 
 /**
@@ -430,7 +430,7 @@ export const submitLeadFormAndSendReport = async (formData, property) => {
             console.error('Email sending failed with status:', response.status);
             console.error('Error details:', result);
 
-            // Check if it's a configuration error (missing SMTP settings or AWS SES issues)
+            // Check if it's a configuration error (missing SMTP settings or email service issues)
             if (result.message && (result.message.includes('SMTP settings') || result.message.includes('Missing') || result.message.includes('signature') || result.message.includes('access') || result.message.includes('credential') || result.message.includes('authentication'))) {
                 console.warn('⚠️ EMAIL NOT SENT: Email configuration is missing or invalid in .env');
             }

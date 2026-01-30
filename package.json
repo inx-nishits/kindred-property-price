@@ -10,6 +10,7 @@
     "format": "prettier --write \"src/**/*.{js,jsx,json,css}\" \"app/**/*.{js,jsx,json,css}\""
   },
   "dependencies": {
+    "@getbrevo/brevo": "^3.0.1",
     "axios": "^1.6.2",
     "framer-motion": "^12.23.26",
     "lucide-react": "^0.561.0",
