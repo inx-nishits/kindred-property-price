@@ -1,16 +1,116 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { Search, Mail, FileText } from 'lucide-react'
 import KindredLogo from '@/assets/images/logo.png'
 import PropertySearch from '@/components/property/PropertySearch'
-import propertyValueEstimateImage from '@/assets/images/property-value-estimate.png'
-import comparableSalesImage from '@/assets/images/comparable-sales.png'
-import suburbPerformanceImage from '@/assets/images/suburb-performance.png'
 import getPriceEstimateImage from '@/assets/images/get-price-estimate-a.jpg'
+
+// Dynamic Components
+import HomeValueEstimate from '@/components/home/HomeValueEstimate'
+import HomeComparableSales from '@/components/home/HomeComparableSales'
+import HomeSuburbPerformance from '@/components/home/HomeSuburbPerformance'
+
+// Services
+import {
+    getPropertyDetails
+} from '@/services/propertyService'
+
+// Static data for immediate load (30 Shields Street, Redcliffe)
+const STATIC_EXAMPLE_DATA = {
+    id: 'VC-9552-CQ',
+    priceEstimate: {
+        low: 710000,
+        high: 840000,
+        mid: 775000,
+    },
+    comparables: [
+        {
+            id: 'comp1',
+            address: '28 Shields Street',
+            shortAddress: '28 Shields Street',
+            salePrice: 765000,
+            saleDate: '2023-11-15',
+            beds: 3,
+            baths: 1,
+            parking: 2,
+            images: [{ url: 'https://rimh2.domainstatic.com.au/ATB_sO_wXqgZ1n7q5k3x7z5x_xY=/fit-in/1920x1080/filters:format(jpeg):quality(80):no_upscale()/2018884961_1_1_231103_042858-w1920-h1280' }]
+        },
+        {
+            id: 'comp2',
+            address: '45 Sutton Street',
+            shortAddress: '45 Sutton Street',
+            salePrice: 790000,
+            saleDate: '2023-10-22',
+            beds: 3,
+            baths: 2,
+            parking: 1,
+            images: [{ url: 'https://rimh2.domainstatic.com.au/v1/qp4a8c9a8c9a8c9a8c9a8c9a8c9a8c9' }]
+        },
+        {
+            id: 'comp3',
+            address: '12 Humpybong Esplanade',
+            shortAddress: '12 Humpybong Esplanade',
+            salePrice: 825000,
+            saleDate: '2023-09-05',
+            beds: 4,
+            baths: 2,
+            parking: 2,
+            images: [{ url: 'https://rimh2.domainstatic.com.au/v1/xp8d2e1d2e1d2e1d2e1d2e1d2e1d2e1' }]
+        }
+    ],
+    suburbStats: {
+        medianPrice: 745000,
+        growthPercent: 5.2,
+        historicalData: [
+            { year: 2020, value: 580000, medianPrice: 580000, period: '2020' },
+            { year: 2021, value: 650000, medianPrice: 650000, period: '2021' },
+            { year: 2022, value: 710000, medianPrice: 710000, period: '2022' },
+            { year: 2023, value: 725000, medianPrice: 725000, period: '2023' },
+            { year: 2024, value: 745000, medianPrice: 745000, period: '2024' },
+        ],
+        avgMedianSoldPrice: 745000,
+        avgDaysOnMarket: 24,
+        avgNumberSold: 156,
+        overallClearanceRate: 45
+    },
+    details: {
+        addressComponents: { suburb: 'Redcliffe', state: 'QLD', postCode: '4020' }
+    }
+}
 
 export default function HomePage() {
     const router = useRouter()
+    // Initialize with static data for immediate render
+    const [exampleData, setExampleData] = useState(STATIC_EXAMPLE_DATA)
+
+    // Fetch live data (silent update)
+    useEffect(() => {
+        const fetchExampleData = async () => {
+            try {
+                // 1. Get Details for specific property (includes estimates/comps/stats)
+                // Using 30 Shields Street, Redcliffe (ID: VC-9552-CQ)
+                const propertyId = 'VC-9552-CQ';
+                const details = await getPropertyDetails(propertyId);
+
+                if (!details) return;
+
+                setExampleData({
+                    id: propertyId,
+                    priceEstimate: details.priceEstimate,
+                    comparables: details.comparables,
+                    suburbStats: details.suburbInsights,
+                    details: details
+                });
+
+            } catch (error) {
+                console.error('Failed to fetch example home data', error);
+            }
+        };
+
+        fetchExampleData();
+    }, []);
 
     const handlePropertySelect = (property) => {
         router.push(`/property/${property.id}`)
@@ -180,16 +280,13 @@ export default function HomePage() {
                     <div className="mx-auto space-y-20 md:space-y-32">
                         {/* Feature 1: Property value estimate - Image Left */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-                            <div className="order-2 lg:order-1 relative">
+                            <div className="order-2 lg:order-1 relative h-full">
                                 {/* Light mint green blob background */}
-                                <div className="relative z-10">
-                                    <div className="overflow-hidden">
-                                        <img
-                                            src={propertyValueEstimateImage.src}
-                                            alt="Property value estimate showing price ranges"
-                                            className="w-full h-auto"
-                                        />
-                                    </div>
+                                <div className="relative z-10 h-full">
+                                    <HomeValueEstimate
+                                        priceEstimate={exampleData?.priceEstimate}
+                                        propertyId={exampleData?.id}
+                                    />
                                 </div>
                             </div>
                             <div className="order-1 lg:order-2">
@@ -228,30 +325,22 @@ export default function HomePage() {
                                     Discover the prices and details of similar properties that have recently sold nearby to get an idea of the market value of your property.
                                 </p>
                             </div>
-                            <div className="relative">
-                                <div className="relative z-10">
-                                    <div className="overflow-hidden">
-                                        <img
-                                            src={comparableSalesImage.src}
-                                            alt="Comparable sales showing recently sold properties"
-                                            className="w-full h-auto"
-                                        />
-                                    </div>
+                            <div className="relative h-full">
+                                <div className="relative z-10 h-full min-h-[400px]">
+                                    <HomeComparableSales comparables={exampleData?.comparables} />
                                 </div>
                             </div>
                         </div>
 
                         {/* Feature 3: Suburb Performance - Image Left */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-                            <div className="order-2 lg:order-1 relative">
-                                <div className="relative z-10">
-                                    <div className="overflow-hidden">
-                                        <img
-                                            src={suburbPerformanceImage.src}
-                                            alt="Suburb performance showing median prices and growth trends"
-                                            className="w-full h-auto"
-                                        />
-                                    </div>
+                            <div className="order-2 lg:order-1 relative h-full">
+                                {/* Dynamic Component or Fallback Image */}
+                                <div className="relative z-10 w-full min-h-[400px]">
+                                    <HomeSuburbPerformance
+                                        suburbStats={exampleData?.suburbStats}
+                                        suburbName={exampleData?.details?.addressComponents?.suburb || 'Redcliffe'}
+                                    />
                                 </div>
                             </div>
                             <div className="order-1 lg:order-2">
