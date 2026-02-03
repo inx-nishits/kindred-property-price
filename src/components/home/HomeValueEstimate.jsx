@@ -34,12 +34,14 @@ export default function HomeValueEstimate({ priceEstimate, propertyId }) {
                     <p className="text-white/70 mb-8">
                         We couldn't generate an automatic estimate for this property. Contact us for a precise appraisal.
                     </p>
-                    <button
-                        onClick={() => router.push(propertyId ? `/property/${propertyId}` : '/')}
-                        className="w-full py-4 bg-brand-mint hover:bg-brand-mint/90 text-brand-dark rounded-lg font-bold text-lg transition-all duration-300 shadow-[0_4px_14px_rgba(72,217,142,0.4)]"
+                    <a
+                        href="https://www.kindred.com.au/contact-us"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-4 bg-brand-mint hover:bg-brand-mint/90 text-brand-dark rounded-lg font-bold text-lg transition-all duration-300 shadow-[0_4px_14px_rgba(72,217,142,0.4)] block text-center"
                     >
                         Request Appraisal
-                    </button>
+                    </a>
                 </div>
             </div>
         );
@@ -93,15 +95,17 @@ export default function HomeValueEstimate({ priceEstimate, propertyId }) {
             {/* CTA Section */}
             <div className="relative z-10 mt-auto">
                 <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-6"></div>
-                <button
-                    onClick={() => router.push(propertyId ? `/property/${propertyId}` : '/')}
-                    className="group w-full py-4 bg-brand-mint hover:bg-brand-mint/90 text-brand-dark rounded-xl font-heading font-bold text-lg transition-all duration-300 shadow-[0_0_20px_rgba(72,217,142,0.2)] hover:shadow-[0_0_30px_rgba(72,217,142,0.4)] relative overflow-hidden"
+                <a
+                    href="https://www.kindred.com.au/contact-us"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group w-full py-4 bg-brand-mint hover:bg-brand-mint/90 text-brand-dark rounded-xl font-heading font-bold text-lg transition-all duration-300 shadow-[0_0_20px_rgba(72,217,142,0.2)] hover:shadow-[0_0_30px_rgba(72,217,142,0.4)] relative overflow-hidden block text-center"
                 >
                     <span className="relative z-10 flex items-center justify-center gap-2">
                         Get your free appraisal
                         <ArrowUpRight className="w-5 h-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </span>
-                </button>
+                </a>
                 <p className="text-[10px] text-center text-white/30 mt-4 max-w-xs mx-auto">
                     *Estimate based on recent market data. Actual value may vary.
                 </p>
