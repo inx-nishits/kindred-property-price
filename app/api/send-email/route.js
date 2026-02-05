@@ -1,145 +1,141 @@
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 
 export async function POST(request) {
   try {
     const { email, subject, htmlContent } = await request.json();
 
+    // Validate required fields
     if (!email || !htmlContent) {
       return NextResponse.json(
-        { success: false, message: 'Missing required fields' },
+        { success: false, message: 'Missing required fields: email and htmlContent' },
         { status: 400 }
       );
     }
 
-    // GMAIL SMTP IMPLEMENTATION
-    const gmailUser = process.env.GMAIL_USER;
-    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid email address format' },
+        { status: 400 }
+      );
+    }
+
+    // Limit content size for security
+    if (htmlContent.length > 100000) { // 100KB limit
+      return NextResponse.json(
+        { success: false, message: 'Email content too large (max 100KB)' },
+        { status: 400 }
+      );
+    }
+
+    // Sanitize subject if present
+    const safeSubject = subject && subject.length <= 200 
+      ? subject 
+      : 'Property Report from Kindred Property';
+
+    // BREVO SMTP CONFIGURATION
+    const brevoApiKey = process.env.SMTP_PASS || process.env.BREVO_API_KEY;
+    const senderEmail = process.env.SENDER_EMAIL || 'aarif.r@inheritx.com';
     const senderName = process.env.SENDER_NAME || 'Kindred Property';
+    const smtpUser = 'a12dc9001@smtp-brevo.com';
 
-    if (!gmailUser || !gmailAppPassword) {
+    // Check required env vars
+    if (!brevoApiKey || !senderEmail) {
+      console.error('Missing Brevo configuration in environment variables');
+      console.error('BREVO_API_KEY:', brevoApiKey ? 'SET' : 'MISSING');
+      console.error('SENDER_EMAIL:', senderEmail ? 'SET' : 'MISSING');
       return NextResponse.json(
         {
           success: false,
-          message: 'Server Configuration Error: Gmail credentials missing. Please provide GMAIL_USER and GMAIL_APP_PASSWORD'
+          message: 'Server configuration error: Missing BREVO_API_KEY or SENDER_EMAIL'
         },
         { status: 500 }
       );
     }
 
-    // Create a Nodemailer transporter for Gmail SMTP
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: gmailUser,
-        pass: gmailAppPassword
-      },
-      tls: {
-        ciphers: 'SSLv3'
-      }
-    });
+    // Debug logging
+    console.log('Brevo Configuration:');
+    console.log('- Sender Email:', senderEmail);
+    console.log('- API Key length:', brevoApiKey.length);
+    console.log('- API Key prefix:', brevoApiKey.substring(0, 20) + '...');
 
-    // Define the email options
-    const mailOptions = {
-      from: `"${senderName}" <${gmailUser}>`,
-      to: email,
-      subject: subject || 'Property Report',
-      html: htmlContent,
-      text: `Property Report
+    // Prepare the email data for Brevo API
+    const emailData = {
+      sender: {
+        name: senderName,
+        email: senderEmail
+      },
+      to: [
+        {
+          email: email,
+          name: 'Property Report Recipient'
+        }
+      ],
+      subject: safeSubject,
+      htmlContent: htmlContent,
+      textContent: `Property Report
 
 View this report in your browser.
 
 Best regards,
-Kindred Property Team`,
+Kindred Property Team`
     };
 
-    // Send the email
-    const info = await transporter.sendMail(mailOptions);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Email sent successfully',
-      messageId: info.messageId,
+    // Send email via Brevo HTTP API
+    console.log('Sending email via Brevo HTTP API...');
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': brevoApiKey,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify(emailData)
     });
 
-    /*
-    // OLD AWS SES IMPLEMENTATION - COMMENTED OUT FOR REFERENCE
-    // AWS SES SMTP Configuration
-    const smtpHost = process.env.SMTP_HOST || `email-smtp.${process.env.AWS_REGION}.amazonaws.com`;
-    const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
-    const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
-    const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-    const fromEmail = process.env.FROM_EMAIL;
+    const result = await response.json();
+    console.log('Brevo API Response:', result);
 
-    if (!awsAccessKeyId || !awsSecretAccessKey || !fromEmail) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Server Configuration Error: AWS SES credentials missing. Please provide AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and FROM_EMAIL'
-        },
-        { status: 500 }
-      );
+    if (!response.ok) {
+      throw new Error(`Brevo API error: ${response.status} - ${result.message || 'Unknown error'}`);
     }
 
-    // Create a Nodemailer transporter for AWS SES SMTP
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: awsAccessKeyId,
-        pass: awsSecretAccessKey
-      },
-      tls: {
-        ciphers:'SSLv3' 
-      }
-    });
-
-    // Define the email options
-    const mailOptions = {
-      from: `"Kindred Property" <${fromEmail}>`,
-      to: email,
-      subject: subject || 'Property Report',
-      html: htmlContent,
-      text: `Property Report
-
-View this report in your browser.
-
-Best regards,
-Kindred Property Team`,
-    };
-
-    // Send the email
-    const info = await transporter.sendMail(mailOptions);
-
     return NextResponse.json({
       success: true,
-      message: 'Email sent successfully',
-      messageId: info.messageId,
-    });
-    */
+      message: 'Email sent successfully via Brevo HTTP API',
+      messageId: result.messageId || 'brevo-' + Date.now(),
+      timestamp: new Date().toISOString()
+    }); 
 
   } catch (error) {
-    let userMessage = 'Failed to send email.';
+    // Detailed error logging
+    console.error('Email sending failed:', {
+      message: error.message,
+      code: error.code,
+      response: error.response,
+      stack: error.stack
+    });
 
-    // Gmail SMTP error handling
-    if (error.code === 'EAUTH' || error.message?.includes('authentication')) {
-      userMessage = 'Gmail SMTP authentication failed – check GMAIL_USER and GMAIL_APP_PASSWORD';
-    } else if (error.message?.includes('verify') || error.message?.includes('connection')) {
-      userMessage = 'Cannot connect to Gmail SMTP – check SMTP_HOST and SMTP_PORT';
-    } else if (error.code === 'ECONNREFUSED') {
-      userMessage = 'Connection to SMTP server refused – check SMTP configuration';
-    } else if (error.message?.includes('credentials') || error.message?.includes('auth')) {
-      userMessage = 'Gmail SMTP credentials invalid or missing – check environment variables';
+    let userMessage = 'Failed to send email. Please try again later.';
+
+    // Specific Brevo HTTP API error handling
+    if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+      userMessage = 'Brevo API authentication failed. Check BREVO_API_KEY.';
+    } else if (error.message?.includes('400') || error.message?.includes('Bad Request')) {
+      userMessage = 'Invalid email data sent to Brevo API. Check email format and content.';
+    } else if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
+      userMessage = 'Brevo API access forbidden. Check sender email verification in Brevo dashboard.';
+    } else if (error.message?.includes('API error')) {
+      userMessage = `Brevo API error: ${error.message}`;
     }
 
     return NextResponse.json(
       {
         success: false,
         message: userMessage,
-        error: process.env.NODE_ENV === 'development' ? error.toString() : undefined,
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        timestamp: new Date().toISOString()
       },
       { status: 500 }
     );
