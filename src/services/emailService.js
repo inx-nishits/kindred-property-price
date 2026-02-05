@@ -19,9 +19,9 @@ const generatePropertyEmailHtml = (property, formData) => {
     // Base URL for links (should match current environment so testing works on localhost)
     const baseUrl = (typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_BASE_URL) || 'http://localhost:3000';
 
+     const logoUrl = "https://img.mailinblue.com/10577810/images/content_library/original/69847191b1d4ee415788b767.png";
 
-
-    // Branding Colors
+     // Branding Colors
     const colors = {
         primary: '#34BF77',
         brandDark: '#163331',
@@ -87,22 +87,21 @@ const generatePropertyEmailHtml = (property, formData) => {
                         
                         <!-- Header with Logo -->
                         <tr>
-                            <td align="center" style="padding: 30px 0; border-bottom: 1px solid ${colors.border}; background-color: ${colors.white};">
-                                <a href="${baseUrl}" target="_blank" style="text-decoration: none;">
-                                <a href="${baseUrl}" target="_blank" style="text-decoration: none;">
-                                    <span style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 24px; font-weight: bold; color: ${colors.brandDark}; letter-spacing: 1px;">KINDRED PROPERTY</span>
+                            <td align="center" style="padding: 0; border-bottom: 1px solid ${colors.border}; background-color: ${colors.white}; line-height: 1;">
+                                <a href="${baseUrl}" target="_blank" style="text-decoration: none; display: inline-block; padding: 0; line-height: 1;">
+                                    <img src="${logoUrl}" alt="KINDRED PROPERTY" style="height: 120px; width: auto; max-width: 230px; display: block; margin: 0;" draggable="false" />
                                 </a>
                             </td>
                         </tr>
 
+                        ${property.images && property.images.length > 0 ? `
                         <!-- Hero Image -->
                         <tr>
                             <td style="padding: 0; background-color: #E9F2EE;">
-                                ${property.images && property.images.length > 0
-            ? `<img src="${property.images[0].url}" alt="Property" class="hero-image" width="600" style="display: block; width: 100%; max-width: 600px; height: 320px; object-fit: cover;" />`
-            : `<div class="hero-image" style="width: 100%; height: 280px; background-color: #E9F2EE; display: block; color: ${colors.textMuted}; font-size: 16px; text-align: center; line-height: 280px;">No Image Available</div>`}
+                                <img src="${property.images[0].url}" alt="Property" class="hero-image" width="600" style="display: block; width: 100%; max-width: 600px; height: 200px; object-fit: cover;" />
                             </td>
                         </tr>
+                        ` : ''}
 
                         <!-- Content Body -->
                         <tr>
@@ -127,26 +126,36 @@ const generatePropertyEmailHtml = (property, formData) => {
                                 </table>
 
                                 <!-- Key Features Grid -->
+                                ${(beds > 0 || baths > 0 || cars > 0 || (landSize && landSize > 0)) ? `
                                 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 35px; border-collapse: separate; border-spacing: 2px;">
                                     <tr>
+                                        ${beds > 0 ? `
                                         <td align="center" class="feature-cell" width="25%" style="padding: 12px 5px; background-color: ${colors.softGray}; border-radius: 6px;">
                                             <div style="font-size: 20px; font-weight: 700; color: ${colors.brandDark}; line-height: 1;">${beds}</div>
                                             <div style="font-size: 11px; text-transform: uppercase; color: ${colors.textMuted}; margin-top: 5px; letter-spacing: 1px;">Beds</div>
                                         </td>
+                                        ` : ''}
+                                        ${baths > 0 ? `
                                         <td align="center" class="feature-cell" width="25%" style="padding: 12px 5px; background-color: ${colors.softGray}; border-radius: 6px;">
                                             <div style="font-size: 20px; font-weight: 700; color: ${colors.brandDark}; line-height: 1;">${baths}</div>
                                             <div style="font-size: 11px; text-transform: uppercase; color: ${colors.textMuted}; margin-top: 5px; letter-spacing: 1px;">Baths</div>
                                         </td>
+                                        ` : ''}
+                                        ${cars > 0 ? `
                                         <td align="center" class="feature-cell" width="25%" style="padding: 12px 5px; background-color: ${colors.softGray}; border-radius: 6px;">
                                             <div style="font-size: 20px; font-weight: 700; color: ${colors.brandDark}; line-height: 1;">${cars}</div>
                                             <div style="font-size: 11px; text-transform: uppercase; color: ${colors.textMuted}; margin-top: 5px; letter-spacing: 1px;">Cars</div>
                                         </td>
+                                        ` : ''}
+                                        ${(landSize && landSize > 0) ? `
                                         <td align="center" class="feature-cell" width="25%" style="padding: 12px 5px; background-color: ${colors.softGray}; border-radius: 6px;">
-                                            <div style="font-size: 20px; font-weight: 700; color: ${colors.brandDark}; line-height: 1;">${landSize > 0 ? formatNumber(landSize) : '-'}</div>
+                                            <div style="font-size: 20px; font-weight: 700; color: ${colors.brandDark}; line-height: 1;">${formatNumber(landSize)}</div>
                                             <div style="font-size: 11px; text-transform: uppercase; color: ${colors.textMuted}; margin-top: 5px; letter-spacing: 1px;">m² Land</div>
                                         </td>
+                                        ` : ''}
                                     </tr>
                                 </table>
+                                ` : ''}
 
                                 <!-- Valuation Estimates Card -->
                                 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${colors.brandDark}; border-radius: 12px; margin-bottom: 40px; color: ${colors.white}; overflow: hidden;">
@@ -226,7 +235,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
                                         <tr>
                                             <td style="border-bottom: 2px solid ${colors.primary}; padding-bottom: 8px;">
-                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;"> Comparable Sales (${property.comparables?.length || 0} total)</h3>
+                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;"> Comparable Sales</h3>
                                             </td>
                                         </tr>
                                     </table>
@@ -249,12 +258,12 @@ const generatePropertyEmailHtml = (property, formData) => {
                                                 <div style="padding-top: 12px; border-top: 1px dashed ${colors.border}; font-size: 13px; color: ${colors.textMuted};">
                                                     <div style="display: flex; justify-content: space-between;">
                                                         <div>
-                                                            <span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${comp.beds || 'N/A'}</strong> Beds</span>
-                                                            <span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${comp.baths || 'N/A'}</strong> Baths</span>
-                                                            <span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${comp.cars || 'N/A'}</strong> Cars</span>
+                                                            ${comp.beds > 0 ? `<span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${comp.beds}</strong> Beds</span>` : ''}
+                                                            ${comp.baths > 0 ? `<span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${comp.baths}</strong> Baths</span>` : ''}
+                                                            ${comp.cars > 0 ? `<span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${comp.cars}</strong> Cars</span>` : ''}
                                                         </div>
                                                         <div style="text-align: right;">
-                                                            <span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${comp.distance ? comp.distance + 'km' : 'N/A'}</strong> away</span>
+                                                            ${comp.distance > 0 ? `<span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${comp.distance}km</strong> away</span>` : ''}
                                                         </div>
                                                     </div>
                                                     ${comp.landSize ? `<div style="margin-top: 5px; font-size: 13px; color: ${colors.textMuted};"><strong style="color: ${colors.brandDark};">Land Size:</strong> ${formatNumber(comp.landSize)}m²</div>` : ''}
@@ -274,9 +283,9 @@ const generatePropertyEmailHtml = (property, formData) => {
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
                                         <tr>
                                             <td style="border-bottom: 2px solid ${colors.primary}; padding-bottom: 8px;">
-                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;"> Property Sales History (${property.salesHistory?.length || 0} records)</h3>
+                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;"> Property Sales History</h3>
                                             </td>
-                                        </tr>
+                                        </tr>   
                                     </table>
                                     
                                     ${property.salesHistory.slice(0, 10).map(history => `
@@ -297,7 +306,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                                 <div style="padding-top: 12px; border-top: 1px dashed ${colors.border}; font-size: 13px; color: ${colors.textMuted};">
                                                     <div style="display: flex; justify-content: space-between;">
                                                         <div>
-                                                            ${history.daysOnMarket ? `<span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${history.daysOnMarket}</strong> Days on Market</span>` : ''}
+                                                            ${history.daysOnMarket > 0 ? `<span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${history.daysOnMarket}</strong> Days on Market</span>` : ''}
                                                             ${history.agency ? `<span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${history.agency}</strong></span>` : ''}
                                                         </div>
                                                         <div style="text-align: right;">
@@ -321,7 +330,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
                                         <tr>
                                             <td style="border-bottom: 2px solid ${colors.primary}; padding-bottom: 8px;">
-                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;">Nearby Schools (${property.schools?.length || 0} total)</h3>
+                                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;">Nearby Schools</h3>
                                             </td>
                                         </tr>
                                     </table>
@@ -347,7 +356,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                                 <div style="padding-top: 12px; border-top: 1px dashed ${colors.border}; font-size: 13px; color: ${colors.textMuted};">
                                                     <div style="display: flex; justify-content: space-between;">
                                                         <div>
-                                                            <span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${school.distance ? school.distance + 'km' : 'N/A'}</strong> away</span>
+                                                            ${school.distance > 0 ? `<span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${school.distance}km</strong> away</span>` : ''}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -380,10 +389,12 @@ const generatePropertyEmailHtml = (property, formData) => {
 
                         <!-- Footer -->
                         <tr>
-                            <td align="center" style="background-color: ${colors.brandDark}; padding: 40px 30px; color: rgba(255,255,255,0.6);">
-                                <span style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 20px; font-weight: bold; color: rgba(255,255,255,0.8); letter-spacing: 1px; display: block; margin-bottom: 20px;">KINDRED PROPERTY</span>
-                                <p style="margin: 0 0 10px 0; font-size: 12px; color: #a3b3af;">&copy; ${new Date().getFullYear()} Kindred Property. All rights reserved.</p>
-                                <p style="margin: 0; font-size: 11px; line-height: 1.5; color: #a3b3af; max-width: 400px;">
+                            <td align="center" style="background-color: ${colors.brandDark}; padding: 20px 30px; color: rgba(255,255,255,0.6); line-height: 1.4;">
+                                <div style="display: inline-block; padding: 0; line-height: 1;">
+                                    <img src="${logoUrl}" alt="KINDRED PROPERTY" style="height: 120px; width: auto; max-width: 230px; margin: 0; display: block;" draggable="false" />
+                                </div>
+                                <p style="margin: 15px 0 10px 0; font-size: 12px; color: #a3b3af;">&copy; ${new Date().getFullYear()} Kindred Property. All rights reserved.</p>
+                                <p style="margin: 0 0 20px 0; font-size: 11px; line-height: 1.5; color: #a3b3af; max-width: 400px;">
                                     The estimates provided in this report are based on available market data and should be used as a guide only. They do not constitute a sworn valuation.
                                 </p>
                             </td>

@@ -721,7 +721,7 @@ export default function PropertyPage() {
                                         <div className="flex items-center justify-between mb-6">
                                             <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] flex items-center gap-3">
                                                 <Ruler className="w-6 h-6 md:w-8 md:h-8 text-primary-500" strokeWidth={1.5} />
-                                                Comparable Sales ({property.comparables.length} total)
+                                                Comparable Sales
                                             </h2>
                                             {property.comparables.length > 3 && (
                                                 <button

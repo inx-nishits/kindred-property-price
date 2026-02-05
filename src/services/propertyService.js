@@ -48,7 +48,20 @@ export const fetchPriceEstimate = async (id) => {
     })
 
     if (!response.ok) return null
-    return await response.json()
+      
+    const responseText = await response.text();
+    if (!responseText || responseText.trim() === '') {
+      console.warn('Empty response from price estimate API');
+      return null;
+    }
+      
+    try {
+      return JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Failed to parse JSON from price estimate API:', parseError);
+      console.error('Response text:', responseText);
+      return null;
+    }
   } catch (error) {
     console.error('Error fetching price estimate:', error)
     return null
@@ -93,8 +106,21 @@ export const fetchSchools = async (lat, lng) => {
     })
 
     if (!response.ok) return []
-    const data = await response.json()
-    return data || []
+    
+    const responseText = await response.text()
+    if (!responseText || responseText.trim() === '') {
+      console.warn('Empty response from schools API')
+      return []
+    }
+    
+    try {
+      const data = JSON.parse(responseText)
+      return data || []
+    } catch (parseError) {
+      console.error('Failed to parse JSON from schools API:', parseError)
+      console.error('Response text:', responseText)
+      return []
+    }
   } catch (error) {
     console.error('Error fetching schools:', error)
     return []
@@ -214,9 +240,22 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
     if (!response.ok) {
       return [];
     }
-    const data = await response.json()
-    console.log(`Fetched ${data?.length || 0} comparable sales`)
-    return data || []
+    
+    const responseText = await response.text()
+    if (!responseText || responseText.trim() === '') {
+      console.warn('Empty response from comparables API')
+      return []
+    }
+    
+    try {
+      const data = JSON.parse(responseText)
+      console.log(`Fetched ${data?.length || 0} comparable sales`)
+      return data || []
+    } catch (parseError) {
+      console.error('Failed to parse JSON from comparables API:', parseError)
+      console.error('Response text:', responseText)
+      return []
+    }
   } catch (error) {
     console.error('Error fetching comparables:', error)
     return []
@@ -340,7 +379,23 @@ export const fetchSuburbPerformance = async (state, suburb, postcode) => {
     )
 
     if (!response.ok) return null
-    const data = await response.json()
+    
+    // Check if response has content before parsing JSON
+    const responseText = await response.text()
+    if (!responseText || responseText.trim() === '') {
+      console.warn('Empty response from suburb performance API')
+      return null
+    }
+    
+    // Try to parse JSON, handle parsing errors
+    let data
+    try {
+      data = JSON.parse(responseText)
+    } catch (parseError) {
+      console.error('Failed to parse JSON from suburb performance API:', parseError)
+      console.error('Response text:', responseText)
+      return null
+    }
 
     const series = data?.series?.seriesInfo || []
 
@@ -524,7 +579,20 @@ export const fetchRentalEstimate = async (id) => {
     })
 
     if (!response.ok) return null
-    return await response.json()
+      
+    const responseText = await response.text();
+    if (!responseText || responseText.trim() === '') {
+      console.warn('Empty response from rental estimate API');
+      return null;
+    }
+      
+    try {
+      return JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Failed to parse JSON from rental estimate API:', parseError);
+      console.error('Response text:', responseText);
+      return null;
+    }
   } catch (error) {
     console.error('Error fetching rental estimate:', error)
     return null
@@ -828,7 +896,19 @@ export const getPropertyDetails = async (id) => {
       throw createApiError(response.status, `Domain API error: ${response.status}`);
     }
 
-    const domainProperty = await response.json()
+    const responseText = await response.text()
+    if (!responseText || responseText.trim() === '') {
+      throw createApiError(500, 'Empty response from Domain API')
+    }
+    
+    let domainProperty
+    try {
+      domainProperty = JSON.parse(responseText)
+    } catch (parseError) {
+      console.error('Failed to parse JSON from Domain API:', parseError)
+      console.error('Response text:', responseText)
+      throw createApiError(500, 'Invalid JSON response from Domain API')
+    }
 
     // Fetch insights, price estimate, schools, and comparables concurrently
     const promises = []
