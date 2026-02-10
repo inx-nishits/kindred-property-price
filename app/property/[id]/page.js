@@ -28,7 +28,8 @@ import {
     Ruler,
     Clock,
     ArrowRight,
-    TrendingUp
+    TrendingUp,
+    AlertCircle
 } from 'lucide-react'
 import {
     LineChart,
@@ -119,9 +120,18 @@ export default function PropertyPage() {
         };
     }, [isSchoolsModalOpen]);
 
+    // Show retry modal if price estimate API failed
+    useEffect(() => {
+        if (property && property.apiFailedError) {
+            console.warn(`⚠️ Price estimate API failed. Reason: ${property.apiFailureReason}`)
+            setIsPriceEstimateErrorModalOpen(true)
+        }
+    }, [property?.apiFailedError, property?.apiFailureReason])
+
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
     const [userEmail, setUserEmail] = useState('')
     const [formError, setFormError] = useState('')
+    const [isPriceEstimateErrorModalOpen, setIsPriceEstimateErrorModalOpen] = useState(false)
 
     // Handle form submission
     const handleFormSubmit = async (formData) => {
@@ -223,6 +233,15 @@ export default function PropertyPage() {
                             >
                                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                                 BACK TO MAIN SITE
+                            </button>
+                            
+                            {/* DEBUG BUTTON - Show Error Modal */}
+                            <button
+                                onClick={() => setIsPriceEstimateErrorModalOpen(true)}
+                                className="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md font-medium transition-colors"
+                                title="Debug: Open error modal"
+                            >
+                                🐛 Test Error Modal
                             </button>
                         </div>
                     </ScrollReveal>
@@ -329,14 +348,14 @@ export default function PropertyPage() {
                                                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/15 backdrop-blur-sm rounded-full">
                                                             <div className="w-2 h-2 bg-[#48D98E] rounded-full animate-pulse"></div>
                                                             <span className="text-sm font-medium text-white/90">
-                                                                {(property.priceEstimate.priceConfidence || '').charAt(0).toUpperCase() + (property.priceEstimate.priceConfidence || '').slice(1)} Confidence
+                                                                {(property.priceEstimate.priceConfidence || 'Medium').charAt(0).toUpperCase() + (property.priceEstimate.priceConfidence || 'Medium').slice(1)} Confidence
                                                             </span>
                                                         </div>
                                                     </div>
 
                                                     <div className="pt-6 border-t border-white/25">
                                                         <a
-                                                            href="https://www.kindred.com.au/contact-us"
+                                                            href="https://www.kindred.com.au/sales-property-appraisal"
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="inline-block w-full text-center bg-[#48D98E] text-[#163331] font-semibold py-3 px-6 rounded-lg hover:bg-[#3bc57d] transition-colors duration-200 shadow-lg"
@@ -879,9 +898,9 @@ export default function PropertyPage() {
                     onClose={() => isUnlocked && setIsModalOpen(false)} // Only clickable if already unlocked
                     onSubmit={handleFormSubmit}
                     isSubmitting={isSubmitting}
-                    error={formError}
-                    isUnlocked={isUnlocked}
-                    propertyAddress={property.address}
+                    formError={formError}
+                    property={property}
+                    primaryImageUrl={propertyImages[0]?.url}
                 />
 
                 <SuccessModal
@@ -1137,6 +1156,87 @@ export default function PropertyPage() {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+                        </div>
+                    </div>,
+                    document.body
+                )}
+
+                {/* ═════════════════════════════════════════════════════════════════════════════════════════ */}
+                {/* RETRY MODAL: Price Estimate API Failed */}
+                {/* ═════════════════════════════════════════════════════════════════════════════════════════ */}
+                {isPriceEstimateErrorModalOpen && createPortal(
+                    <div
+                        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+                        style={{ top: 0, left: 0, right: 0, bottom: 0, height: '100vh', width: '100vw' }}
+                    >
+                        {/* Backdrop */}
+                        <div
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                            onClick={() => setIsPriceEstimateErrorModalOpen(false)}
+                        />
+
+                        {/* Modal */}
+                        <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6 md:p-8 z-10">
+                            {/* Close button */}
+                            <button
+                                onClick={() => setIsPriceEstimateErrorModalOpen(false)}
+                                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <X className="w-5 h-5" strokeWidth={2} />
+                            </button>
+
+                            {/* Content */}
+                            <div className="text-center">
+                                <div className="mb-4 flex justify-center">
+                                    <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                                        <AlertCircle className="w-6 h-6 text-amber-600" />
+                                    </div>
+                                </div>
+
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                    Having Trouble Fetching Estimate
+                                </h3>
+
+                                <p className="text-gray-600 mb-6 text-sm">
+                                    We couldn't retrieve the latest property price estimate at this moment. 
+                                    This could be due to a temporary service issue.
+                                </p>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {/* 76y */}
+
+                                {/* Buttons */}
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => {
+                                            // Refresh the property data
+                                            setIsLoading(true)
+                                            getPropertyDetails(params.id)
+                                                .then(data => {
+                                                    setProperty(data)
+                                                    if (!data.apiFailedError) {
+                                                        setIsPriceEstimateErrorModalOpen(false)
+                                                    }
+                                                })
+                                                .catch(err => console.error('Retry failed:', err))
+                                                .finally(() => setIsLoading(false))
+                                        }}
+                                        className="flex-1 bg-[#48D98E] text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-[#3bc57d] transition-colors"
+                                    >
+                                        Try Again
+                                    </button>
+
+                                    <button
+                                        onClick={() => setIsPriceEstimateErrorModalOpen(false)}
+                                        className="flex-1 bg-gray-100 text-gray-700 font-semibold py-2.5 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+                                    >
+                                        Dismiss
+                                    </button>
+                                </div>
+
+                                <p className="text-xs text-gray-500 mt-4">
+                                    You can still view other property details and request a manual appraisal.
+                                </p>
                             </div>
                         </div>
                     </div>,

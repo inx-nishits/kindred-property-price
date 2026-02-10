@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Mail, Phone } from 'lucide-react'
-import logoImage from '@/assets/images/logo.png'
+import { BRAND_CONFIG, CONTACT_CONFIG } from '@/config/report.config'
 
 function Footer() {
   const currentYear = new Date().getFullYear()
@@ -19,15 +19,15 @@ function Footer() {
             <div className="mb-6">
               <Link href="/" className="inline-block">
                 <img
-                  src={logoImage.src}
+                  src={BRAND_CONFIG.logoUrl}
                   alt="Kindred Logo"
-                  className="h-12 w-auto object-contain"
+                  className="h-16 w-auto object-contain"
                 />
               </Link>
             </div>
-            <p className="text-base text-gray-600 leading-relaxed max-w-xs">
-              Comprehensive property insights and market data for Australian properties. Get accurate estimates and detailed reports.
-            </p>
+            {/* <p className="text-base text-gray-600 leading-relaxed max-w-xs">
+              Real estate, recreated.
+            </p> */}
           </div>
 
           {/* Quick Links */}
@@ -103,19 +103,19 @@ function Footer() {
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-primary-500 flex-shrink-0" strokeWidth={1.5} />
                 <a
-                  href="mailto:info@propertyinsights.com.au"
+                  href={`mailto:${CONTACT_CONFIG.email}`}
                   className="text-sm text-gray-600 hover:text-primary-600 transition-colors font-medium break-all"
                 >
-                  info@propertyinsights.com.au
+                  {CONTACT_CONFIG.email}
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-primary-500 flex-shrink-0" strokeWidth={1.5} />
                 <a
-                  href="tel:+61280000000"
+                  href={`tel:${CONTACT_CONFIG.phone.replace(/\s+/g, '')}`}
                   className="text-sm text-gray-600 hover:text-primary-600 transition-colors font-medium"
                 >
-                  +61 2 8000 0000
+                  {CONTACT_CONFIG.phone}
                 </a>
               </li>
             </ul>

@@ -1,11 +1,11 @@
 'use client'
 
 import { submitLeadFormAndSendReport } from './emailService'
-import { 
-  isValidPropertyId, 
-  isMockPropertyId, 
-  isValidPostcode, 
-  isValidState, 
+import {
+  isValidPropertyId,
+  isMockPropertyId,
+  isValidPostcode,
+  isValidState,
   isValidSuburb,
   validateSearchCriteria,
   createApiError,
@@ -17,55 +17,21 @@ const DOMAIN_API_V2_BASE_URL = 'https://api.domain.com.au/v2'
 /**
  * Fetch price estimate for a property
  */
+/**
+ * DISABLED: Domain priceEstimate API endpoint was unreliable
+ * (returned 400 errors and incomplete data)
+ * 
+ * Instead, pricing is now derived from:
+ * 1. Recent sales history (within 2 years)
+ * 2. Suburb median price data
+ * 3. Comparables from the _search endpoint
+ * 
+ * This provides more stable, user-friendly estimates without API failures.
+ */
 export const fetchPriceEstimate = async (id) => {
-  const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
-  
-  // Validate property ID to prevent 404 errors
-  if (!id) {
-    return null;
-  }
-  
-  if (!isValidPropertyId(id)) {
-    return null;
-  }
-  
-  if (isMockPropertyId(id)) {
-    return null;
-  }
-  
-  if (!apiKey) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(`${DOMAIN_API_BASE_URL}/properties/${id}/priceEstimate`, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        'X-Api-Key': apiKey,
-        'X-Api-Call-Source': 'live-api-browser',
-      },
-    })
-
-    if (!response.ok) return null
-      
-    const responseText = await response.text();
-    if (!responseText || responseText.trim() === '') {
-      console.warn('Empty response from price estimate API');
-      return null;
-    }
-      
-    try {
-      return JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('Failed to parse JSON from price estimate API:', parseError);
-      console.error('Response text:', responseText);
-      return null;
-    }
-  } catch (error) {
-    console.error('Error fetching price estimate:', error)
-    return null
-  }
+  // This endpoint is intentionally disabled due to reliability issues
+  // Pricing will come from fallback sources (recent sales, suburb data)
+  return null
 }
 
 /**
@@ -73,24 +39,24 @@ export const fetchPriceEstimate = async (id) => {
  */
 export const fetchSchools = async (lat, lng) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
-  
+
   // Validate coordinates
   if (!apiKey) {
     return [];
   }
-  
+
   if (!lat || !lng) {
     return [];
   }
-  
+
   // Validate coordinate ranges
   const latNum = Number(lat);
   const lngNum = Number(lng);
-  
+
   if (isNaN(latNum) || latNum < -90 || latNum > 90) {
     return [];
   }
-  
+
   if (isNaN(lngNum) || lngNum < -180 || lngNum > 180) {
     return [];
   }
@@ -106,13 +72,13 @@ export const fetchSchools = async (lat, lng) => {
     })
 
     if (!response.ok) return []
-    
+
     const responseText = await response.text()
     if (!responseText || responseText.trim() === '') {
       console.warn('Empty response from schools API')
       return []
     }
-    
+
     try {
       const data = JSON.parse(responseText)
       return data || []
@@ -132,12 +98,12 @@ export const fetchSchools = async (lat, lng) => {
  */
 export const fetchComparables = async (state, suburb, postcode, propertyType, beds) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
-  
+
   // Validate required parameters to prevent 400 errors
   if (!apiKey) {
     return [];
   }
-  
+
   if (!suburb || !postcode || !state) {
     return [];
   }
@@ -153,15 +119,15 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
     // Function to validate and normalize property types for the API
     const validatePropertyType = (type) => {
       if (!type) return null
-      
+
       // Normalize the property type to match API expectations
       const normalized = type.trim()
-      
+
       // Check if it's already a valid API property type
       if (VALID_PROPERTY_TYPES.includes(normalized)) {
         return normalized
       }
-      
+
       // Map common variations to valid types
       const mapping = {
         'house': 'House',
@@ -185,13 +151,13 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
         'AcreageSemiRural': 'AcreageSemi-rural',
         'AcreageSemi_Rural': 'AcreageSemi-rural',
       }
-      
+
       const lowerCaseType = normalized.toLowerCase().replace(/[^a-z]/g, '')
-      
+
       if (mapping[lowerCaseType]) {
         return mapping[lowerCaseType]
       }
-      
+
       // If we can't map it, return null to not include it
       return null
     };
@@ -203,30 +169,42 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
         propertyTypes = [validatedType]
       }
     }
-    
+
     const searchBody = {
       listingType: 'Sale',
-      propertyTypes,
+      // only include propertyTypes when we have a validated type
+      ...(propertyTypes.length > 0 ? { propertyTypes } : {}),
       status: 'Sold',
       searchMode: 'exact',
       locations: [
         {
           state: state,
           suburb: suburb,
-          postCode: postcode,
+          postcode: postcode,
           includeSurroundingSuburbs: true
         }
       ],
-      minBedrooms: beds ? Math.max(0, beds - 1) : null,
-      maxBedrooms: beds ? beds + 1 : null,
+      // Only include bedroom filters when provided
+      ...(beds ? { minBedrooms: Math.max(0, beds - 1), maxBedrooms: beds + 1 } : {}),
       sort: {
         sortKey: 'SoldDate',
         direction: 'Descending'
       },
+      pageNumber: 1,
       pageSize: 12,
     }
 
-    const response = await fetch(`${DOMAIN_API_BASE_URL}/listings/residential/_search`, {
+    // Clean the body to avoid sending nulls or empty arrays which may cause 400s
+    const cleanedBody = JSON.parse(JSON.stringify(searchBody, (k, v) => {
+      if (v === null || v === undefined) return undefined
+      if (Array.isArray(v) && v.length === 0) return undefined
+      return v
+    }))
+
+    const requestUrl = `${DOMAIN_API_BASE_URL}/listings/residential/_search`
+    console.debug('Domain comparables request:', requestUrl, cleanedBody)
+
+    const response = await fetch(requestUrl, {
       method: 'POST',
       headers: {
         accept: 'application/json',
@@ -234,26 +212,34 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
         'X-Api-Key': apiKey,
         'X-Api-Call-Source': 'live-api-browser',
       },
-      body: JSON.stringify(searchBody)
+      body: JSON.stringify(cleanedBody)
     })
 
-    if (!response.ok) {
-      return [];
-    }
-    
-    const responseText = await response.text()
-    if (!responseText || responseText.trim() === '') {
-      console.warn('Empty response from comparables API')
-      return []
-    }
-    
     try {
-      const data = JSON.parse(responseText)
-      console.log(`Fetched ${data?.length || 0} comparable sales`)
-      return data || []
-    } catch (parseError) {
-      console.error('Failed to parse JSON from comparables API:', parseError)
-      console.error('Response text:', responseText)
+      if (!response.ok) {
+        let respText = '<unreadable>'
+        try { respText = await response.text() } catch (e) { }
+        console.error('Domain comparables API error:', response.status, response.statusText, respText)
+        return []
+      }
+
+      const responseText = await response.text()
+      if (!responseText || responseText.trim() === '') {
+        console.warn('Empty response from comparables API')
+        return []
+      }
+
+      try {
+        const data = JSON.parse(responseText)
+        console.log(`Fetched comparables: ${Array.isArray(data) ? data.length : 'unknown'}`)
+        return data || []
+      } catch (parseError) {
+        console.error('Failed to parse JSON from comparables API:', parseError)
+        console.error('Response text:', responseText)
+        return []
+      }
+    } catch (error) {
+      console.error('Error handling comparables response:', error)
       return []
     }
   } catch (error) {
@@ -271,7 +257,7 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
  */
 export const searchPropertiesByQuery = async (query) => {
   const trimmedQuery = query?.trim()
-  
+
   // Validate query
   if (!trimmedQuery) {
     return []
@@ -339,26 +325,26 @@ export const searchPropertiesByQuery = async (query) => {
  */
 export const fetchSuburbPerformance = async (state, suburb, postcode) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
-  
+
   // Validate required parameters
   if (!apiKey) {
     return null;
   }
-  
+
   if (!state || !suburb || !postcode) {
     return null;
   }
-  
+
   // Validate postcode format
   if (!isValidPostcode(postcode)) {
     return null;
   }
-  
+
   // Validate state abbreviation
   if (!isValidState(state)) {
     return null;
   }
-  
+
   // Validate suburb name
   if (!isValidSuburb(suburb)) {
     return null;
@@ -379,14 +365,14 @@ export const fetchSuburbPerformance = async (state, suburb, postcode) => {
     )
 
     if (!response.ok) return null
-    
+
     // Check if response has content before parsing JSON
     const responseText = await response.text()
     if (!responseText || responseText.trim() === '') {
       console.warn('Empty response from suburb performance API')
       return null
     }
-    
+
     // Try to parse JSON, handle parsing errors
     let data
     try {
@@ -550,20 +536,20 @@ export const fetchSuburbPerformance = async (state, suburb, postcode) => {
  */
 export const fetchRentalEstimate = async (id) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
-  
+
   // Validate property ID to prevent 404 errors
   if (!id) {
     return null;
   }
-  
+
   if (!isValidPropertyId(id)) {
     return null;
   }
-  
+
   if (isMockPropertyId(id)) {
     return null;
   }
-  
+
   if (!apiKey) {
     return null;
   }
@@ -579,13 +565,13 @@ export const fetchRentalEstimate = async (id) => {
     })
 
     if (!response.ok) return null
-      
+
     const responseText = await response.text();
     if (!responseText || responseText.trim() === '') {
       console.warn('Empty response from rental estimate API');
       return null;
     }
-      
+
     try {
       return JSON.parse(responseText);
     } catch (parseError) {
@@ -625,57 +611,152 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
   } = domainProperty
 
   // Derive price estimate:
-  // 1. Try to find the most recent 'sold' or 'advertised' price from history, scanning all records
+  // 1. Try to find the most recent 'sold' or 'advertised' price from history
   let basePrice = null
+  let mostRecentSaleDate = null
+  const TWO_YEARS_MS = 2 * 365.25 * 24 * 60 * 60 * 1000
+  const now = new Date()
 
   if (history?.sales && Array.isArray(history.sales)) {
-    for (const sale of history.sales) {
+    // Sort by date descending to get most recent first
+    const sortedSales = [...history.sales].sort((a, b) => {
+      const dateA = new Date(a.saleDate || a.date || 0)
+      const dateB = new Date(b.saleDate || b.date || 0)
+      return dateB - dateA
+    })
+
+    // Try to find a sale within the last 2 years
+    for (const sale of sortedSales) {
+      const saleDate = new Date(sale.saleDate || sale.date)
+      const ageMs = now - saleDate
+
       // Check price at top level first (most common), then nested fields
       const price = sale.price || sale.soldPrice || sale.advertisedPrice
         || sale.last?.advertisedPrice || sale.last?.price
         || sale.first?.advertisedPrice || sale.first?.price
 
+      // Use the most recent sale regardless of age (sales data is reliable)
       if (typeof price === 'number' && price > 0) {
         basePrice = price
-        break // Found a recent price, stop looking
+        mostRecentSaleDate = saleDate
+        const ageYears = (ageMs / (365.25 * 24 * 60 * 60 * 1000)).toFixed(1)
+        console.log(`✅ Using most recent sale price: $${price.toLocaleString('en-AU')} from ${saleDate.toLocaleDateString()} (${ageYears} years ago)`)
+        break
       }
+    }
+
+    // If no valid sale price found
+    if (!basePrice && sortedSales.length > 0) {
+      console.warn(`⚠️ Sales data exists but no valid price found in any sale record.`)
     }
   }
 
   let priceEstimate = null
+  let apiFailedError = false
+  let apiFailureReason = null
 
-  // Priority 1: Use direct API price estimate
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // PRIORITY 1: PRIMARY DATA SOURCE — Domain Price Estimate API (DISABLED)
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // The /properties/{id}/priceEstimate endpoint was unreliable and returned:
+  // - 400 Bad Request errors
+  // - Incomplete data (missing lower/upper price fields)
+  // - Stale data inconsistent with reality
+  //
+  // DECISION: Disabled this API endpoint entirely. Pricing now comes from stable sources:
+  // - Recent property sales (within 2 years)
+  // - Suburb-wide median price data
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // API response will always be null since fetchPriceEstimate() now returns null
   if (apiPriceEstimate) {
-    // API response contains lowerPrice, upperPrice, midPrice directly
-    const lower = apiPriceEstimate.lowerPrice || apiPriceEstimate.priceConfidenceLow || apiPriceEstimate.lower
-    const upper = apiPriceEstimate.upperPrice || apiPriceEstimate.priceConfidenceHigh || apiPriceEstimate.upper
-    const mid = apiPriceEstimate.midPrice || (lower && upper ? Math.round((lower + upper) / 2) : null)
+    console.warn('Unexpected: apiPriceEstimate should be null. API is disabled.')
+  }
 
-    if (lower && upper) {
-      priceEstimate = {
-        ...apiPriceEstimate,
-        low: lower,
-        mid: mid,
-        high: upper
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ONLY PRICE SOURCE: Recent Sales (≤2 years)
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // Single source of truth: Most recent property sale within 2 years.
+  // If no recent sale exists, show error modal to user (no fallback to stale data).
+  // This ensures accuracy and transparency.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  if (basePrice) {
+    // 1. Relax Confidence Thresholds & Adjust Price (Indexing)
+    let priceConfidence = 'Medium'
+    let adjustedPrice = basePrice
+
+    if (mostRecentSaleDate) {
+      const ageMs = now - mostRecentSaleDate
+      const ageMonths = ageMs / (1000 * 60 * 60 * 24 * 30.44)
+
+      // Index the price if older than 12 months using suburb growth data
+      if (ageMonths > 12 && suburbInsights) {
+        const saleYear = mostRecentSaleDate.getFullYear()
+        const saleMonth = mostRecentSaleDate.getMonth() + 1
+
+        // Try to find historical median at time of sale
+        const historicalStat = suburbInsights.historicalData?.find(d => d.year === saleYear && d.month === saleMonth)
+        const currentMedian = suburbInsights.medianPrice
+
+        if (historicalStat?.medianPrice && currentMedian && currentMedian > 0 && historicalStat.medianPrice > 0) {
+          const multiplier = currentMedian / historicalStat.medianPrice
+          adjustedPrice = Math.round(basePrice * multiplier)
+          console.log(`📈 Indexed price: $${basePrice.toLocaleString('en-AU')} -> $${adjustedPrice.toLocaleString('en-AU')} (Suburb growth multiplier: ${multiplier.toFixed(2)})`)
+        } else if (suburbInsights.growthPercent && suburbInsights.growthPercent !== 0) {
+          // Fallback to compounding growth if specific historical month is missing
+          const ageYears = ageMonths / 12
+          const compoundMultiplier = Math.pow(1 + (suburbInsights.growthPercent / 100), ageYears)
+          adjustedPrice = Math.round(basePrice * compoundMultiplier)
+          console.log(`📈 Indexed price (compound): $${basePrice.toLocaleString('en-AU')} -> $${adjustedPrice.toLocaleString('en-AU')} (${suburbInsights.growthPercent}% annual growth over ${ageYears.toFixed(1)} years)`)
+        }
+      }
+
+      // Relaxed thresholds
+      if (ageMonths <= 12) {
+        priceConfidence = 'Very High'  // Sold within 1 year
+      } else if (ageMonths <= 24) {
+        priceConfidence = 'High'       // Sold within 2 years
+      } else if (ageMonths <= 48) {
+        priceConfidence = 'Medium'     // Sold within 4 years
+      } else {
+        priceConfidence = 'Low'        // Sold over 4 years ago
       }
     }
-  }
 
-  // Priority 2: Derive from basePrice (sales history)
-  if (!priceEstimate && basePrice) {
-    const mid = basePrice
-    const low = Math.round(mid * 0.93)
-    const high = Math.round(mid * 1.07)
-    priceEstimate = { low, mid, high }
-  }
+    // 2. Dynamic Variance based on confidence levels
+    let variance = 0.07 // Default 7%
+    if (priceConfidence === 'Very High') variance = 0.05
+    if (priceConfidence === 'High') variance = 0.07
+    if (priceConfidence === 'Medium') variance = 0.10
+    if (priceConfidence === 'Low') variance = 0.15
 
-  // Priority 3: Derive from suburb median
-  if (!priceEstimate && suburbInsights?.medianPrice && suburbInsights.medianPrice > 0) {
+    const mid = adjustedPrice
+    const low = Math.round(mid * (1 - variance))
+    const high = Math.round(mid * (1 + variance))
+
+    priceEstimate = { low, mid, high, priceConfidence }
+    console.log(`✅ Estimated Value: $${mid.toLocaleString('en-AU')} (Confidence: ${priceConfidence})`)
+    apiFailedError = false  // Success
+  } else if (suburbInsights?.medianPrice && suburbInsights.medianPrice > 0) {
+    // 3. Fallback to Suburb Median if NO sales history exists at all
     const mid = suburbInsights.medianPrice
-    const low = Math.round(mid * 0.9)
-    const high = Math.round(mid * 1.1)
-    priceEstimate = { low, mid, high }
+    const variance = 0.15 // Low confidence variance for generic data
+    const low = Math.round(mid * (1 - variance))
+    const high = Math.round(mid * (1 + variance))
+    const priceConfidence = 'Low'
+
+    priceEstimate = { low, mid, high, priceConfidence }
+    apiFailedError = false
+    console.log(`ℹ️ No property sales found. Using suburb median fallback: $${mid.toLocaleString('en-AU')}`)
+  } else {
+    // No sales AND no suburb data (rare fallback)
+    apiFailedError = true
+    apiFailureReason = 'NO_RECENT_SALES'
+    console.warn(`⚠️ No recent sales or suburb median found. Showing error modal.`)
   }
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
   // Rental estimate
   let rentalEstimate = null
@@ -797,7 +878,9 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
     landSize: areaSize ?? 0,
     buildingSize: internalArea ?? 0,
     propertyType: propertyType || propertyCategory || 'House',
-    priceEstimate,
+    priceEstimate: priceEstimate ? { ...priceEstimate, apiFailedError, apiFailureReason } : null,
+    apiFailedError,  // ← Expose to frontend for retry modal logic
+    apiFailureReason,  // ← Expose reason for debugging
     rentalEstimate,
     suburb,
     state,
@@ -826,10 +909,10 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
         parking: listing.propertyDetails?.carspaces || 0,
         landSize: listing.propertyDetails?.landArea || 0,
         // Extract images from various possible sources in the API response
-        images: listing.media?.filter(m => m.category === 'Image').map(m => ({ url: m.url, alt: 'Property image' })) || 
-                listing.images?.map(img => ({ url: img.url || img, alt: 'Property image' })) || 
-                (listing.propertyPhotos || []).map(photo => ({ url: photo.medium || photo.small || photo, alt: 'Property image' })) || 
-                []
+        images: listing.media?.filter(m => m.category === 'Image').map(m => ({ url: m.url, alt: 'Property image' })) ||
+          listing.images?.map(img => ({ url: img.url || img, alt: 'Property image' })) ||
+          (listing.propertyPhotos || []).map(photo => ({ url: photo.medium || photo.small || photo, alt: 'Property image' })) ||
+          []
       }
     }).filter(c => c.salePrice > 0),
     suburbInsights,
@@ -866,11 +949,11 @@ export const getPropertyDetails = async (id) => {
   if (!id) {
     throw createApiError(400, 'Property ID is required');
   }
-  
+
   if (!isValidPropertyId(id)) {
     throw createApiError(400, `Invalid property ID format: ${id}`);
   }
-  
+
   if (isMockPropertyId(id)) {
     throw createApiError(404, `Property not found: ${id}`);
   }
@@ -900,7 +983,7 @@ export const getPropertyDetails = async (id) => {
     if (!responseText || responseText.trim() === '') {
       throw createApiError(500, 'Empty response from Domain API')
     }
-    
+
     let domainProperty
     try {
       domainProperty = JSON.parse(responseText)

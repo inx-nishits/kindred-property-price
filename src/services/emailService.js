@@ -2,9 +2,77 @@
  * Email Service for Property Reports
  * 
  * Handles generation of professional HTML emails for property reports.
+ * Integrates with HubSpot for lead capture and CRM management.
  * Currently configured to LOG the email content to console (Stub Mode).
  * Ready to be connected to EmailJS, SendGrid, AWS SES, or Brevo.
  */
+
+import { HUBSPOT_CONFIG, CONTACT_CONFIG, BRAND_CONFIG } from '@/config/report.config'
+
+/**
+ * Create a HubSpot contact from lead form data
+ * @param {Object} formData - The user's form data (firstName, lastName, email, mobile)
+ * @param {Object} property - The property data object
+ * @returns {Promise<Object>} HubSpot response with success status
+ */
+const createHubSpotContact = async (formData, property) => {
+    try {
+        if (!HUBSPOT_CONFIG.portalId || !HUBSPOT_CONFIG.formId) {
+            console.warn('⚠️ HubSpot configuration incomplete: Missing Portal ID or Form ID');
+            return { success: false, message: 'HubSpot configuration not set up' };
+        }
+
+        const payload = {
+            fields: [
+                { name: 'firstname', value: formData.firstName || '' },
+                { name: 'lastname', value: formData.lastName || '' },
+                { name: 'email', value: formData.email || '' },
+                { name: 'phone', value: formData.mobile || '' },
+                { name: 'property_address', value: property?.address || '' },
+                { name: 'property_id', value: property?.id || '' },
+            ]
+        };
+
+        console.log('📤 Sending contact to HubSpot:', {
+            portalId: HUBSPOT_CONFIG.portalId,
+            email: formData.email,
+            propertyAddress: property?.address
+        });
+
+        const response = await fetch(HUBSPOT_CONFIG.contactApiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ...payload,
+                context: {
+                    pageUri: typeof window !== 'undefined' ? window.location.href : '',
+                    pageName: 'Property Report Lead Capture'
+                }
+            })
+        });
+
+        // HubSpot returns 200 on success, 400+ on various errors
+        if (response.ok) {
+            console.log('✅ HubSpot contact created successfully');
+            return { success: true, message: 'Contact created in HubSpot' };
+        } else {
+            const errorText = await response.text();
+            console.error('❌ HubSpot API error:', response.status, errorText);
+            return {
+                success: false,
+                message: `HubSpot API error: ${response.status}`
+            };
+        }
+    } catch (error) {
+        console.error('❌ Error creating HubSpot contact:', error);
+        return {
+            success: false,
+            message: `Error creating contact: ${error.message}`
+        };
+    }
+};
 
 /**
  * Generate a professional HTML email template for the property
@@ -19,9 +87,9 @@ const generatePropertyEmailHtml = (property, formData) => {
     // Base URL for links (should match current environment so testing works on localhost)
     const baseUrl = (typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_BASE_URL) || 'http://localhost:3000';
 
-     const logoUrl = "https://img.mailinblue.com/10577810/images/content_library/original/69847191b1d4ee415788b767.png";
-
-     // Branding Colors
+    const logoUrl = BRAND_CONFIG.logoUrl;
+    const footerLogoUrl = BRAND_CONFIG.footerLogoUrl || logoUrl;
+    // Branding Colors
     const colors = {
         primary: '#34BF77',
         brandDark: '#163331',
@@ -87,9 +155,9 @@ const generatePropertyEmailHtml = (property, formData) => {
                         
                         <!-- Header with Logo -->
                         <tr>
-                            <td align="center" style="padding: 0; border-bottom: 1px solid ${colors.border}; background-color: ${colors.white}; line-height: 1;">
+                            <td align="center" style="padding: 20px 0; border-bottom: 1px solid ${colors.border}; background-color: ${colors.white}; line-height: 1;">
                                 <a href="${baseUrl}" target="_blank" style="text-decoration: none; display: inline-block; padding: 0; line-height: 1;">
-                                    <img src="${logoUrl}" alt="KINDRED PROPERTY" style="height: 120px; width: auto; max-width: 230px; display: block; margin: 0;" draggable="false" />
+                                    <img src="${logoUrl}" alt="KINDRED PROPERTY" style="height: 65px; width: auto; max-width: 230px; display: block; margin: 0;" draggable="false" />
                                 </a>
                             </td>
                         </tr>
@@ -240,7 +308,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                         </tr>
                                     </table>
                                     
-                                    ${property.comparables.slice(0, 10).map(comp => `
+                                    ${property.comparables.slice(0, 5).map(comp => `
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 15px; background-color: #ffffff; border: 1px solid ${colors.border}; border-radius: 8px; overflow: hidden;">
                                         <tr>
                                             <td style="padding: 15px;">
@@ -272,7 +340,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                         </tr>
                                     </table>
                                     `).join('')}
-                                    ${property.comparables.length > 10 ? `<p style="text-align: center; font-style: italic; color: ${colors.textMuted}; margin-top: 20px;">For more details, visit the website</p>` : ''}
+                                    ${property.comparables.length > 5 ? `<p style="text-align: center; font-style: italic; color: ${colors.textMuted}; margin-top: 20px;">For more details, visit the website</p>` : ''}
                                 </div>
                                 ` : ''}
 
@@ -288,7 +356,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                         </tr>   
                                     </table>
                                     
-                                    ${property.salesHistory.slice(0, 10).map(history => `
+                                    ${property.salesHistory.slice(0, 5).map(history => `
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 15px; background-color: #ffffff; border: 1px solid ${colors.border}; border-radius: 8px; overflow: hidden;">
                                         <tr>
                                             <td style="padding: 15px;">
@@ -319,7 +387,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                         </tr>
                                     </table>
                                     `).join('')}
-                                    ${property.salesHistory.length > 4 ? `<p style="text-align: center; font-style: italic; color: ${colors.textMuted}; margin-top: 20px;">For more details, visit the website</p>` : ''}
+                                    ${property.salesHistory.length > 5 ? `<p style="text-align: center; font-style: italic; color: ${colors.textMuted}; margin-top: 20px;">For more details, visit the website</p>` : ''}
                                 </div>
                                 ` : ''}
 
@@ -335,7 +403,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                         </tr>
                                     </table>
                                     
-                                    ${property.schools.slice(0, 10).map(school => `
+                                    ${property.schools.slice(0, 5).map(school => `
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 15px; background-color: #ffffff; border: 1px solid ${colors.border}; border-radius: 8px; overflow: hidden;">
                                         <tr>
                                             <td style="padding: 15px;">
@@ -347,9 +415,6 @@ const generatePropertyEmailHtml = (property, formData) => {
                                                                 <span>${school.type || 'N/A'}</span>
                                                                 ${school.yearRange ? `<span> • Years: ${school.yearRange}</span>` : ''}
                                                             </div>
-                                                        </td>
-                                                        <td align="right" valign="top">
-                                                            ${school.rating ? `<div style="font-weight: 700; font-size: 16px; color: ${colors.brandDark}; whitespace: nowrap;">${school.rating} ${school.rating > 10 ? 'ICSEA' : 'Rating'}</div>` : ''}
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -364,7 +429,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                         </tr>
                                     </table>
                                     `).join('')}
-                                    ${property.schools.length > 10 ? `<p style="text-align: center; font-style: italic; color: ${colors.textMuted}; margin-top: 20px;">For more details, visit the website</p>` : ''}
+                                    ${property.schools.length > 5 ? `<p style="text-align: center; font-style: italic; color: ${colors.textMuted}; margin-top: 20px;">For more details, visit the website</p>` : ''}
                                 </div>
                                 ` : ''}
 
@@ -391,7 +456,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                         <tr>
                             <td align="center" style="background-color: ${colors.brandDark}; padding: 20px 30px; color: rgba(255,255,255,0.6); line-height: 1.4;">
                                 <div style="display: inline-block; padding: 0; line-height: 1;">
-                                    <img src="${logoUrl}" alt="KINDRED PROPERTY" style="height: 120px; width: auto; max-width: 230px; margin: 0; display: block;" draggable="false" />
+                                    <img src="${footerLogoUrl}" alt="KINDRED PROPERTY" style="height: 60px; width: auto; max-width: 230px; margin: 0; display: block;" draggable="false" />
                                 </div>
                                 <p style="margin: 15px 0 10px 0; font-size: 12px; color: #a3b3af;">&copy; ${new Date().getFullYear()} Kindred Property. All rights reserved.</p>
                                 <p style="margin: 0 0 20px 0; font-size: 11px; line-height: 1.5; color: #a3b3af; max-width: 400px;">
@@ -411,6 +476,45 @@ const generatePropertyEmailHtml = (property, formData) => {
 };
 
 /**
+ * Generate a notification email for the Kindred team when a new lead is generated
+ * @param {Object} formData - The user's form data
+ * @param {Object} property - The property details
+ * @returns {string} HTML string
+ */
+const generateLeadNotificationEmailHtml = (formData, property) => {
+    const { firstName, lastName, email, mobile } = formData;
+    const { address, id, suburb, state, postcode, propertyType, beds, baths, cars, priceEstimate } = property || {};
+
+    return `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <h2 style="color: #163331; border-bottom: 2px solid #34BF77; padding-bottom: 10px;">New Property Report Lead</h2>
+        <p>A new property report has been requested by a potential client.</p>
+        
+        <h3 style="color: #065f46; margin-top: 25px;">Customer Details</h3>
+        <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
+            <tr style="background: #f9f9f9;"><td width="40%"><strong>Name:</strong></td><td>${firstName} ${lastName}</td></tr>
+            <tr><td><strong>Email:</strong></td><td><a href="mailto:${email}">${email}</a></td></tr>
+            <tr style="background: #f9f9f9;"><td><strong>Mobile:</strong></td><td><a href="tel:${mobile}">${mobile}</a></td></tr>
+        </table>
+        
+        <h3 style="color: #065f46; margin-top: 25px;">Property Details</h3>
+        <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
+            <tr style="background: #f9f9f9;"><td width="40%"><strong>Address:</strong></td><td>${address}</td></tr>
+            <tr><td><strong>Suburb:</strong></td><td>${suburb}, ${state} ${postcode}</td></tr>
+            <tr style="background: #f9f9f9;"><td><strong>Type:</strong></td><td>${propertyType}</td></tr>
+            <tr><td><strong>Bed/Bath/Car:</strong></td><td>${beds || 0} / ${baths || 0} / ${cars || 0}</td></tr>
+            ${priceEstimate ? `<tr style="background: #f9f9f9;"><td><strong>Estimate:</strong></td><td>$${priceEstimate.low?.toLocaleString()} - $${priceEstimate.high?.toLocaleString()}</td></tr>` : ''}
+            <tr><td><strong>Domain ID:</strong></td><td>${id}</td></tr>
+        </table>
+        
+        <div style="margin-top: 30px; padding: 15px; background: #e9f2ee; border-radius: 8px; text-align: center;">
+            <p style="margin: 0; font-size: 14px; color: #163331;">This lead has been sent to HubSpot and the property report has been emailed to the customer.</p>
+        </div>
+    </div>
+    `;
+};
+
+/**
  * Submit lead form and generate report
  * @param {Object} formData - { firstName, lastName, email, mobile }
  * @param {Object} property - Full property object
@@ -418,53 +522,77 @@ const generatePropertyEmailHtml = (property, formData) => {
  */
 export const submitLeadFormAndSendReport = async (formData, property) => {
     try {
-        // 1. Generate the HTML content
-        const htmlContent = generatePropertyEmailHtml(property, formData);
-        const subject = `Property Report: ${property.address}`;
+        const reportId = `RPT-${Date.now()}`;
+        let hubspotSuccess = false;
+        let hubspotMessage = '';
 
-        // 2. Send to our Next.js API route
-        const response = await fetch('/api/send-email', {
+        // 1. Create HubSpot contact FIRST
+        console.log('📋 Step 1: Creating HubSpot contact...');
+        const hubspotResult = await createHubSpotContact(formData, property);
+        hubspotSuccess = hubspotResult.success;
+        hubspotMessage = hubspotResult.message;
+
+        // 2. Generate and send report to CUSTOMER
+        console.log('📋 Step 2: Sending report to customer...');
+        const customerHtml = generatePropertyEmailHtml(property, formData);
+        const customerSubject = `Your Property Report: ${property.address}`;
+
+        const customerResponse = await fetch('/api/send-email', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: formData.email,
-                subject: subject,
-                htmlContent: htmlContent,
+                subject: customerSubject,
+                htmlContent: customerHtml,
             }),
         });
 
-        const result = await response.json();
+        // 3. Generate and send lead notification to KINDRED TEAM
+        console.log('📋 Step 3: Sending lead notification to Kindred team...');
+        const teamHtml = generateLeadNotificationEmailHtml(formData, property);
+        const teamSubject = `🔥 NEW LEAD: ${property.address} - ${formData.firstName} ${formData.lastName}`;
+        const teamEmail = CONTACT_CONFIG.email || 'info@kindred.com.au';
 
-        if (!response.ok) {
-            console.error('Email sending failed with status:', response.status);
-            console.error('Error details:', result);
+        console.log(`📤 Sending internal notification to: ${teamEmail}`);
 
-            // Check if it's a configuration error (missing SMTP settings or email service issues)
-            if (result.message && (result.message.includes('SMTP settings') || result.message.includes('Missing') || result.message.includes('signature') || result.message.includes('access') || result.message.includes('credential') || result.message.includes('authentication'))) {
-                console.warn('⚠️ EMAIL NOT SENT: Email configuration is missing or invalid in .env');
-            }
+        // We fire this and don't strictly wait for it to block the UI, but we log the result
+        const teamResponse = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: teamEmail,
+                subject: teamSubject,
+                htmlContent: teamHtml,
+            }),
+        });
+
+        if (!customerResponse.ok) {
+            const result = await customerResponse.json();
             return {
-                success: false, // Return false to indicate actual failure
+                success: false,
                 message: result.message || 'Email delivery failed',
-                reportId: `RPT-${Date.now()}`,
+                reportId: reportId,
+                hubspotSuccess: hubspotSuccess,
             };
         }
 
+        console.log('✅ Lead processed successfully');
         return {
             success: true,
             message: 'Report sent successfully',
-            reportId: `RPT-${Date.now()}`,
+            reportId: reportId,
+            hubspotSuccess: hubspotSuccess,
+            hubspotMessage: hubspotMessage,
         };
 
     } catch (error) {
         console.error('Error in property report service:', error);
-        // Return failure to properly indicate the email wasn't sent
         return {
             success: false,
             message: 'Report generation failed',
             reportId: `RPT-${Date.now()}`,
+            hubspotSuccess: false,
+            hubspotMessage: error.message,
         };
     }
 };

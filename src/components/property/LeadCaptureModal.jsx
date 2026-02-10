@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Loader2 } from 'lucide-react'
+import { X, Loader2, ImageOff } from 'lucide-react'
 
 function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, formError, property, primaryImageUrl }) {
   const [formData, setFormData] = useState({
@@ -293,7 +293,7 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, formError, 
           {/* Right: Property Summary */}
           <div className="w-full">
             <div className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
-              <div className="relative h-40 sm:h-48 bg-gray-200">
+              <div className="relative h-40 sm:h-48 bg-gradient-to-br from-[#48D98E] via-[#3bc57d] to-[#2fb06d]">
                 {primaryImageUrl ? (
                   <img
                     src={primaryImageUrl}
@@ -302,11 +302,15 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, formError, 
                     loading="lazy"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white/80 text-sm font-semibold">
-                    Property preview
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="mb-3">
+                        <ImageOff className="w-12 h-12 text-white/80 mx-auto drop-shadow-sm" strokeWidth={1.5} />
+                      </div>
+                      <div className="text-white text-sm font-semibold tracking-wide">No Image Available</div>
+                    </div>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-black/20" />
               </div>
               <div className="p-4">
                 <p className="text-xs font-semibold text-primary-600 mb-1">
