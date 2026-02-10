@@ -216,7 +216,9 @@ export default function AboutPage() {
 
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                                 <Link
-                                    href="/properties"
+                                    href="https://www.kindred.com.au/property?type=Sale&status=current#"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-semibold bg-primary-green text-white hover:bg-primary-green/90 transition-colors"
                                 >
                                     Explore our properties

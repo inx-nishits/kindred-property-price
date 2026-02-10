@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+import logoImage from '@/assets/images/logo.png'
 import { BRAND_CONFIG } from '@/config/report.config'
 
 function Header() {
@@ -163,7 +164,7 @@ function Header() {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
               <img
-                src={BRAND_CONFIG.logoUrl}
+                src={logoImage.src}
                 alt="Kindred Logo"
                 className="h-8 md:h-10 w-auto object-contain"
               />
@@ -425,7 +426,7 @@ function Header() {
                     className="flex items-center"
                   >
                     <img
-                      src={BRAND_CONFIG.logoUrl}
+                      src={logoImage.src}
                       alt="Kindred Logo"
                       className="h-8 md:h-10 w-auto object-contain"
                     />
