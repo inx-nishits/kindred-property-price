@@ -234,15 +234,15 @@ export default function PropertyPage() {
                                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                                 BACK TO MAIN SITE
                             </button>
-                            
+
                             {/* DEBUG BUTTON - Show Error Modal */}
-                            <button
+                            {/* <button
                                 onClick={() => setIsPriceEstimateErrorModalOpen(true)}
                                 className="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md font-medium transition-colors"
                                 title="Debug: Open error modal"
                             >
                                 🐛 Test Error Modal
-                            </button>
+                            </button> */}
                         </div>
                     </ScrollReveal>
 
@@ -1199,11 +1199,11 @@ export default function PropertyPage() {
                                 </h3>
 
                                 <p className="text-gray-600 mb-6 text-sm">
-                                    We couldn't retrieve the latest property price estimate at this moment. 
+                                    We couldn't retrieve the latest property price estimate at this moment.
                                     This could be due to a temporary service issue.
                                 </p>
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {/* 76y */}
+                                {/* 76y */}
 
                                 {/* Buttons */}
                                 <div className="flex gap-3">
