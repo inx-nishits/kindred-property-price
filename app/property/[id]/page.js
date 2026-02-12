@@ -895,7 +895,7 @@ export default function PropertyPage() {
                 {/* Modals */}
                 <LeadCaptureModal
                     isOpen={isModalOpen}
-                    onClose={() => isUnlocked && setIsModalOpen(false)} // Only clickable if already unlocked
+                    onClose={() => setIsModalOpen(false)} // Allowed closing even if not unlocked
                     onSubmit={handleFormSubmit}
                     isSubmitting={isSubmitting}
                     formError={formError}
