@@ -282,7 +282,7 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, formError, 
               </div>
 
               <p className="text-xs text-muted-600 text-center mt-4 leading-relaxed">
-                Don't worry, we never pass your details onto any third parties. By continuing you agree to&nbsp;our&nbsp;<a href="/privacy" className="text-primary-600 underline hover:text-primary-700">
+                Don't worry, we never pass your details onto any third parties. By continuing you agree to&nbsp;our&nbsp;<a href="https://www.kindred.com.au/legal/privacy-policy" className="text-primary-600 underline hover:text-primary-700">
                   Privacy Policy
                 </a>
                 .
