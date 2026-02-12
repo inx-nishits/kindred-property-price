@@ -18,20 +18,60 @@ const DOMAIN_API_V2_BASE_URL = 'https://api.domain.com.au/v2'
  * Fetch price estimate for a property
  */
 /**
- * DISABLED: Domain priceEstimate API endpoint was unreliable
- * (returned 400 errors and incomplete data)
+ * Fetch price estimate for a property from Domain API
  * 
- * Instead, pricing is now derived from:
- * 1. Recent sales history (within 2 years)
- * 2. Suburb median price data
- * 3. Comparables from the _search endpoint
- * 
- * This provides more stable, user-friendly estimates without API failures.
+ * This provides accurate estimates directly from Domain's
+ * proprietary pricing algorithm.
  */
 export const fetchPriceEstimate = async (id) => {
-  // This endpoint is intentionally disabled due to reliability issues
-  // Pricing will come from fallback sources (recent sales, suburb data)
-  return null
+  const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
+
+  // Validate property ID to prevent 404 errors
+  if (!id) {
+    return null;
+  }
+
+  if (!isValidPropertyId(id)) {
+    return null;
+  }
+
+  if (isMockPropertyId(id)) {
+    return null;
+  }
+
+  if (!apiKey) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(`${DOMAIN_API_BASE_URL}/properties/${id}/priceEstimate`, {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        'X-Api-Key': apiKey,
+        'X-Api-Call-Source': 'live-api-browser',
+      },
+    })
+
+    if (!response.ok) return null
+
+    const responseText = await response.text();
+    if (!responseText || responseText.trim() === '') {
+      console.warn('Empty response from price estimate API');
+      return null;
+    }
+
+    try {
+      return JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Failed to parse JSON from price estimate API:', parseError);
+      console.error('Response text:', responseText);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching price estimate:', error)
+    return null
+  }
 }
 
 /**
@@ -625,7 +665,7 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
       return dateB - dateA
     })
 
-    // Try to find a sale within the last 2 years
+    // Try to find a sale within the last 4 years
     for (const sale of sortedSales) {
       const saleDate = new Date(sale.saleDate || sale.date)
       const ageMs = now - saleDate
@@ -635,13 +675,16 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
         || sale.last?.advertisedPrice || sale.last?.price
         || sale.first?.advertisedPrice || sale.first?.price
 
-      // Use the most recent sale regardless of age (sales data is reliable)
-      if (typeof price === 'number' && price > 0) {
+      // Only use sales within 4 years to prevent very old sales from skewing estimates
+      const FOUR_YEARS_MS = 4 * 365.25 * 24 * 60 * 60 * 1000
+      if (typeof price === 'number' && price > 0 && ageMs <= FOUR_YEARS_MS) {
         basePrice = price
         mostRecentSaleDate = saleDate
         const ageYears = (ageMs / (365.25 * 24 * 60 * 60 * 1000)).toFixed(1)
         console.log(`✅ Using most recent sale price: $${price.toLocaleString('en-AU')} from ${saleDate.toLocaleDateString()} (${ageYears} years ago)`)
         break
+      } else if (typeof price === 'number' && price > 0 && ageMs > FOUR_YEARS_MS) {
+        console.log(`⚠️ Found sale price: $${price.toLocaleString('en-AU')} from ${saleDate.toLocaleDateString()}, but it's too old (${(ageMs / (365.25 * 24 * 60 * 60 * 1000)).toFixed(1)} years) - skipping`)
       }
     }
 
@@ -656,32 +699,48 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
   let apiFailureReason = null
 
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  // PRIORITY 1: PRIMARY DATA SOURCE — Domain Price Estimate API (DISABLED)
+  // PRIORITY 1: PRIMARY DATA SOURCE — Domain Price Estimate API
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  // The /properties/{id}/priceEstimate endpoint was unreliable and returned:
-  // - 400 Bad Request errors
-  // - Incomplete data (missing lower/upper price fields)
-  // - Stale data inconsistent with reality
-  //
-  // DECISION: Disabled this API endpoint entirely. Pricing now comes from stable sources:
-  // - Recent property sales (within 2 years)
-  // - Suburb-wide median price data
+  // Use the official Domain API price estimate as the primary source when available.
+  // This provides the most accurate and up-to-date valuations.
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-  // API response will always be null since fetchPriceEstimate() now returns null
+  // Priority 1: Use direct API Price Estimate if available
   if (apiPriceEstimate) {
-    console.warn('Unexpected: apiPriceEstimate should be null. API is disabled.')
+    console.log('✅ Using Domain API price estimate:', apiPriceEstimate);
+
+    // Map API response to expected format based on the exact response structure provided
+    const apiLow = apiPriceEstimate.lowerPrice ||
+      apiPriceEstimate.history?.[0]?.lowerPrice || null;
+    const apiHigh = apiPriceEstimate.upperPrice ||
+      apiPriceEstimate.history?.[0]?.upperPrice || null;
+    const apiMid = apiPriceEstimate.midPrice ||
+      apiPriceEstimate.history?.[0]?.midPrice || null;
+    const apiConfidence = apiPriceEstimate.priceConfidence ||
+      apiPriceEstimate.history?.[0]?.confidence || 'Medium';
+
+    if ((apiLow && apiHigh) || apiMid) {
+      // If we only have a mid value, calculate low/high with a reasonable spread (typically ±10%)
+      const finalLow = apiLow || (apiMid ? Math.round(apiMid * 0.9) : null);
+      const finalHigh = apiHigh || (apiMid ? Math.round(apiMid * 1.1) : null);
+      const finalMid = apiMid || (finalLow && finalHigh ? Math.round((finalLow + finalHigh) / 2) : null);
+
+      if (finalLow && finalHigh && finalMid) {
+        priceEstimate = {
+          low: finalLow,
+          mid: finalMid,
+          high: finalHigh,
+          priceConfidence: apiConfidence
+        };
+        apiFailedError = false;
+      }
+    }
   }
+  // If no API estimate available, fall back to sales history
+  if (!priceEstimate && basePrice) {
+    console.log('📊 Using sales history for price estimate - basePrice:', basePrice);
+    console.log('📊 Most recent sale date:', mostRecentSaleDate);
 
-  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  // ONLY PRICE SOURCE: Recent Sales (≤2 years)
-  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  // Single source of truth: Most recent property sale within 2 years.
-  // If no recent sale exists, show error modal to user (no fallback to stale data).
-  // This ensures accuracy and transparency.
-  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  if (basePrice) {
     // 1. Relax Confidence Thresholds & Adjust Price (Indexing)
     let priceConfidence = 'Medium'
     let adjustedPrice = basePrice
@@ -691,13 +750,19 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
       const ageMonths = ageMs / (1000 * 60 * 60 * 24 * 30.44)
 
       // Index the price if older than 12 months using suburb growth data
+      console.log(suburbInsights);
       if (ageMonths > 12 && suburbInsights) {
+
         const saleYear = mostRecentSaleDate.getFullYear()
         const saleMonth = mostRecentSaleDate.getMonth() + 1
 
         // Try to find historical median at time of sale
         const historicalStat = suburbInsights.historicalData?.find(d => d.year === saleYear && d.month === saleMonth)
         const currentMedian = suburbInsights.medianPrice
+
+        console.log('📊 Indexing debug - saleYear:', saleYear, 'saleMonth:', saleMonth);
+        console.log('📊 Indexing debug - historicalStat:', historicalStat);
+        console.log('📊 Indexing debug - currentMedian:', currentMedian);
 
         if (historicalStat?.medianPrice && currentMedian && currentMedian > 0 && historicalStat.medianPrice > 0) {
           const multiplier = currentMedian / historicalStat.medianPrice
@@ -735,10 +800,13 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
     const low = Math.round(mid * (1 - variance))
     const high = Math.round(mid * (1 + variance))
 
+    console.log('📊 Variance calculation - Base price:', adjustedPrice, 'Variance:', variance, 'Confidence:', priceConfidence);
+    console.log('📊 Final calculated values - Low:', low, 'Mid:', mid, 'High:', high);
+
     priceEstimate = { low, mid, high, priceConfidence }
     console.log(`✅ Estimated Value: $${mid.toLocaleString('en-AU')} (Confidence: ${priceConfidence})`)
     apiFailedError = false  // Success
-  } else if (suburbInsights?.medianPrice && suburbInsights.medianPrice > 0) {
+  } else if (!priceEstimate && suburbInsights?.medianPrice && suburbInsights.medianPrice > 0) {
     // 3. Fallback to Suburb Median if NO sales history exists at all
     const mid = suburbInsights.medianPrice
     const variance = 0.15 // Low confidence variance for generic data
@@ -749,8 +817,8 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
     priceEstimate = { low, mid, high, priceConfidence }
     apiFailedError = false
     console.log(`ℹ️ No property sales found. Using suburb median fallback: $${mid.toLocaleString('en-AU')}`)
-  } else {
-    // No sales AND no suburb data (rare fallback)
+  } else if (!priceEstimate) {
+    // No API result, no sales AND no suburb data (rare fallback)
     apiFailedError = true
     apiFailureReason = 'NO_RECENT_SALES'
     console.warn(`⚠️ No recent sales or suburb median found. Showing error modal.`)
