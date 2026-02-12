@@ -30,8 +30,8 @@ export async function POST(request) {
     }
 
     // Sanitize subject if present
-    const safeSubject = subject && subject.length <= 200 
-      ? subject 
+    const safeSubject = subject && subject.length <= 200
+      ? subject
       : 'Property Report from Kindred Property';
 
     // BREVO SMTP CONFIGURATION
@@ -43,8 +43,8 @@ export async function POST(request) {
     // Check required env vars
     if (!brevoApiKey || !senderEmail) {
       console.error('Missing Brevo configuration in environment variables');
-      console.error('BREVO_API_KEY:', brevoApiKey ? 'SET' : 'MISSING');
-      console.error('SENDER_EMAIL:', senderEmail ? 'SET' : 'MISSING');
+      console.error('BREVO_API_KEY status:', brevoApiKey ? 'DEFINED' : 'MISSING');
+      console.error('SENDER_EMAIL status:', senderEmail ? 'DEFINED' : 'MISSING');
       return NextResponse.json(
         {
           success: false,
@@ -54,11 +54,10 @@ export async function POST(request) {
       );
     }
 
-    // Debug logging
-    console.log('Brevo Configuration:');
+    // Debug logging (Safe)
+    console.log('Brevo Configuration Trace:');
     console.log('- Sender Email:', senderEmail);
-    console.log('- API Key length:', brevoApiKey.length);
-    console.log('- API Key prefix:', brevoApiKey.substring(0, 20) + '...');
+    console.log('- API Key present:', !!brevoApiKey);
 
     // Prepare the email data for Brevo API
     const emailData = {
@@ -106,7 +105,7 @@ Kindred Property Team`
       message: 'Email sent successfully via Brevo HTTP API',
       messageId: result.messageId || 'brevo-' + Date.now(),
       timestamp: new Date().toISOString()
-    }); 
+    });
 
   } catch (error) {
     // Detailed error logging
@@ -121,13 +120,13 @@ Kindred Property Team`
 
     // Specific Brevo HTTP API error handling
     if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-      userMessage = 'Brevo API authentication failed. Check BREVO_API_KEY.';
+      userMessage = 'Brevo API authentication failed. Please verify BREVO_API_KEY / SMTP_PASS configuration.';
+    } else if (error.message?.includes('403') || error.message?.includes('forbidden')) {
+      userMessage = `Brevo API rejected the sender (${senderEmail}). Ensure this email is a verified sender in your Brevo account dashboard.`;
     } else if (error.message?.includes('400') || error.message?.includes('Bad Request')) {
-      userMessage = 'Invalid email data sent to Brevo API. Check email format and content.';
-    } else if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
-      userMessage = 'Brevo API access forbidden. Check sender email verification in Brevo dashboard.';
+      userMessage = 'Invalid email data or format sent to Brevo API.';
     } else if (error.message?.includes('API error')) {
-      userMessage = `Brevo API error: ${error.message}`;
+      userMessage = error.message;
     }
 
     return NextResponse.json(
