@@ -16,6 +16,14 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, formError, 
   // Lock body scroll when modal is open and ensure modal is visible
   useEffect(() => {
     if (isOpen) {
+      // Handle Escape key
+      const handleEsc = (event) => {
+        if (event.key === 'Escape') {
+          onClose()
+        }
+      }
+      window.addEventListener('keydown', handleEsc)
+
       // Store current scroll position
       const scrollY = window.scrollY
 
@@ -42,28 +50,36 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, formError, 
         console.error('Failed to auto-fill form', e)
       }
 
+      return () => {
+        window.removeEventListener('keydown', handleEsc)
+        // Restore body scrolling
+        const scrollYVal = document.body.style.top
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.width = ''
+
+        // Restore scroll position
+        if (scrollYVal) {
+          window.scrollTo(0, parseInt(scrollYVal || '0', 10) * -1)
+        }
+      }
     } else {
-      // Restore body scrolling
-      const scrollY = document.body.style.top
+      // Restore body scrolling in case it was left locked
       document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.top = ''
       document.body.style.width = ''
-
-      // Restore scroll position
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0', 10) * -1)
-      }
     }
 
-    // Cleanup on unmount
+    // Overall Cleanup on unmount
     return () => {
       document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.top = ''
       document.body.style.width = ''
     }
-  }, [isOpen])
+  }, [isOpen, onClose])
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -282,7 +298,7 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, formError, 
               </div>
 
               <p className="text-xs text-muted-600 text-center mt-4 leading-relaxed">
-                Don't worry, we never pass your details onto any third parties. By continuing you agree to&nbsp;our&nbsp;<a href="https://www.kindred.com.au/legal/privacy-policy" className="text-primary-600 underline hover:text-primary-700">
+                Don't worry, we never pass your details onto any third parties. By continuing you agree to&nbsp;our&nbsp;<a href="https://www.kindred.com.au/legal/privacy-policy" target='_blank' className="text-primary-600 underline hover:text-primary-700">
                   Privacy Policy
                 </a>
                 .
