@@ -34,7 +34,7 @@ export const BRAND_CONFIG = {
 // Contact Information Configuration
 export const CONTACT_CONFIG = {
   // Main contact details for reports
-  email: "customercare@kindred.com.au",
+  email: "jarryd@kindredgroup.com.au",
   phone: "(07) 3284 0512",
   website: "https://www.kindred.com.au",
 
