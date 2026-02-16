@@ -136,17 +136,12 @@ export const fetchSchools = async (lat, lng) => {
 /**
  * Fetch comparable sold listings
  */
-export const fetchComparables = async (state, suburb, postcode, propertyType, beds) => {
+export const fetchComparables = async (state, suburb, postcode, propertyType, beds, baths, landSize, coordinates) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
 
-  // Validate required parameters to prevent 400 errors
-  if (!apiKey) {
-    return [];
-  }
-
-  if (!suburb || !postcode || !state) {
-    return [];
-  }
+  // Validate required parameters
+  if (!apiKey) return [];
+  if (!suburb && !coordinates) return [];
 
   try {
     // Valid property types for Domain API
@@ -156,65 +151,40 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
       'BlockOfUnits', 'Other'
     ];
 
-    // Function to validate and normalize property types for the API
     const validatePropertyType = (type) => {
       if (!type) return null
-
-      // Normalize the property type to match API expectations
       const normalized = type.trim()
+      if (VALID_PROPERTY_TYPES.includes(normalized)) return normalized
 
-      // Check if it's already a valid API property type
-      if (VALID_PROPERTY_TYPES.includes(normalized)) {
-        return normalized
-      }
-
-      // Map common variations to valid types
       const mapping = {
-        'house': 'House',
-        'apartment': 'ApartmentUnitFlat',
-        'unit': 'ApartmentUnitFlat',
-        'flat': 'ApartmentUnitFlat',
-        'townhouse': 'Townhouse',
-        'villa': 'Villa',
-        'semidetached': 'Semi-detached',
-        'semi_detached': 'Semi-detached',
-        'terrace': 'Terrace',
-        'duplex': 'Duplex',
-        'acreage': 'Acreage',
-        'retirement': 'Retirement',
-        'blockofunits': 'BlockOfUnits',
-        'other': 'Other',
-        // Handle capitalized versions
-        'ApartmentUnit': 'ApartmentUnitFlat',
-        'SemiDetached': 'Semi-detached',
-        'Semi_Detached': 'Semi-detached',
-        'AcreageSemiRural': 'AcreageSemi-rural',
+        'house': 'House', 'apartment': 'ApartmentUnitFlat', 'unit': 'ApartmentUnitFlat',
+        'flat': 'ApartmentUnitFlat', 'townhouse': 'Townhouse', 'villa': 'Villa',
+        'semidetached': 'Semi-detached', 'semi_detached': 'Semi-detached',
+        'terrace': 'Terrace', 'duplex': 'Duplex', 'acreage': 'Acreage',
+        'retirement': 'Retirement', 'blockofunits': 'BlockOfUnits', 'other': 'Other',
+        'ApartmentUnit': 'ApartmentUnitFlat', 'SemiDetached': 'Semi-detached',
+        'Semi_Detached': 'Semi-detached', 'AcreageSemiRural': 'AcreageSemi-rural',
         'AcreageSemi_Rural': 'AcreageSemi-rural',
       }
 
       const lowerCaseType = normalized.toLowerCase().replace(/[^a-z]/g, '')
-
-      if (mapping[lowerCaseType]) {
-        return mapping[lowerCaseType]
-      }
-
-      // If we can't map it, return null to not include it
-      return null
+      return mapping[lowerCaseType] || null
     };
 
     let propertyTypes = []
     if (propertyType) {
       const validatedType = validatePropertyType(propertyType)
-      if (validatedType) {
-        propertyTypes = [validatedType]
-      }
+      if (validatedType) propertyTypes = [validatedType]
     }
 
+    // Calculate dates for 12 months period
+    const twelveMonthsAgo = new Date()
+    twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1)
+    const minSoldDate = twelveMonthsAgo.toISOString().split('T')[0]
+
     const searchBody = {
-      listingType: 'Sale',
-      // only include propertyTypes when we have a validated type
+      listingType: 'Sold',
       ...(propertyTypes.length > 0 ? { propertyTypes } : {}),
-      status: 'Sold',
       searchMode: 'exact',
       locations: [
         {
@@ -224,8 +194,14 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
           includeSurroundingSuburbs: true
         }
       ],
-      // Only include bedroom filters when provided
+      // Property feature filters
       ...(beds ? { minBedrooms: Math.max(0, beds - 1), maxBedrooms: beds + 1 } : {}),
+      ...(baths ? { minBathrooms: Math.max(0, baths - 1), maxBathrooms: baths + 1 } : {}),
+      ...(landSize ? { minLandArea: Math.round(landSize * 0.8), maxLandArea: Math.round(landSize * 1.2) } : {}),
+
+      // Period filter: Sold in last 12 months
+      minSoldDate: minSoldDate,
+
       sort: {
         sortKey: 'SoldDate',
         direction: 'Descending'
@@ -272,6 +248,12 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
       try {
         const data = JSON.parse(responseText)
         console.log(`Fetched comparables: ${Array.isArray(data) ? data.length : 'unknown'}`)
+
+        // Debug: Log first comparable to understand structure
+        if (Array.isArray(data) && data.length > 0) {
+          console.log('First comparable structure:', JSON.stringify(data[0], null, 2))
+        }
+
         return data || []
       } catch (parseError) {
         console.error('Failed to parse JSON from comparables API:', parseError)
@@ -287,6 +269,103 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
     return []
   }
 }
+
+/**
+ * Fetch comparable for-sale listings (current market listings)
+ */
+export const fetchForSaleComparables = async (state, suburb, postcode, propertyType, beds, baths, landSize, coordinates) => {
+  const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
+
+  if (!apiKey) return [];
+  if (!suburb && !coordinates) return [];
+
+  try {
+    const VALID_PROPERTY_TYPES = [
+      'House', 'ApartmentUnitFlat', 'Townhouse', 'Villa', 'Semi-detached',
+      'Terrace', 'Duplex', 'Acreage', 'AcreageSemi-rural', 'Retirement',
+      'BlockOfUnits', 'Other'
+    ];
+
+    const validatePropertyType = (type) => {
+      if (!type) return null
+      const normalized = type.trim()
+      if (VALID_PROPERTY_TYPES.includes(normalized)) return normalized
+
+      const mapping = {
+        'house': 'House', 'apartment': 'ApartmentUnitFlat', 'unit': 'ApartmentUnitFlat',
+        'flat': 'ApartmentUnitFlat', 'townhouse': 'Townhouse', 'villa': 'Villa',
+        'semidetached': 'Semi-detached', 'semi_detached': 'Semi-detached',
+        'terrace': 'Terrace', 'duplex': 'Duplex', 'acreage': 'Acreage',
+        'retirement': 'Retirement', 'blockofunits': 'BlockOfUnits', 'other': 'Other'
+      }
+
+      return mapping[normalized.toLowerCase().replace(/[^a-z]/g, '')] || null
+    };
+
+    let propertyTypes = []
+    if (propertyType) {
+      const validatedType = validatePropertyType(propertyType)
+      if (validatedType) propertyTypes = [validatedType]
+    }
+
+    const searchBody = {
+      listingType: 'Sale',
+      ...(propertyTypes.length > 0 ? { propertyTypes } : {}),
+      searchMode: 'exact',
+      locations: [
+        {
+          state: state,
+          suburb: suburb,
+          postcode: postcode,
+          includeSurroundingSuburbs: true
+        }
+      ],
+      // Property feature filters
+      ...(beds ? { minBedrooms: Math.max(0, beds - 1), maxBedrooms: beds + 1 } : {}),
+      ...(baths ? { minBathrooms: Math.max(0, baths - 1), maxBathrooms: baths + 1 } : {}),
+      ...(landSize ? { minLandArea: Math.round(landSize * 0.8), maxLandArea: Math.round(landSize * 1.2) } : {}),
+
+      sort: { sortKey: 'DateListed', direction: 'Descending' },
+      pageNumber: 1,
+      pageSize: 12,
+    }
+
+    const cleanedBody = JSON.parse(JSON.stringify(searchBody, (k, v) => {
+      if (v === null || v === undefined) return undefined
+      if (Array.isArray(v) && v.length === 0) return undefined
+      return v
+    }))
+
+    const response = await fetch(`${DOMAIN_API_BASE_URL}/listings/residential/_search`, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-Api-Key': apiKey,
+        'X-Api-Call-Source': 'live-api-browser',
+      },
+      body: JSON.stringify(cleanedBody)
+    })
+
+    if (!response.ok) {
+      console.error('Domain for-sale comparables API error:', response.status)
+      return []
+    }
+
+    const responseText = await response.text()
+    if (!responseText || responseText.trim() === '') {
+      return []
+    }
+
+    const data = JSON.parse(responseText)
+    console.log(`Fetched for-sale comparables: ${Array.isArray(data) ? data.length : 'unknown'}`)
+    return data || []
+  } catch (error) {
+    console.error('Error fetching for-sale comparables:', error)
+    return []
+  }
+}
+
 
 /**
  * Search for properties by address query
@@ -628,7 +707,7 @@ export const fetchRentalEstimate = async (id) => {
 /**
  * Map Domain property details response into the app's internal property shape
  */
-const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiPriceEstimate = null, schools = [], comparables = [], apiRentalEstimate = null) => {
+const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiPriceEstimate = null, schools = [], comparables = [], forSaleComparables = [], apiRentalEstimate = null) => {
   if (!domainProperty) return null
 
   const {
@@ -956,33 +1035,78 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
     coordinates: addressCoordinate
       ? { lat: addressCoordinate.lat, lng: addressCoordinate.lon }
       : null,
-    comparables: comparables.map(c => {
-      const listing = c.listing || c // Search API usually returns items directly or wrapped
-      const listingPrice = listing.priceDetails?.price || listing.price || 0
-      // Clean price string if it's a string, or use numeric
-      let cleanPrice = 0
-      if (typeof listingPrice === 'number') cleanPrice = listingPrice
-      else if (typeof listingPrice === 'string') {
-        cleanPrice = parseInt(listingPrice.replace(/[^0-9]/g, '')) || 0
+    comparables: (() => {
+      const mapItem = (c, status) => {
+        const listing = c.listing || c
+
+        // Extract price - try multiple sources
+        const priceValue = status === 'Sold'
+          ? (listing.soldData?.soldPrice || c.soldData?.soldPrice || listing.saleDetails?.soldPrice || c.saleDetails?.soldPrice || listing.priceDetails?.price || c.priceDetails?.price || 0)
+          : (listing.priceDetails?.price || c.priceDetails?.price || listing.price || c.price || 0)
+
+        // Clean price if it's a string
+        let cleanPrice = 0
+        if (typeof priceValue === 'number') {
+          cleanPrice = priceValue
+        } else if (typeof priceValue === 'string') {
+          cleanPrice = parseInt(priceValue.replace(/[^0-9]/g, '')) || 0
+        }
+
+        // Extract address
+        const addressText = listing.propertyDetails?.displayableAddress ||
+          c.propertyDetails?.displayableAddress ||
+          listing.addressParts?.displayAddress ||
+          c.addressParts?.displayAddress ||
+          listing.address ||
+          c.address ||
+          'Address hidden'
+
+        // Extract sale/listing date
+        const dateValue = status === 'Sold'
+          ? (listing.soldData?.soldDate || c.soldData?.soldDate || listing.saleDetails?.soldDate || c.saleDetails?.soldDate || listing.dateSold || c.dateSold)
+          : (listing.dateListed || c.dateListed || listing.saleDate || c.saleDate)
+
+        // Extract property details
+        const beds = listing.propertyDetails?.bedrooms || c.propertyDetails?.bedrooms || 0
+        const baths = listing.propertyDetails?.bathrooms || c.propertyDetails?.bathrooms || 0
+        const parking = listing.propertyDetails?.carspaces || c.propertyDetails?.carspaces || 0
+        const landSize = listing.propertyDetails?.landArea || c.propertyDetails?.landArea || 0
+
+        // Extract images
+        let images = []
+        if (listing.media && Array.isArray(listing.media)) {
+          images = listing.media.filter(m => m.category === 'Image' && m.url).map(m => ({ url: m.url, alt: 'Property image' }))
+        } else if (c.media && Array.isArray(c.media)) {
+          images = c.media.filter(m => m.category === 'Image' && m.url).map(m => ({ url: m.url, alt: 'Property image' }))
+        }
+
+        if (images.length === 0) {
+          const imgs = listing.images || c.images || listing.propertyPhotos || c.propertyPhotos || []
+          images = imgs.map(img => ({ url: img.url || img.medium || img.small || img, alt: 'Property image' }))
+        }
+
+        return {
+          id: listing.id || c.id || c.advertId,
+          address: addressText,
+          salePrice: cleanPrice, // We use salePrice as generic price field
+          price: cleanPrice,
+          saleDate: dateValue,
+          date: dateValue,
+          beds: beds,
+          baths: baths,
+          parking: parking,
+          cars: parking,
+          landSize: landSize,
+          images: images,
+          status: status // 'Sold' or 'For Sale'
+        }
       }
 
-      return {
-        ...c,
-        id: listing.id,
-        address: listing.propertyDetails?.displayableAddress || listing.addressParts?.displayAddress || 'Address hidden',
-        salePrice: listing.saleDetails?.soldPrice || cleanPrice,
-        saleDate: listing.saleDetails?.soldDate || listing.dateSold,
-        beds: listing.propertyDetails?.bedrooms || 0,
-        baths: listing.propertyDetails?.bathrooms || 0,
-        parking: listing.propertyDetails?.carspaces || 0,
-        landSize: listing.propertyDetails?.landArea || 0,
-        // Extract images from various possible sources in the API response
-        images: listing.media?.filter(m => m.category === 'Image').map(m => ({ url: m.url, alt: 'Property image' })) ||
-          listing.images?.map(img => ({ url: img.url || img, alt: 'Property image' })) ||
-          (listing.propertyPhotos || []).map(photo => ({ url: photo.medium || photo.small || photo, alt: 'Property image' })) ||
-          []
-      }
-    }).filter(c => c.salePrice > 0),
+      const soldItems = comparables.map(c => mapItem(c, 'Sold')).filter(item => item.price > 0)
+      const forSaleItems = forSaleComparables.map(c => mapItem(c, 'For Sale')).filter(item => item.price > 0)
+
+      return [...soldItems, ...forSaleItems]
+    })(),
     suburbInsights,
     schools: schools.map(s => {
       // The API returns the structure { distance: number, school: { name, schoolType, ... } }
@@ -1086,18 +1210,43 @@ export const getPropertyDetails = async (id) => {
       )
     }
 
-    // 4. Comparables
-    if (domainProperty.suburb && domainProperty.postcode) {
+    // 4. Sold Comparables
+    const locationDataAvailable = (domainProperty.suburb && domainProperty.postcode) || domainProperty.addressCoordinate;
+    if (locationDataAvailable) {
       promises.push(
         fetchComparables(
           domainProperty.state,
           domainProperty.suburb,
           domainProperty.postcode,
           domainProperty.propertyCategory,
-          domainProperty.bedrooms
+          domainProperty.bedrooms,
+          domainProperty.bathrooms,
+          domainProperty.areaSize || domainProperty.internalArea,
+          domainProperty.addressCoordinate ? {
+            lat: domainProperty.addressCoordinate.lat,
+            lng: domainProperty.addressCoordinate.lon
+          } : null
         ).then(res => ({ type: 'comparables', data: res }))
       )
+
+      // 4b. For-Sale Comparables
+      promises.push(
+        fetchForSaleComparables(
+          domainProperty.state,
+          domainProperty.suburb,
+          domainProperty.postcode,
+          domainProperty.propertyCategory,
+          domainProperty.bedrooms,
+          domainProperty.bathrooms,
+          domainProperty.areaSize || domainProperty.internalArea,
+          domainProperty.addressCoordinate ? {
+            lat: domainProperty.addressCoordinate.lat,
+            lng: domainProperty.addressCoordinate.lon
+          } : null
+        ).then(res => ({ type: 'forSaleComparables', data: res }))
+      )
     }
+
 
     // 5. Rental Estimate
     promises.push(
@@ -1111,6 +1260,7 @@ export const getPropertyDetails = async (id) => {
     let apiPriceEstimate = null
     let schools = []
     let comparables = []
+    let forSaleComparables = []
     let apiRentalEstimate = null
 
     results.forEach(result => {
@@ -1120,11 +1270,12 @@ export const getPropertyDetails = async (id) => {
         if (type === 'priceEstimate') apiPriceEstimate = data
         if (type === 'schools') schools = data
         if (type === 'comparables') comparables = data
+        if (type === 'forSaleComparables') forSaleComparables = data
         if (type === 'rentalEstimate') apiRentalEstimate = data
       }
     })
 
-    const mapped = mapDomainPropertyToAppModel(domainProperty, suburbInsights, apiPriceEstimate, schools, comparables, apiRentalEstimate)
+    const mapped = mapDomainPropertyToAppModel(domainProperty, suburbInsights, apiPriceEstimate, schools, comparables, forSaleComparables, apiRentalEstimate)
     return mapped
 
   } catch (error) {

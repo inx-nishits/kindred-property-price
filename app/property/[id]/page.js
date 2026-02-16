@@ -55,6 +55,7 @@ export default function PropertyPage() {
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [isSchoolsModalOpen, setIsSchoolsModalOpen] = useState(false)
     const [isComparablesModalOpen, setIsComparablesModalOpen] = useState(false)
+    const [comparableFilter, setComparableFilter] = useState('all') // 'all', 'sold', 'sale'
 
     const propertyImages = property?.images || []
 
@@ -792,81 +793,118 @@ export default function PropertyPage() {
                                                 </button>
                                             )}
                                         </div>
-                                        <p className="text-gray-600 mb-6 max-w-3xl">
-                                            Similar properties in the area
-                                        </p>
+                                        <div className="flex flex-wrap gap-2 mb-6">
+                                            {[
+                                                { id: 'all', label: 'All', count: property.comparables.length },
+                                                { id: 'sold', label: 'Sold', count: property.comparables.filter(c => c.status === 'Sold').length },
+                                                { id: 'sale', label: 'For Sale', count: property.comparables.filter(c => c.status === 'For Sale').length }
+                                            ].map((filter) => (
+                                                <button
+                                                    key={filter.id}
+                                                    onClick={() => setComparableFilter(filter.id)}
+                                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${comparableFilter === filter.id
+                                                            ? 'bg-[#163331] text-white shadow-md'
+                                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                        }`}
+                                                >
+                                                    {filter.label} ({filter.count})
+                                                </button>
+                                            ))}
+                                        </div>
+
                                         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                                             <div className="divide-y divide-gray-200">
-                                                {property.comparables.slice(0, 3).map((sale, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
-                                                    >
-                                                        <div className="w-20 h-20 rounded-lg flex-shrink-0 overflow-hidden bg-gray-200 relative">
-                                                            {sale.images && sale.images.length > 0 && sale.images[0]?.url ? (
-                                                                <img
-                                                                    src={sale.images[0].url}
-                                                                    alt={sale.address || 'Property image'}
-                                                                    className="w-full h-full object-cover"
-                                                                    onError={(e) => {
-                                                                        e.target.onerror = null;
-                                                                        e.target.style.display = 'none';
-                                                                        if (e.target.nextSibling) {
-                                                                            e.target.nextSibling.style.display = 'flex';
-                                                                        }
-                                                                    }}
-                                                                />
-                                                            ) : null}
-                                                            {/* Fallback in case image is missing or fails to load */}
-                                                            <div className="w-full h-full flex items-center justify-center bg-gray-100"
-                                                                style={{ display: (sale.images && sale.images.length > 0 && sale.images[0]?.url) ? 'none' : 'flex' }}>
-                                                                <ImageOff className="w-6 h-6 text-gray-300" />
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-start justify-between gap-4 mb-1">
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="font-semibold text-[#163331] text-sm mb-0.5 line-clamp-1">
-                                                                        {sale.address}
-                                                                    </div>
-                                                                    <div className="text-xs text-gray-600 flex items-center gap-1">
-                                                                        <span>Sold {formatDate(sale.saleDate)}</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="text-right flex-shrink-0">
-                                                                    <div className="text-lg font-bold text-[#163331]">
-                                                                        {formatCurrency(sale.salePrice)}
-                                                                    </div>
-                                                                    <span className="inline-block px-2 py-0.5 bg-[#163331]/10 text-[#163331] text-xs font-medium rounded mt-1">
-                                                                        SOLD
-                                                                    </span>
+                                                {property.comparables
+                                                    .filter(c => {
+                                                        if (comparableFilter === 'all') return true;
+                                                        if (comparableFilter === 'sold') return c.status === 'Sold';
+                                                        if (comparableFilter === 'sale') return c.status === 'For Sale';
+                                                        return true;
+                                                    })
+                                                    .slice(0, 3)
+                                                    .map((sale, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            <div className="w-20 h-20 rounded-lg flex-shrink-0 overflow-hidden bg-gray-200 relative">
+                                                                {sale.images && sale.images.length > 0 && sale.images[0]?.url ? (
+                                                                    <img
+                                                                        src={sale.images[0].url}
+                                                                        alt={sale.address || 'Property image'}
+                                                                        className="w-full h-full object-cover"
+                                                                        onError={(e) => {
+                                                                            e.target.onerror = null;
+                                                                            e.target.style.display = 'none';
+                                                                            if (e.target.nextSibling) {
+                                                                                e.target.nextSibling.style.display = 'flex';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                ) : null}
+                                                                {/* Fallback in case image is missing or fails to load */}
+                                                                <div className="w-full h-full flex items-center justify-center bg-gray-100"
+                                                                    style={{ display: (sale.images && sale.images.length > 0 && sale.images[0]?.url) ? 'none' : 'flex' }}>
+                                                                    <ImageOff className="w-6 h-6 text-gray-300" />
                                                                 </div>
                                                             </div>
 
-                                                            <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                                                                {sale.beds > 0 && (
-                                                                    <span className="flex items-center gap-1">
-                                                                        <Bed className="w-3.5 h-3.5" />
-                                                                        {sale.beds}
-                                                                    </span>
-                                                                )}
-                                                                {sale.baths > 0 && (
-                                                                    <span className="flex items-center gap-1">
-                                                                        <Bath className="w-3.5 h-3.5" />
-                                                                        {sale.baths}
-                                                                    </span>
-                                                                )}
-                                                                {(sale.parking > 0 || sale.cars > 0) && (
-                                                                    <span className="flex items-center gap-1">
-                                                                        <Car className="w-3.5 h-3.5" />
-                                                                        {sale.parking || sale.cars}
-                                                                    </span>
-                                                                )}
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-start justify-between gap-4 mb-1">
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="font-semibold text-[#163331] text-sm mb-0.5 line-clamp-1">
+                                                                            {sale.address}
+                                                                        </div>
+                                                                        <div className="text-xs text-gray-600 flex items-center gap-1">
+                                                                            <span>{sale.status === 'Sold' ? 'Sold' : 'Listed'} {sale.saleDate && !isNaN(new Date(sale.saleDate)) ? formatDate(sale.saleDate) : 'recently'}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-right flex-shrink-0">
+                                                                        <div className="text-lg font-bold text-[#163331]">
+                                                                            {formatCurrency(sale.salePrice)}
+                                                                        </div>
+                                                                        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded mt-1 ${sale.status === 'Sold'
+                                                                                ? 'bg-[#163331]/10 text-[#163331]'
+                                                                                : 'bg-blue-100 text-blue-700'
+                                                                            }`}>
+                                                                            {sale.status === 'Sold' ? 'SOLD' : 'FOR SALE'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                                                    {sale.beds > 0 && (
+                                                                        <span className="flex items-center gap-1">
+                                                                            <Bed className="w-3.5 h-3.5" />
+                                                                            {sale.beds}
+                                                                        </span>
+                                                                    )}
+                                                                    {sale.baths > 0 && (
+                                                                        <span className="flex items-center gap-1">
+                                                                            <Bath className="w-3.5 h-3.5" />
+                                                                            {sale.baths}
+                                                                        </span>
+                                                                    )}
+                                                                    {(sale.parking > 0 || sale.cars > 0) && (
+                                                                        <span className="flex items-center gap-1">
+                                                                            <Car className="w-3.5 h-3.5" />
+                                                                            {sale.parking || sale.cars}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                {property.comparables.filter(c => {
+                                                    if (comparableFilter === 'all') return true;
+                                                    if (comparableFilter === 'sold') return c.status === 'Sold';
+                                                    if (comparableFilter === 'sale') return c.status === 'For Sale';
+                                                    return true;
+                                                }).length === 0 && (
+                                                        <div className="p-8 text-center text-gray-500">
+                                                            No {comparableFilter === 'all' ? 'comparable' : comparableFilter === 'sold' ? 'sold' : 'for sale'} properties found in this area.
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
                                     </div>
