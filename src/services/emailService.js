@@ -429,7 +429,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                         </tr>
                                     </table>
                                     `).join('')}
-                                    ${property.schools.length > 5 ? `<p style="text-align: center; font-style: italic; color: ${colors.textMuted}; margin-top: 20px;">For more details, visit the website</p>` : ''}
+                                    ${property.schools.length > 5 ? `<p style="text-align: center; font-style: italic; color: ${colors.textMuted}; margin-top: 20px;">Visit the website</p>` : ''}
                                 </div>
                                 ` : ''}
 
@@ -439,7 +439,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                         <td align="center">
                                             <a href="${baseUrl}/property/${property.id}" style="display: inline-block; background-color: ${colors.brandDark}; color: ${colors.white}; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-align: center; mso-padding-alt: 0;">
                                                 <!--[if mso]><i style="letter-spacing: 40px; mso-font-width: -100%; mso-text-raise: 30pt">&nbsp;</i><![endif]-->
-                                                <span style="mso-text-raise: 15pt;">View Full Interactive Report</span>
+                                                <span style="mso-text-raise: 15pt;">View full report</span>
                                                 <!--[if mso]><i style="letter-spacing: 40px; mso-font-width: -100%">&nbsp;</i><![endif]-->
                                             </a>
                                             <p style="margin: 20px 0 0 0; font-size: 14px; color: ${colors.textMuted};">

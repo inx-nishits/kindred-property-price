@@ -13,7 +13,7 @@ export default function FAQPage() {
         <div className="min-h-screen bg-white">
             <div className="container px-6 lg:px-8 py-16 md:py-24">
                 <div className="max-w-4xl mx-auto">
-                    <div className="text-center mb-12">
+                    <div className="text-center mb-2">
                         <h1 className="text-4xl md:text-5xl font-heading font-bold text-dark-green mb-4">
                             Frequently Asked Questions
                         </h1>

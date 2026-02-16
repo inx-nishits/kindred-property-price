@@ -31,7 +31,7 @@ export default function HomeComparableSales({ comparables }) {
                     <Ruler className="w-6 h-6" />
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-heading font-bold text-dark-green">
-                    Comparable Sales <span className="text-muted-400 font-normal text-xl">({comparables?.length || 0} total)</span>
+                    Comparable Sales
                 </h3>
             </div>
 

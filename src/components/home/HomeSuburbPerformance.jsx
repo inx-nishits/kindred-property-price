@@ -15,12 +15,42 @@ export default function HomeSuburbPerformance({ suburbStats, suburbName }) {
         return null; // Or a loading/empty state
     }
 
-    // Format data for Recharts
-    const data = suburbStats.historicalData.map(item => ({
-        name: item.period, //e.g '2023-01'
-        value: item.medianPrice,
-        year: item.year
-    })).slice(-5); // Last 5 years or data points
+    // Format data for Recharts - Group by year but fallback to monthly if data is sparse
+    const processChartData = (rawData) => {
+        if (!rawData || rawData.length === 0) return [];
+
+        // Try yearly grouping first
+        const years = [...new Set(rawData.filter(d => d.year).map(d => Number(d.year)))].sort();
+        const yearly = [];
+
+        years.forEach(year => {
+            const yearData = rawData.filter(d => Number(d.year) === year && d.medianPrice > 0);
+            if (yearData.length > 0) {
+                // Latest available month in that year
+                const latest = yearData.sort((a, b) => (b.month || 0) - (a.month || 0))[0];
+                yearly.push({
+                    name: latest.year.toString(),
+                    value: latest.medianPrice,
+                    year: latest.year
+                });
+            }
+        });
+
+        // If we have at least 3 years, use yearly data for a clean trend
+        if (yearly.length >= 3) return yearly.slice(-10);
+
+        // Otherwise fallback to monthly/quarterly data points to show more detail than a single dot
+        return rawData
+            .filter(d => d.medianPrice > 0)
+            .map(d => ({
+                name: d.period || d.year.toString(),
+                value: d.medianPrice,
+                year: d.year
+            }))
+            .slice(-24); // Show last 2 years of available points
+    };
+
+    const data = processChartData(suburbStats.historicalData || []);
 
     // Custom Tick for Y Axis (Currency)
     const formatYAxis = (tickItem) => {

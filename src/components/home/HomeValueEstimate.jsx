@@ -96,7 +96,7 @@ export default function HomeValueEstimate({ priceEstimate, propertyId }) {
             <div className="relative z-10 mt-auto">
                 <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-6"></div>
                 <a
-                    href="https://www.kindred.com.au/contact-us"
+                    href="https://www.kindred.com.au/sales-property-appraisal"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group w-full py-4 bg-brand-mint hover:bg-brand-mint/90 text-brand-dark rounded-xl font-heading font-bold text-lg transition-all duration-300 shadow-[0_0_20px_rgba(72,217,142,0.2)] hover:shadow-[0_0_30px_rgba(72,217,142,0.4)] relative overflow-hidden block text-center"

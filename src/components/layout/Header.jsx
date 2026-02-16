@@ -104,9 +104,8 @@ function Header() {
       items: [
         {
           title: 'About us',
-          link: '/about',
-          description: 'Learn more',
-          isInternal: true
+          link: 'https://www.kindred.com.au/who-we-are',
+          description: 'Learn more'
         },
         {
           title: 'Careers',
@@ -162,13 +161,18 @@ function Header() {
         <div className="flex items-center justify-between h-[64px] lg:h-[100px] gap-4">
           {/* Logo - left aligned */}
           <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center">
+            <a
+              href="https://www.kindred.com.au/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center"
+            >
               <img
                 src={logoImage.src}
                 alt="Kindred Logo"
                 className="h-8 md:h-10 w-auto object-contain"
               />
-            </Link>
+            </a>
           </div>
 
           {/* Center nav - Dropdown menus */}
@@ -420,8 +424,10 @@ function Header() {
               >
                 {/* Sidebar Header - Sticky */}
                 <div className="flex-shrink-0 flex items-center justify-between h-[64px] md:h-20 px-4 md:px-6 border-b border-gray-200 bg-white">
-                  <Link
-                    href="/"
+                  <a
+                    href="https://www.kindred.com.au/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     onClick={closeSidebar}
                     className="flex items-center"
                   >
@@ -430,7 +436,7 @@ function Header() {
                       alt="Kindred Logo"
                       className="h-8 md:h-10 w-auto object-contain"
                     />
-                  </Link>
+                  </a>
                   <button
                     onClick={closeSidebar}
                     className="p-1.5 md:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"

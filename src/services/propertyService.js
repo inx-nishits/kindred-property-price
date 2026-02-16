@@ -430,9 +430,9 @@ export const fetchSuburbPerformance = async (state, suburb, postcode) => {
     const historicalData = series
       .map((stat) => {
         const v = stat?.values || {}
-        // Year and month are directly on the stat object, not in a period object
-        const year = stat.year
-        const month = stat.month
+        // Support both flat and nested period structures (different Domain API versions)
+        const year = stat.year || stat.period?.year
+        const month = stat.month || stat.period?.month
 
         // Get median price with better fallback logic
         let medianPrice = v.medianSoldPrice

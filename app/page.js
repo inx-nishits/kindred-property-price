@@ -356,7 +356,7 @@ export default function HomePage() {
                                     Suburb Performance and Insights
                                 </h3>
                                 <p className="text-lg text-gray-600 leading-relaxed">
-                                    See how the property market in your suburb has changed over the last 10 years including median property prices, average days on market and auction clearance rates for both houses and units.
+                                    See how the property market in your suburb has changed over the last 5 years including median property prices, average days on market and auction clearance rates for both houses and units.
                                 </p>
                             </div>
                         </div>

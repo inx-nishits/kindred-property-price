@@ -19,9 +19,9 @@ function Footer() {
             <div className="mb-6">
               <Link href="/" className="inline-block">
                 <img
-                  src={BRAND_CONFIG.logoUrl}
+                  src="/footer-logo.webp"
                   alt="Kindred Logo"
-                  className="h-16 w-auto object-contain"
+                  className="h-10 w-auto object-contain"
                 />
               </Link>
             </div>
@@ -37,29 +37,22 @@ function Footer() {
             </h3>
             <ul className="space-y-3">
               {[
-                { path: '/', label: 'Home' },
-                { path: '/about', label: 'About' },
-                { path: '/faq', label: 'FAQ' },
+                { path: 'https://www.kindred.com.au/', label: 'Home' },
+                { path: 'https://www.kindred.com.au/who-we-are', label: 'About' },
+                { path: 'https://www.kindred.com.au/faqs', label: 'FAQ' },
+                { path: 'https://www.kindred.com.au/contact-us', label: 'Contact' },
               ].map((link) => (
                 <li key={link.path}>
-                  <Link
+                  <a
                     href={link.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
                   >
                     {link.label}
-                  </Link>
+                  </a>
                 </li>
               ))}
-              <li>
-                <a
-                  href="https://www.kindred.com.au/contact-us"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
-                >
-                  Contact
-                </a>
-              </li>
             </ul>
           </div>
 
@@ -69,26 +62,19 @@ function Footer() {
               Legal
             </h3>
             <ul className="space-y-3">
-              <li>
-                <a
-                  href="https://www.kindred.com.au/legal/privacy-policy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
-                >
-                  Privacy Policy
-                </a>
-              </li>
               {[
-                { path: '/terms', label: 'Terms & Conditions' },
+                { path: 'https://www.kindred.com.au/legal/privacy-policy', label: 'Privacy Policy' },
+                { path: 'https://www.kindred.com.au/resources', label: 'Resources' },
               ].map((link) => (
                 <li key={link.path}>
-                  <Link
+                  <a
                     href={link.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
                   >
                     {link.label}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -103,10 +89,10 @@ function Footer() {
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-primary-500 flex-shrink-0" strokeWidth={1.5} />
                 <a
-                  href={`mailto:${CONTACT_CONFIG.email}`}
+                  href="mailto:customercare@kindred.com.au"
                   className="text-sm text-gray-600 hover:text-primary-600 transition-colors font-medium break-all"
                 >
-                  {CONTACT_CONFIG.email}
+                  customercare@kindred.com.au
                 </a>
               </li>
               <li className="flex items-center gap-3">
