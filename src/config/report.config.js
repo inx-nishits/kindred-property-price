@@ -3,6 +3,8 @@
  * Contains all branding, contact, and report settings
  */
 
+import { header } from "framer-motion/client";
+
 // Branding Configuration
 export const BRAND_CONFIG = {
   // Main logo URL - high quality version
@@ -10,6 +12,10 @@ export const BRAND_CONFIG = {
 
   // Footer logo URL for emails
   footerLogoUrl: "https://kindred-property.s3.ap-southeast-2.amazonaws.com/logos/kindred-email-logo-footer.png",
+  email: {
+    headerImage:"https://kindred-property.s3.ap-southeast-2.amazonaws.com/logos/kindred-logo.png",
+    footerImage:"https://kindred-property.s3.ap-southeast-2.amazonaws.com/logos/kindred-light-logo.png",
+  },
 
 
   // Tagline to appear under logo

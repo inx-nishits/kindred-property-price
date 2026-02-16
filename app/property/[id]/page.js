@@ -57,7 +57,7 @@ export default function PropertyPage() {
     const [isComparablesModalOpen, setIsComparablesModalOpen] = useState(false)
     const [comparableFilter, setComparableFilter] = useState('all') // 'all', 'sold', 'sale'
 
-    const propertyImages = property?.images || []
+    const propertyImages = property?.photos || []
 
     // Fetch property details
     useEffect(() => {
@@ -74,7 +74,7 @@ export default function PropertyPage() {
                 const data = await getPropertyDetails(params.id)
                 if (data) {
                     setProperty(data)
-                    // console.log('Property data:', data);
+                    console.log('Property data:', data);
 
                 } else {
                     setError('Property not found')
@@ -385,7 +385,7 @@ export default function PropertyPage() {
                                         <div className="aspect-[4/3] relative">
                                             {propertyImages && propertyImages.length > 0 ? (
                                                 <img
-                                                    src={propertyImages[0].url}
+                                                    src={propertyImages[0].fullUrl}
                                                     alt={propertyImages[0].alt || property.address}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                 />

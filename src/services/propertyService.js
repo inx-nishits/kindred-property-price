@@ -247,12 +247,12 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
 
       try {
         const data = JSON.parse(responseText)
-        console.log(`Fetched comparables: ${Array.isArray(data) ? data.length : 'unknown'}`)
+        // console.log(`Fetched comparables: ${Array.isArray(data) ? data.length : 'unknown'}`)
 
         // Debug: Log first comparable to understand structure
-        if (Array.isArray(data) && data.length > 0) {
-          console.log('First comparable structure:', JSON.stringify(data[0], null, 2))
-        }
+        // if (Array.isArray(data) && data.length > 0) {
+        //   console.log('First comparable structure:', JSON.stringify(data[0], null, 2))
+        // }
 
         return data || []
       } catch (parseError) {
@@ -1170,7 +1170,7 @@ export const getPropertyDetails = async (id) => {
       }
       throw createApiError(response.status, `Domain API error: ${response.status}`);
     }
-
+    
     const responseText = await response.text()
     if (!responseText || responseText.trim() === '') {
       throw createApiError(500, 'Empty response from Domain API')
