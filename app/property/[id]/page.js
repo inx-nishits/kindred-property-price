@@ -47,6 +47,7 @@ export default function PropertyPage() {
     const router = useRouter()
     const [property, setProperty] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [isPriceEstimateLoading, setIsPriceEstimateLoading] = useState(true)
     const [error, setError] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -57,8 +58,9 @@ export default function PropertyPage() {
     const [isComparablesModalOpen, setIsComparablesModalOpen] = useState(false)
     const [comparableFilter, setComparableFilter] = useState('all') // 'all', 'sold', 'sale'
 
-    const propertyImages = property?.photos || []
-
+    const propertyImages = property?.images || []
+    console.log(property);
+    
     // Fetch property details
     useEffect(() => {
         async function fetchProperty() {
@@ -70,6 +72,7 @@ export default function PropertyPage() {
 
             try {
                 setIsLoading(true)
+                setIsPriceEstimateLoading(true)  // Reset price estimate loading state
                 setError(null)
                 const data = await getPropertyDetails(params.id)
                 if (data) {
@@ -120,6 +123,14 @@ export default function PropertyPage() {
             document.body.style.overflow = '';
         };
     }, [isSchoolsModalOpen]);
+
+    // Track price estimate loading
+    useEffect(() => {
+        if (property && property.priceEstimate !== undefined) {
+            // Price estimate is available (either from API or fallback)
+            setIsPriceEstimateLoading(false)
+        }
+    }, [property?.priceEstimate])
 
     // Show retry modal if price estimate API failed
     useEffect(() => {
@@ -340,7 +351,18 @@ export default function PropertyPage() {
                                                 <ArrowUpRight className="w-5 h-5 text-[#48D98E]" />
                                                 Estimated Value
                                             </h2>
-                                            {property.priceEstimate ? (
+                                            {isPriceEstimateLoading ? (
+                                                // Loading skeleton for price estimate
+                                                <div className="space-y-6 animate-pulse">
+                                                    <div>
+                                                        <div className="h-10 bg-white/20 rounded-lg w-3/4 mb-3"></div>
+                                                        <div className="h-6 bg-white/15 rounded-full w-32"></div>
+                                                    </div>
+                                                    <div className="pt-6 border-t border-white/25">
+                                                        <div className="h-12 bg-white/10 rounded-lg"></div>
+                                                    </div>
+                                                </div>
+                                            ) : property.priceEstimate ? (
                                                 <div className="space-y-6">
                                                     <div>
                                                         <div className="text-4xl md:text-4xl font-bold mb-3 leading-tight tracking-tight">
@@ -385,7 +407,7 @@ export default function PropertyPage() {
                                         <div className="aspect-[4/3] relative">
                                             {propertyImages && propertyImages.length > 0 ? (
                                                 <img
-                                                    src={propertyImages[0].fullUrl}
+                                                    src={propertyImages[0].url}
                                                     alt={propertyImages[0].alt || property.address}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                 />
