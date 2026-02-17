@@ -17,7 +17,7 @@ function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-1">
             <div className="mb-6">
-              <Link href="/" className="inline-block">
+              <Link href="https://www.kindred.com.au/" className="inline-block" target="_blank">
                 <img
                   src="/footer-logo.webp"
                   alt="Kindred Logo"
