@@ -347,10 +347,6 @@ export default function PropertyPage() {
                                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
 
                                         <div className="relative z-10">
-                                            <h2 className="text-lg font-heading font-semibold mb-6 text-white/95 uppercase tracking-wider flex items-center gap-2">
-                                                <ArrowUpRight className="w-5 h-5 text-[#48D98E]" />
-                                                Estimated Value
-                                            </h2>
                                             {isPriceEstimateLoading ? (
                                                 // Loading skeleton for price estimate
                                                 <div className="space-y-6 animate-pulse">
@@ -365,10 +361,14 @@ export default function PropertyPage() {
                                             ) : property.priceEstimate ? (
                                                 <div className="space-y-6">
                                                     <div>
-                                                        <div className="text-4xl md:text-4xl font-bold mb-3 leading-tight tracking-tight">
+                                                        <h2 className="text-lg font-heading font-semibold text-white/95 uppercase tracking-wider flex items-center gap-2 mb-4">
+                                                            <ArrowUpRight className="w-5 h-5 text-[#48D98E]" />
+                                                            Estimated Value: {formatCurrency(property.priceEstimate.mid)}
+                                                        </h2>
+                                                        <div className="text-xl md:text-xl text-white/80">
                                                             {formatCurrency(property.priceEstimate.low)} - {formatCurrency(property.priceEstimate.high)}
                                                         </div>
-                                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/15 backdrop-blur-sm rounded-full">
+                                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/15 backdrop-blur-sm rounded-full mt-4">
                                                             <div className="w-2 h-2 bg-[#48D98E] rounded-full animate-pulse"></div>
                                                             <span className="text-sm font-medium text-white/90">
                                                                 {(property.priceEstimate.priceConfidence || 'Medium').charAt(0).toUpperCase() + (property.priceEstimate.priceConfidence || 'Medium').slice(1)} Confidence
