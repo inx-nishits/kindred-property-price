@@ -60,7 +60,7 @@ export default function PropertyPage() {
 
     const propertyImages = property?.images || []
     console.log(property);
-    
+
     // Fetch property details
     useEffect(() => {
         async function fetchProperty() {
@@ -361,9 +361,9 @@ export default function PropertyPage() {
                                             ) : property.priceEstimate && property.priceEstimate.mid > 0 ? (
                                                 <div className="space-y-6">
                                                     <div>
-                                                        <h2 className="text-lg font-heading font-semibold text-white/95 uppercase tracking-wider flex items-center gap-2 mb-4">
+                                                        <h2 className="text-2xl md:text-3xl font-heading font-semibold text-white/95 uppercase tracking-wider flex items-center gap-2 mb-4">
                                                             <ArrowUpRight className="w-5 h-5 text-[#48D98E]" />
-                                                            Estimated Value: {formatCurrency(property.priceEstimate.mid)}
+                                                            <span className="text-lg md:text-xl">Estimated Value:</span> {formatCurrency(property.priceEstimate.mid)}
                                                         </h2>
                                                         <div className="text-xl md:text-xl text-white/80">
                                                             {formatCurrency(property.priceEstimate.low)} - {formatCurrency(property.priceEstimate.high)}
@@ -396,9 +396,9 @@ export default function PropertyPage() {
                                             ) : (
                                                 <div className="space-y-6">
                                                     <div>
-                                                        <h2 className="text-lg font-heading font-semibold text-white/95 uppercase tracking-wider flex items-center gap-2 mb-4">
+                                                        <h2 className="text-2xl md:text-3xl font-heading font-semibold text-white/95 uppercase tracking-wider flex items-center gap-2 mb-4">
                                                             <ArrowUpRight className="w-5 h-5 text-[#48D98E]" />
-                                                            Estimated Value: $0
+                                                            <span className="text-lg md:text-xl">Estimated Value:</span> $0
                                                         </h2>
                                                         <div className="text-xl md:text-xl text-white/80">
                                                             $0 - $0
@@ -850,8 +850,8 @@ export default function PropertyPage() {
                                                     key={filter.id}
                                                     onClick={() => setComparableFilter(filter.id)}
                                                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${comparableFilter === filter.id
-                                                            ? 'bg-[#163331] text-white shadow-md'
-                                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                        ? 'bg-[#163331] text-white shadow-md'
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                                         }`}
                                                 >
                                                     {filter.label} ({filter.count})
@@ -911,8 +911,8 @@ export default function PropertyPage() {
                                                                             {formatCurrency(sale.salePrice)}
                                                                         </div>
                                                                         <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded mt-1 ${sale.status === 'Sold'
-                                                                                ? 'bg-[#163331]/10 text-[#163331]'
-                                                                                : 'bg-blue-100 text-blue-700'
+                                                                            ? 'bg-[#163331]/10 text-[#163331]'
+                                                                            : 'bg-blue-100 text-blue-700'
                                                                             }`}>
                                                                             {sale.status === 'Sold' ? 'SOLD' : 'FOR SALE'}
                                                                         </span>
@@ -988,23 +988,17 @@ export default function PropertyPage() {
                                                                 </h3>
                                                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
                                                                     <span className="capitalize">{school.type}</span>
-                                                                    <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                                                    { school.sector && ( <>
-                                                                            <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${school.sector.toLowerCase().includes('government') 
-                                                                                ? 'bg-blue-50 text-blue-700' 
-                                                                                : school.sector.toLowerCase().includes('independent')
-                                                                                    ? 'bg-purple-50 text-purple-700'
-                                                                                    : 'bg-gray-100 text-gray-700'}`}>
-                                                                                {school.sector}
-                                                                            </span>
-                                                                        </>
-                                                                    ) }
+                                                                    {school.sector && (
+                                                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${school.sector.toLowerCase().includes('government')
+                                                                            ? 'bg-blue-50 text-blue-700'
+                                                                            : school.sector.toLowerCase().includes('independent')
+                                                                                ? 'bg-purple-50 text-purple-700'
+                                                                                : 'bg-gray-100 text-gray-700'}`}>
+                                                                            {school.sector}
+                                                                        </span>
+                                                                    )}
                                                                     {school.yearRange && (
-                                                                        <>
-                                                                            <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                                                            <span>Years {school.yearRange}</span>
-                                                                        </>
+                                                                        <span>Years {school.yearRange}</span>
                                                                     )}
                                                                 </div>
                                                             </div>
