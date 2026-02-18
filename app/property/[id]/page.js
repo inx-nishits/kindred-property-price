@@ -358,7 +358,7 @@ export default function PropertyPage() {
                                                         <div className="h-12 bg-white/10 rounded-lg"></div>
                                                     </div>
                                                 </div>
-                                            ) : property.priceEstimate ? (
+                                            ) : property.priceEstimate && property.priceEstimate.mid > 0 ? (
                                                 <div className="space-y-6">
                                                     <div>
                                                         <h2 className="text-lg font-heading font-semibold text-white/95 uppercase tracking-wider flex items-center gap-2 mb-4">
@@ -394,7 +394,32 @@ export default function PropertyPage() {
                                                     </p>
                                                 </div>
                                             ) : (
-                                                <div className="text-3xl md:text-4xl font-bold">Price estimate not available</div>
+                                                <div className="space-y-6">
+                                                    <div>
+                                                        <h2 className="text-lg font-heading font-semibold text-white/95 uppercase tracking-wider flex items-center gap-2 mb-4">
+                                                            <ArrowUpRight className="w-5 h-5 text-[#48D98E]" />
+                                                            Estimated Value: $0
+                                                        </h2>
+                                                        <div className="text-xl md:text-xl text-white/80">
+                                                            $0 - $0
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="pt-6 border-t border-white/25">
+                                                        <a
+                                                            href="https://www.kindred.com.au/sales-property-appraisal"
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-block w-full text-center bg-[#48D98E] text-[#163331] font-semibold py-3 px-6 rounded-lg hover:bg-[#3bc57d] transition-colors duration-200 shadow-lg"
+                                                        >
+                                                            Book your appraisal today
+                                                        </a>
+                                                    </div>
+
+                                                    <p className="text-xs text-white/70 leading-relaxed pt-2">
+                                                        This estimate may not have factored in your current home condition or any recent renovations. For a more accurate sale price contact Town for a personal appraisal.
+                                                    </p>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -964,7 +989,17 @@ export default function PropertyPage() {
                                                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
                                                                     <span className="capitalize">{school.type}</span>
                                                                     <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                                                    <span className="capitalize">{school.sector}</span>
+                                                                    { school.sector && ( <>
+                                                                            <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${school.sector.toLowerCase().includes('government') 
+                                                                                ? 'bg-blue-50 text-blue-700' 
+                                                                                : school.sector.toLowerCase().includes('independent')
+                                                                                    ? 'bg-purple-50 text-purple-700'
+                                                                                    : 'bg-gray-100 text-gray-700'}`}>
+                                                                                {school.sector}
+                                                                            </span>
+                                                                        </>
+                                                                    ) }
                                                                     {school.yearRange && (
                                                                         <>
                                                                             <span className="w-1 h-1 bg-gray-300 rounded-full"></span>

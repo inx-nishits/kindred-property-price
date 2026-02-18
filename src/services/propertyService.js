@@ -815,76 +815,25 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
       }
     }
   }
-  // If no API estimate available, fall back to sales history
-  if (!priceEstimate && basePrice) {
-    console.log('📊 Using sales history for price estimate - basePrice:', basePrice);
-    console.log('📊 Most recent sale date:', mostRecentSaleDate);
+  // DISABLED FALLBACK: Only use Domain API price estimate - no sales history fallback
+  // if (!priceEstimate && basePrice) {
+  //   // Use sales history only if within 1 year for high confidence
+  //   if (mostRecentSaleDate) {
+  //     const ageMs = now - mostRecentSaleDate
+  //     const ageMonths = ageMs / (1000 * 60 * 60 * 24 * 30.44)
+  //     if (ageMonths <= 12) {
+  //       const priceConfidence = 'High'
+  //       const variance = 0.07
+  //       const mid = basePrice
+  //       const low = Math.round(mid * (1 - variance))
+  //       const high = Math.round(mid * (1 + variance))
+  //       priceEstimate = { low, mid, high, priceConfidence }
+  //     }
+  //   }
+  // }
 
-    // 1. Relax Confidence Thresholds & Adjust Price (Indexing)
-    let priceConfidence = 'Medium'
-    let adjustedPrice = basePrice
-
-    if (mostRecentSaleDate) {
-      const ageMs = now - mostRecentSaleDate
-      const ageMonths = ageMs / (1000 * 60 * 60 * 24 * 30.44)
-
-      // Index the price if older than 12 months using suburb growth data
-      console.log(suburbInsights);
-      if (ageMonths > 12 && suburbInsights) {
-
-        const saleYear = mostRecentSaleDate.getFullYear()
-        const saleMonth = mostRecentSaleDate.getMonth() + 1
-
-        // Try to find historical median at time of sale
-        const historicalStat = suburbInsights.historicalData?.find(d => d.year === saleYear && d.month === saleMonth)
-        const currentMedian = suburbInsights.medianPrice
-
-        console.log('📊 Indexing debug - saleYear:', saleYear, 'saleMonth:', saleMonth);
-        console.log('📊 Indexing debug - historicalStat:', historicalStat);
-        console.log('📊 Indexing debug - currentMedian:', currentMedian);
-
-        if (historicalStat?.medianPrice && currentMedian && currentMedian > 0 && historicalStat.medianPrice > 0) {
-          const multiplier = currentMedian / historicalStat.medianPrice
-          adjustedPrice = Math.round(basePrice * multiplier)
-          console.log(`📈 Indexed price: $${basePrice.toLocaleString('en-AU')} -> $${adjustedPrice.toLocaleString('en-AU')} (Suburb growth multiplier: ${multiplier.toFixed(2)})`)
-        } else if (suburbInsights.growthPercent && suburbInsights.growthPercent !== 0) {
-          // Fallback to compounding growth if specific historical month is missing
-          const ageYears = ageMonths / 12
-          const compoundMultiplier = Math.pow(1 + (suburbInsights.growthPercent / 100), ageYears)
-          adjustedPrice = Math.round(basePrice * compoundMultiplier)
-          console.log(`📈 Indexed price (compound): $${basePrice.toLocaleString('en-AU')} -> $${adjustedPrice.toLocaleString('en-AU')} (${suburbInsights.growthPercent}% annual growth over ${ageYears.toFixed(1)} years)`)
-        }
-      }
-
-      // Relaxed thresholds
-      if (ageMonths <= 12) {
-        priceConfidence = 'Very High'  // Sold within 1 year
-      } else if (ageMonths <= 24) {
-        priceConfidence = 'High'       // Sold within 2 years
-      } else if (ageMonths <= 48) {
-        priceConfidence = 'Medium'     // Sold within 4 years
-      } else {
-        priceConfidence = 'Low'        // Sold over 4 years ago
-      }
-    }
-
-    // 2. Dynamic Variance based on confidence levels
-    let variance = 0.07 // Default 7%
-    if (priceConfidence === 'Very High') variance = 0.05
-    if (priceConfidence === 'High') variance = 0.07
-    if (priceConfidence === 'Medium') variance = 0.10
-    if (priceConfidence === 'Low') variance = 0.15
-
-    const mid = adjustedPrice
-    const low = Math.round(mid * (1 - variance))
-    const high = Math.round(mid * (1 + variance))
-
-    console.log('📊 Variance calculation - Base price:', adjustedPrice, 'Variance:', variance, 'Confidence:', priceConfidence);
-    console.log('📊 Final calculated values - Low:', low, 'Mid:', mid, 'High:', high);
-
-    priceEstimate = { low, mid, high, priceConfidence }
-    console.log(`✅ Estimated Value: $${mid.toLocaleString('en-AU')} (Confidence: ${priceConfidence})`)
-    apiFailedError = false  // Success
+  // DISABLED FALLBACK: No suburb median fallback - only show API results
+  /*
   } else if (!priceEstimate && suburbInsights?.medianPrice && suburbInsights.medianPrice > 0) {
     // 3. Fallback to Suburb Median if NO sales history exists at all
     const mid = suburbInsights.medianPrice
@@ -895,12 +844,14 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
 
     priceEstimate = { low, mid, high, priceConfidence }
     apiFailedError = false
-    console.log(`ℹ️ No property sales found. Using suburb median fallback: $${mid.toLocaleString('en-AU')}`)
-  } else if (!priceEstimate) {
-    // No API result, no sales AND no suburb data (rare fallback)
-    apiFailedError = true
-    apiFailureReason = 'NO_RECENT_SALES'
-    console.warn(`⚠️ No recent sales or suburb median found. Showing error modal.`)
+  }
+  */
+
+  if (!priceEstimate) {
+    // No API result - show $0 instead of error
+    priceEstimate = { low: 0, mid: 0, high: 0, priceConfidence: 'None' }
+    apiFailedError = false
+    apiFailureReason = null
   }
 
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1109,12 +1060,13 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
     })(),
     suburbInsights,
     schools: schools.map(s => {
-      // The API returns the structure { distance: number, school: { name, schoolType, ... } }
+      // The API returns the structure { distance: number, school: { name, schoolType, schoolSector, ... } }
       const schoolData = s.school || s
       return {
         ...s,
         name: schoolData.name,
         type: schoolData.schoolType,
+        sector: schoolData.schoolSector, // Extract school sector (Government, Independent, etc.)
         yearRange: schoolData.profile?.yearRange || 'K-12',
         distance: s.distance ? (s.distance / 1000).toFixed(2) : '0', // API returns meters
         // API doesn't provide 1-5 rating, but provides ICSEA score.
