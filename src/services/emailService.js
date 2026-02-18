@@ -109,9 +109,22 @@ const generatePropertyEmailHtml = (property, formData) => {
     const formatCurrency = (val) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }).format(val);
     const formatNumber = (val) => new Intl.NumberFormat('en-AU').format(val);
 
+    // Check if priceEstimate has valid values (mid > 0 OR (low > 0 AND high > 0))
+    const hasValidPriceEstimate = priceEstimate && (priceEstimate.mid > 0 || (priceEstimate.low > 0 && priceEstimate.high > 0));
+    
     const priceText = priceEstimate
         ? `${formatCurrency(priceEstimate.low)} - ${formatCurrency(priceEstimate.high)}`
         : 'Contact Agent';
+
+    // Calculate mid from low/high if not provided or is 0, but only if low and high are valid
+    let priceMidValue = priceEstimate?.mid;
+    if ((!priceMidValue || priceMidValue === 0) && priceEstimate?.low > 0 && priceEstimate?.high > 0) {
+        priceMidValue = Math.round((priceEstimate.low + priceEstimate.high) / 2);
+    }
+
+    const priceMidText = priceMidValue && priceMidValue > 0
+        ? formatCurrency(priceMidValue)
+        : '';
 
     const rentalText = rentalEstimate?.weekly?.mid
         ? `${formatCurrency(rentalEstimate.weekly.low)} - ${formatCurrency(rentalEstimate.weekly.high)} / week`
@@ -225,14 +238,55 @@ const generatePropertyEmailHtml = (property, formData) => {
                                     ` : ''}
 
                                     <!-- Valuation Estimates Card -->
+                                    ${hasValidPriceEstimate ? `
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${colors.brandDark}; border-radius: 12px; margin-bottom: 30px; color: ${colors.white}; overflow: hidden;">
                                         <tr>
                                             <td style="padding: 30px;">
                                                 <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                                     <tr>
-                                                        <td style="padding-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.15);">
-                                                            <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.8; margin-bottom: 8px;">Estimated Value</div>
-                                                            <div style="font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1.2;">${priceText}</div>
+                                                        <td style="padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.15);">
+                                                            <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.8; margin-bottom: 12px;">Estimated Value</div>
+                                                            <!-- Price Range Display -->
+                                                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                                <tr>
+                                                                    <td valign="middle">
+                                                                        <div style="font-size: 32px; font-weight: 700; color: #ffffff; line-height: 1.2;">${formatCurrency(priceEstimate.low)}</div>
+                                                                    </td>
+                                                                    <td align="center" valign="middle" style="padding: 0 15px;">
+                                                                        <div style="font-size: 20px; opacity: 0.6;">—</div>
+                                                                    </td>
+                                                                    <td valign="middle" align="right">
+                                                                        <div style="font-size: 32px; font-weight: 700; color: #ffffff; line-height: 1.2;">${formatCurrency(priceEstimate.high)}</div>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <!-- Range Bar -->
+                                                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 15px;">
+                                                                <tr>
+                                                                    <td style="background: rgba(255,255,255,0.2); height: 6px; border-radius: 3px; position: relative;">
+                                                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                                            <tr>
+                                                                                <td style="width: 50%;">
+                                                                                    <div style="background: ${colors.primary}; height: 6px; border-radius: 3px; width: 50%;"></div>
+                                                                                </td>
+                                                                                <td></td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <!-- Mid Price -->
+                                                            ${priceMidText ? `
+                                                            <div style="margin-top: 15px; display: inline-block; background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px;">
+                                                                <span style="font-size: 14px; opacity: 0.8;">Median Estimate:</span>
+                                                                <span style="font-size: 18px; font-weight: 700; margin-left: 8px; color: #ffffff;">${priceMidText}</span>
+                                                            </div>
+                                                            ` : ''}
+                                                            ${priceEstimate.priceConfidence ? `
+                                                            <div style="margin-top: 10px; font-size: 12px; opacity: 0.6;">
+                                                                Confidence: ${priceEstimate.priceConfidence}
+                                                            </div>
+                                                            ` : ''}
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -258,6 +312,7 @@ const generatePropertyEmailHtml = (property, formData) => {
                                             </td>
                                         </tr>
                                     </table>
+                                    ` : ''}
 
                                     <!-- Suburb Insights -->
                                     ${property.suburbInsights ? `
@@ -295,19 +350,19 @@ const generatePropertyEmailHtml = (property, formData) => {
                                     </div>
                                     ` : ''}
 
-                                    <!-- Market Comparables -->
-                                    ${(property.comparables && property.comparables.length > 0) ? `
-                                    <!-- Comparable Sales -->
+                                    <!-- Recently Sold -->
+                                    ${(property.comparables && property.comparables.filter(c => c.status === 'Sold').length > 0) ? `
+                                    <!-- Recently Sold -->
                                     <div style="margin-bottom: 40px;">
                                         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
                                             <tr>
                                                 <td style="border-bottom: 2px solid ${colors.primary}; padding-bottom: 8px;">
-                                                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;"> Comparable Sales</h3>
+                                                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;"> Recently Sold</h3>
                                                 </td>
                                             </tr>
                                         </table>
                                         
-                                        ${property.comparables.slice(0, 5).map(comp => `
+                                        ${property.comparables.filter(c => c.status === 'Sold').slice(0, 5).map(comp => `
                                         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 15px; background-color: #ffffff; border: 1px solid ${colors.border}; border-radius: 8px; overflow: hidden;">
                                             <tr>
                                                 <td style="padding: 15px;">
@@ -319,6 +374,53 @@ const generatePropertyEmailHtml = (property, formData) => {
                                                             </td>
                                                             <td align="right" valign="top">
                                                                 <div style="font-weight: 700; font-size: 16px; color: ${colors.brandDark}; whitespace: nowrap;">${formatCurrency(comp.salePrice)}</div>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                    <div style="padding-top: 12px; border-top: 1px dashed ${colors.border}; font-size: 13px; color: ${colors.textMuted};">
+                                                        <div style="display: flex; justify-content: space-between;">
+                                                            <div>
+                                                                ${comp.beds > 0 ? `<span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${comp.beds}</strong> Beds</span>` : ''}
+                                                                ${comp.baths > 0 ? `<span style="display: inline-block; margin-right: 15px;"><strong style="color: ${colors.brandDark};">${comp.baths}</strong> Baths</span>` : ''}
+                                                                ${comp.cars > 0 ? `<span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${comp.cars}</strong> Cars</span>` : ''}
+                                                            </div>
+                                                            <div style="text-align: right;">
+                                                                ${comp.distance > 0 ? `<span style="display: inline-block;"><strong style="color: ${colors.brandDark};">${comp.distance}km</strong> away</span>` : ''}
+                                                            </div>
+                                                        </div>
+                                                        ${comp.landSize ? `<div style="margin-top: 5px; font-size: 13px; color: ${colors.textMuted};"><strong style="color: ${colors.brandDark};">Land Size:</strong> ${formatNumber(comp.landSize)}m²</div>` : ''}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        `).join('')}
+                                    </div>
+                                    ` : ''}
+
+                                    <!-- For Sale -->
+                                    ${(property.comparables && property.comparables.filter(c => c.status === 'For Sale').length > 0) ? `
+                                    <!-- For Sale -->
+                                    <div style="margin-bottom: 40px;">
+                                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
+                                            <tr>
+                                                <td style="border-bottom: 2px solid ${colors.primary}; padding-bottom: 8px;">
+                                                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: ${colors.brandDark}; text-transform: uppercase; letter-spacing: 0.5px;">For Sale</h3>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        ${property.comparables.filter(c => c.status === 'For Sale').slice(0, 5).map(comp => `
+                                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 15px; background-color: #ffffff; border: 1px solid ${colors.border}; border-radius: 8px; overflow: hidden;">
+                                            <tr>
+                                                <td style="padding: 15px;">
+                                                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                        <tr>
+                                                            <td valign="top" style="padding-bottom: 12px;">
+                                                                <div style="font-weight: 700; font-size: 16px; color: ${colors.brandDark}; margin-bottom: 4px;">${comp.address || 'N/A'}</div>
+                                                                <div style="font-size: 13px; color: ${colors.textMuted};">Listed ${comp.date ? new Date(comp.date).toLocaleDateString('en-AU') : 'N/A'}</div>
+                                                            </td>
+                                                            <td align="right" valign="top">
+                                                                <div style="font-weight: 700; font-size: 16px; color: ${colors.brandDark}; whitespace: nowrap;">${formatCurrency(comp.price)}</div>
                                                             </td>
                                                         </tr>
                                                     </table>
