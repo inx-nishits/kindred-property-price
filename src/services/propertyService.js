@@ -11,8 +11,8 @@ import {
   createApiError,
 } from '../utils/propertyValidation'
 
-const DOMAIN_API_BASE_URL = 'https://api.domain.com.au/v1'
-const DOMAIN_API_V2_BASE_URL = 'https://api.domain.com.au/v2'
+const DOMAIN_API_BASE_URL = process.env.NEXT_PUBLIC_DOMAIN_API_BASE_URL || 'https://api.domain.com.au/v1';
+const DOMAIN_API_V2_BASE_URL = process.env.NEXT_PUBLIC_DOMAIN_API_V2_BASE_URL || 'https://api.domain.com.au/v2';
 
 /**
  * Fetch price estimate for a property
@@ -375,12 +375,12 @@ export const fetchForSaleComparables = async (state, suburb, postcode, propertyT
  * @returns {Promise<Array>} Array of matching properties
  */
 export const searchPropertiesByQuery = async (query) => {
-  const trimmedQuery = query?.trim()
-
-  // Validate query
-  if (!trimmedQuery) {
-    return []
+  // Validate query: ensure it's a non-empty string
+  if (typeof query !== 'string' || query.trim().length === 0) {
+    return [];
   }
+
+  const trimmedQuery = query.trim();
 
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
 

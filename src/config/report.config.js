@@ -80,26 +80,13 @@ export const REPORT_CONFIG = {
 };
 
 // HubSpot Integration Configuration
+// Note: Now using CRM v3 API instead of Forms API
+// See app/api/hubspot/contacts/route.js for implementation
 export const HUBSPOT_CONFIG = {
-  // HubSpot Portal ID
+  // This config is kept for backward compatibility but not used anymore
+  // Using server-side CRM API instead of Forms API
   portalId: process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID || '',
-
-  // HubSpot Form ID for property reports
   formId: process.env.NEXT_PUBLIC_HUBSPOT_FORM_ID || '',
-
-  // API endpoint for contact creation
-  contactApiUrl: 'https://api.hsforms.com/submissions/v3/integration/submit',
-
-  // Form fields mapping
-  formFields: {
-    firstName: 'firstname',
-    lastName: 'lastname',
-    email: 'email',
-    mobile: 'phone',
-    propertyAddress: 'property_address',
-    propertyId: 'property_id',
-    reportType: 'report_type'
-  }
 };
 
 // Export combined configuration

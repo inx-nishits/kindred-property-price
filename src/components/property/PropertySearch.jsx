@@ -2,12 +2,13 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { MapPin, X, Clock, Loader2, Building2, AlertCircle } from 'lucide-react'
 import { searchPropertiesByQuery } from '../../services/propertyService'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { useDebounce } from '../../hooks/useDebounce'
 
 function PropertySearch({
   onSelectProperty,
   className = '',
   onSearchResultsChange,
-  onClear,
+  onClear
 }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -20,6 +21,17 @@ function PropertySearch({
   const searchRef = useRef(null)
   const resultsRef = useRef(null)
   const inputRef = useRef(null)
+  const searchCache = useRef(new Map())
+
+  // Create a ref to hold the latest onSearchResultsChange callback
+  const onSearchResultsChangeRef = useRef(onSearchResultsChange)
+
+  // Update the ref whenever the callback prop changes
+  useEffect(() => {
+    onSearchResultsChangeRef.current = onSearchResultsChange
+  }, [onSearchResultsChange])
+
+  const debouncedQuery = useDebounce(query, 300)
 
   const handleClear = useCallback(() => {
     setQuery('')
@@ -27,14 +39,15 @@ function PropertySearch({
     setShowResults(false)
     setShowRecentSearches(false)
     setValidationError(null)
-    if (onSearchResultsChange) {
-      onSearchResultsChange([])
+    // Use the ref to call the function
+    if (onSearchResultsChangeRef.current) {
+      onSearchResultsChangeRef.current([])
     }
     if (onClear) {
       onClear()
     }
     inputRef.current?.focus()
-  }, [onSearchResultsChange, onClear])
+  }, [onClear])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -61,7 +74,7 @@ function PropertySearch({
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscape)
     }
-  }, [query, onSearchResultsChange, onClear, handleClear])
+  }, [query, handleClear])
 
   // Dynamic height calculation
   useEffect(() => {
@@ -97,7 +110,7 @@ function PropertySearch({
   }, [showResults, results.length])
 
   useEffect(() => {
-    const trimmedQuery = query.trim()
+    const trimmedQuery = debouncedQuery.trim()
 
     // If input is empty, clear everything and don't call API
     if (trimmedQuery.length === 0) {
@@ -105,33 +118,51 @@ function PropertySearch({
       setShowResults(false)
       setValidationError(null)
       setIsLoading(false)
-      if (onSearchResultsChange) {
-        onSearchResultsChange([])
+      if (onSearchResultsChangeRef.current) {
+        onSearchResultsChangeRef.current([])
       }
       return
     }
 
-
-
     let isCancelled = false
 
-    // Set loading state immediately when we have enough characters
-    setIsLoading(true)
-    setShowResults(true)
-
     const performSearch = async () => {
+      // First, check if the result is in the cache.
+      if (searchCache.current.has(trimmedQuery)) {
+        const cachedResults = searchCache.current.get(trimmedQuery)
+        if (!isCancelled) {
+          setResults(cachedResults)
+          setShowResults(true)
+          setIsLoading(false)
+          if (onSearchResultsChangeRef.current) {
+            onSearchResultsChangeRef.current(cachedResults)
+          }
+        }
+        return // Found in cache, no need to fetch.
+      }
+
+      // If not in cache, proceed to fetch.
+      if (!isCancelled) {
+        setIsLoading(true)
+        setShowResults(true)
+      }
+
       try {
         const searchResults = await searchPropertiesByQuery(trimmedQuery)
 
         if (isCancelled) {
           return
         }
+
+        // Save the new result to the cache.
+        searchCache.current.set(trimmedQuery, searchResults)
+
         setResults(searchResults)
         setShowResults(true) // Always show dropdown if we have query (even if no results)
         setIsLoading(false)
 
-        if (onSearchResultsChange) {
-          onSearchResultsChange(searchResults)
+        if (onSearchResultsChangeRef.current) {
+          onSearchResultsChangeRef.current(searchResults)
         }
       } catch (error) {
         if (isCancelled) {
@@ -141,20 +172,18 @@ function PropertySearch({
         setResults([])
         setShowResults(true) // Show "no results" message
         setIsLoading(false)
-        if (onSearchResultsChange) {
-          onSearchResultsChange([])
+        if (onSearchResultsChangeRef.current) {
+          onSearchResultsChangeRef.current([])
         }
       }
     }
 
-    // Debounce API calls while typing (300ms delay)
-    const debounceTimer = setTimeout(performSearch, 300)
+    performSearch()
 
     return () => {
       isCancelled = true
-      clearTimeout(debounceTimer)
     }
-  }, [query, onSearchResultsChange])
+  }, [debouncedQuery])
 
   const handleSelect = (property) => {
     setQuery(property.address)
@@ -416,4 +445,3 @@ function PropertySearch({
 }
 
 export default PropertySearch
-

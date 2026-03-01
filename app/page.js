@@ -1,21 +1,16 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
 import { Search, Mail, FileText } from 'lucide-react'
 import KindredLogo from '@/assets/images/logo.png'
 import PropertySearch from '@/components/property/PropertySearch'
 import getPriceEstimateImage from '@/assets/images/get-price-estimate-a.jpg'
+import { useCallback } from 'react'
 
 // Dynamic Components
 import HomeValueEstimate from '@/components/home/HomeValueEstimate'
 import HomeComparableSales from '@/components/home/HomeComparableSales'
 import HomeSuburbPerformance from '@/components/home/HomeSuburbPerformance'
-
-// Services
-import {
-    getPropertyDetails
-} from '@/services/propertyService'
 
 // Static data for immediate load (30 Shields Street, Redcliffe)
 const STATIC_EXAMPLE_DATA = {
@@ -82,39 +77,12 @@ const STATIC_EXAMPLE_DATA = {
 
 export default function HomePage() {
     const router = useRouter()
-    // Initialize with static data for immediate render
-    const [exampleData, setExampleData] = useState(STATIC_EXAMPLE_DATA)
+    // Use static data for demo - no API calls needed on home page load
+    const exampleData = STATIC_EXAMPLE_DATA
 
-    // Fetch live data (silent update)
-    useEffect(() => {
-        const fetchExampleData = async () => {
-            try {
-                // 1. Get Details for specific property (includes estimates/comps/stats)
-                // Using 30 Shields Street, Redcliffe (ID: VC-9552-CQ)
-                const propertyId = 'VC-9552-CQ';
-                const details = await getPropertyDetails(propertyId);
-
-                if (!details) return;
-
-                setExampleData({
-                    id: propertyId,
-                    priceEstimate: details.priceEstimate,
-                    comparables: details.comparables,
-                    suburbStats: details.suburbInsights,
-                    details: details
-                });
-
-            } catch (error) {
-                console.error('Failed to fetch example home data', error);
-            }
-        };
-
-        fetchExampleData();
-    }, []);
-
-    const handlePropertySelect = (property) => {
+    const handlePropertySelect = useCallback((property) => {
         router.push(`/property/${property.id}`)
-    }
+    }, [router])
 
     const handleFooterPropertySelect = (property) => {
         router.push(`/property/${property.id}`)

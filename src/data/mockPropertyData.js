@@ -629,6 +629,11 @@ export const mockProperties = [
   },
 ]
 
+export const isMockId = (id) => {
+  if (!id) return false
+  return mockProperties.some((p) => String(p.id) === String(id))
+}
+
 // Generate default data for new properties
 const generateDefaultComparables = (property) => {
   const basePrice = property.priceEstimate.mid
