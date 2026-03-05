@@ -64,6 +64,13 @@ export default function PropertyPage() {
     const [isSharing, setIsSharing] = useState(false)
     const [shareUrl, setShareUrl] = useState('')
     const [isCopied, setIsCopied] = useState(false)
+    const [utmData, setUtmData] = useState({
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: ''
+    })
 
     const propertyImages = property?.images || []
     console.log(property);
@@ -155,6 +162,23 @@ export default function PropertyPage() {
         }
 
         checkUnlockStatus();
+
+        // Capture UTM parameters
+        const utmSource = urlParams.get('utm_source');
+        const utmMedium = urlParams.get('utm_medium');
+        const utmCampaign = urlParams.get('utm_campaign');
+        const utmTerm = urlParams.get('utm_term');
+        const utmContent = urlParams.get('utm_content');
+
+        if (utmSource || utmMedium || utmCampaign || utmTerm || utmContent) {
+            setUtmData({
+                utm_source: utmSource || '',
+                utm_medium: utmMedium || '',
+                utm_campaign: utmCampaign || '',
+                utm_term: utmTerm || '',
+                utm_content: utmContent || ''
+            });
+        }
     }, [params.id])
 
     // Auto-open modal if not unlocked
@@ -206,7 +230,7 @@ export default function PropertyPage() {
         setIsSubmitting(true)
         setFormError('') // Clear previous errors
         try {
-            const result = await submitLeadForm(formData, property)
+            const result = await submitLeadForm(formData, property, utmData)
 
             if (result.success) {
                 if (typeof window !== 'undefined') {
