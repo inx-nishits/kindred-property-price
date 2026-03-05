@@ -1,0 +1,61 @@
+import { NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+
+/**
+ * API Endpoint: POST /api/share/verify
+ * 
+ * Verifies a JWT token for time-limited share access
+ * Returns the decoded token if valid, or error if invalid/expired
+ */
+async function POST(request) {
+  try {
+    const body = await request.json();
+    const { token } = body;
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, message: 'Token is required' },
+        { status: 400 }
+      );
+    }
+
+    // Verify and decode the JWT token
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'your-secret-key'
+    );
+
+    // Check if token is expired (redundant with jwt.verify but kept for clarity)
+    if (decoded.exp && Math.floor(Date.now() / 1000) > decoded.exp) {
+      return NextResponse.json(
+        { success: false, message: 'Token has expired', expired: true },
+        { status: 401 }
+      );
+    }
+
+    // Return successful verification with property ID
+    return NextResponse.json({
+      success: true,
+      propertyId: decoded.propertyId,
+      type: decoded.type,
+      expiresAt: decoded.exp ? new Date(decoded.exp * 1000).toISOString() : null
+    });
+  } catch (error) {
+    console.error('Error verifying share token:', error);
+
+    if (error.name === 'TokenExpiredError') {
+      return NextResponse.json(
+        { success: false, message: 'Token has expired', expired: true },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.json(
+      { success: false, message: 'Invalid token' },
+      { status: 401 }
+    );
+  }
+}
+
+export { POST };
+

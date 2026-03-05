@@ -5,8 +5,7 @@
  * Integrates with HubSpot CRM for lead capture and CRM management.
  * Uses server-side API to securely handle HubSpot access token.
  */
-
-import { CONTACT_CONFIG, BRAND_CONFIG } from '@/config/report.config'
+import { CONTACT_CONFIG, BRAND_CONFIG } from '@/config/report.config';
 
 /**
  * Create a HubSpot contact from lead form data using CRM API
@@ -18,12 +17,20 @@ const createHubSpotContact = async (formData, property) => {
     try {
         const reportId = `RPT-${Date.now()}`;
 
+        const payload = {
+            formData,
+            property,
+            reportId,
+        };
+
+        console.log('--- HubSpot Contact Creation via Server API ---');
         console.log('📤 Sending contact to HubSpot CRM via server API:', {
             email: formData.email,
             firstName: formData.firstName,
             lastName: formData.lastName,
             propertyAddress: property?.address
         });
+        console.log('   Payload for /api/hubspot/contacts:', JSON.stringify(payload, null, 2));
 
         // Call the server-side API route (keeps access token secure)
         const response = await fetch('/api/hubspot/contacts', {
@@ -31,31 +38,35 @@ const createHubSpotContact = async (formData, property) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                formData,
-                property,
-                reportId,
-            }),
+            body: JSON.stringify(payload),
         });
 
-        const result = await response.json();
-
         if (response.ok) {
+            const result = await response.json();
             console.log('✅ HubSpot contact created/updated successfully');
             console.log('   Contact ID:', result.contactId);
             return { success: true, message: 'Contact created in HubSpot CRM', contactId: result.contactId };
         } else {
-            console.error('❌ HubSpot API error:', response.status, result);
+            // Handle non-OK responses to better diagnose issues (e.g., 500 errors with HTML body)
+            const responseBody = await response.text();
+            let errorDetails = responseBody;
+            try {
+                errorDetails = JSON.parse(responseBody);
+            } catch (e) {
+                // Not a JSON response, use the raw text
+            }
+            console.error('❌ Server API error for HubSpot contact creation:', response.status, errorDetails);
             return {
                 success: false,
-                message: result.message || 'HubSpot API error'
+                message: (typeof errorDetails === 'object' && errorDetails.message) || 'Server API error',
+                details: errorDetails
             };
         }
     } catch (error) {
-        console.error('❌ Error creating HubSpot contact:', error);
+        console.error('❌ Exception creating HubSpot contact:', error);
         return {
             success: false,
-            message: `Error creating contact: ${error.message}`
+            message: `Failed to create contact due to an exception: ${error.message}`
         };
     }
 };
@@ -148,7 +159,7 @@ const generatePropertyEmailHtml = (property, formData, shareUrl) => {
 
     // Check if priceEstimate has valid values (mid > 0 OR (low > 0 AND high > 0))
     const hasValidPriceEstimate = priceEstimate && (priceEstimate.mid > 0 || (priceEstimate.low > 0 && priceEstimate.high > 0));
-    
+
     const priceText = priceEstimate
         ? `${formatCurrency(priceEstimate.low)} - ${formatCurrency(priceEstimate.high)}`
         : 'Contact Agent';
@@ -237,9 +248,9 @@ const generatePropertyEmailHtml = (property, formData, shareUrl) => {
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
                                         <tr>
                                             <td align="center">
-                                                <a href="${shareUrl}?unlock=true" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: ${colors.primary}; border-radius: 8px; text-decoration: none; min-width: 200px;">
-                                                    View Full Report Online
-                                                </a>
+                                              <a href="${shareUrl}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: ${colors.primary}; border-radius: 8px; text-decoration: none; min-width: 200px;">
+                                                View Full Report Online
+                                            </a>
                                             </td>
                                         </tr>
                                     </table>
@@ -692,11 +703,11 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
         // ============================================================
         // HUBSPOT CRM INTEGRATION
         // ============================================================
-        
+
         // Step 1: Upsert Contact (create or update)
         console.log('📋 Step 1: Upserting contact in HubSpot...');
         const hubspotContactResult = await createHubSpotContact(formData, property);
-        
+
         if (!hubspotContactResult.success) {
             console.error('❌ Failed to create/update contact in HubSpot');
             return {
@@ -705,14 +716,14 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
                 reportId: reportId,
             };
         }
-        
+
         contactId = hubspotContactResult.contactId;
         console.log('✅ Contact upserted successfully. Contact ID:', contactId);
 
         // Step 2: Create a NEW Property Custom Object (every time)
         console.log('📋 Step 2: Creating new property in HubSpot...');
         const hubspotPropertyResult = await createHubSpotProperty(contactId, property, reportId);
-        
+
         if (!hubspotPropertyResult.success) {
             console.error('❌ Failed to create property in HubSpot');
             // Still consider it a success if contact was created
@@ -724,10 +735,10 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
                 hubspotSuccess: true,
             };
         }
-        
+
         propertyId = hubspotPropertyResult.dealId;
         console.log('✅ Deal created successfully. Deal ID:', propertyId);
-        
+
         // All steps completed successfully
         hubspotSuccess = true;
         hubspotMessage = 'Contact and Deal created successfully';
@@ -740,7 +751,10 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
             const shareResponse = await fetch('/api/share/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ propertyId: property.id }),
+                body: JSON.stringify({
+                    propertyId: property.id,
+                    recipientEmail: formData.email
+                }),
             });
             if (shareResponse.ok) {
                 const shareData = await shareResponse.json();
@@ -756,7 +770,7 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
         // ============================================================
         // EMAIL SENDING
         // ============================================================
-        
+
         // 2. Generate and send report to CUSTOMER
         console.log('📋 Step 2: Sending report to customer...');
         const customerHtml = generatePropertyEmailHtml(property, formData, shareUrl);
@@ -809,7 +823,7 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
         console.log('✅ Lead processed successfully - HubSpot integration complete');
         console.log('   Contact ID:', contactId);
         console.log('   Deal ID:', propertyId);
-        
+
         return {
             success: true,
             message: hubspotMessage,
@@ -840,11 +854,11 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
         // ============================================================
         // HUBSPOT CRM INTEGRATION
         // ============================================================
-        
+
         // Step 1: Upsert Contact (create or update)
         console.log('📋 Step 1: Upserting contact in HubSpot...');
         const hubspotContactResult = await createHubSpotContact(formData, property);
-        
+
         if (!hubspotContactResult.success) {
             console.error('❌ Failed to create/update contact in HubSpot');
             return {
@@ -853,14 +867,14 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
                 reportId: reportId,
             };
         }
-        
+
         contactId = hubspotContactResult.contactId;
         console.log('✅ Contact upserted successfully. Contact ID:', contactId);
 
         // Step 2: Create a NEW Property Custom Object (every time)
         console.log('📋 Step 2: Creating new property in HubSpot...');
         const hubspotPropertyResult = await createHubSpotProperty(contactId, property, reportId);
-        
+
         if (!hubspotPropertyResult.success) {
             console.error('❌ Failed to create property in HubSpot');
             // Still consider it a success if contact was created
@@ -872,10 +886,10 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
                 hubspotSuccess: true,
             };
         }
-        
+
         propertyId = hubspotPropertyResult.dealId;
         console.log('✅ Deal created successfully. Deal ID:', propertyId);
-        
+
         // All steps completed successfully
         hubspotSuccess = true;
         hubspotMessage = 'Contact and Deal created successfully';
@@ -888,7 +902,10 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
             const shareResponse = await fetch('/api/share/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ propertyId: property.id }),
+                body: JSON.stringify({
+                    propertyId: property.id,
+                    recipientEmail: formData.email
+                }),
             });
             if (shareResponse.ok) {
                 const shareData = await shareResponse.json();
@@ -904,7 +921,7 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
         // ============================================================
         // EMAIL SENDING
         // ============================================================
-        
+
         // 2. Generate and send report to CUSTOMER
         console.log('📋 Step 2: Sending report to customer...');
         const customerHtml = generatePropertyEmailHtml(property, formData, shareUrl);
@@ -957,7 +974,7 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
         console.log('✅ Lead processed successfully - HubSpot integration complete');
         console.log('   Contact ID:', contactId);
         console.log('   Deal ID:', propertyId);
-        
+
         return {
             success: true,
             message: hubspotMessage,

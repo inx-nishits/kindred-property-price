@@ -1,0 +1,29 @@
+import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/session';
+
+/**
+ * API Endpoint: GET /api/session
+ * 
+ * Returns the current session state including bypass status
+ * This allows client-side code to check if user has Kindred group access
+ */
+async function GET(request) {
+  try {
+    const session = await getSession();
+
+    return NextResponse.json({
+      success: true,
+      bypass: session.bypass || false,
+      hasSession: !!session
+    });
+  } catch (error) {
+    console.error('Error getting session:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to get session' },
+      { status: 500 }
+    );
+  }
+}
+
+export { GET };
+

@@ -1120,7 +1120,7 @@ export const getPropertyDetails = async (id) => {
       }
       throw createApiError(response.status, `Domain API error: ${response.status}`);
     }
-    
+
     const responseText = await response.text()
     if (!responseText || responseText.trim() === '') {
       throw createApiError(500, 'Empty response from Domain API')
@@ -1255,10 +1255,10 @@ export const getPropertyByAddressQuery = async (address) => {
  * @param {Object} property
  * @returns {Promise<Object>} Success response
  */
-export const submitLeadForm = async (formData, property = null, shareUrl) => {
+export const submitLeadForm = async (formData, property = null, utmData = {}) => {
   // If property is provided, send the report
   if (property) {
-    return await submitLeadFormAndSendReport(formData, property, shareUrl)
+    return await submitLeadFormAndSendReport(formData, property, utmData)
   }
 
   return {

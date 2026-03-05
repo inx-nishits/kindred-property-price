@@ -29,7 +29,11 @@ import {
     Clock,
     ArrowRight,
     TrendingUp,
-    AlertCircle
+    AlertCircle,
+    Share2,
+    Check,
+    Copy,
+    ExternalLink
 } from 'lucide-react'
 import {
     LineChart,
@@ -57,6 +61,9 @@ export default function PropertyPage() {
     const [isSchoolsModalOpen, setIsSchoolsModalOpen] = useState(false)
     const [isComparablesModalOpen, setIsComparablesModalOpen] = useState(false)
     const [comparableFilter, setComparableFilter] = useState('all') // 'all', 'sold', 'sale'
+    const [isSharing, setIsSharing] = useState(false)
+    const [shareUrl, setShareUrl] = useState('')
+    const [isCopied, setIsCopied] = useState(false)
 
     const propertyImages = property?.images || []
     console.log(property);
@@ -95,14 +102,59 @@ export default function PropertyPage() {
 
     // Check if property is unlocked
     useEffect(() => {
-        if (typeof window !== 'undefined' && params.id) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const accessToken = urlParams.get('kindred_group_token');
-            const hasTokenAccess = accessToken === (process.env.NEXT_PUBLIC_INTERNAL_ACCESS_TOKEN || 'kindred_insider-access');
+        async function checkUnlockStatus() {
+            if (typeof window === 'undefined' || !params.id) return;
 
-            const unlocked = localStorage.getItem(`property_${params.id}_unlocked`) === 'true' || hasTokenAccess;
+            const urlParams = new URLSearchParams(window.location.search);
+            const shareToken = urlParams.get('share_token');
+            const globalBypass = sessionStorage.getItem('kindred_global_bypass') === 'true';
+
+            // 1. Check Global Bypass (Kindred Group Special Link)
+            if (globalBypass) {
+                setIsUnlocked(true);
+                return;
+            }
+
+            // 2. Check Property-Specific Share Token
+            if (shareToken) {
+                try {
+                    const response = await fetch('/api/share/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: shareToken, propertyId: params.id })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        // If it's a personalized link, check if it matches the current user
+                        if (data.type === 'personal') {
+                            const savedDetails = localStorage.getItem('kindred_user_details');
+                            const userEmail = savedDetails ? JSON.parse(savedDetails).email : localStorage.getItem(`property_${params.id}_email`);
+
+                            if (userEmail !== data.recipientEmail) {
+                                console.warn('Personalized link mismatch. Access denied.');
+                                // Keep locked and maybe show a message
+                                setFormError('This personalized report link is restricted to the original recipient. Please fill out the form to request your own report.');
+                                return;
+                            }
+                        }
+
+                        setIsUnlocked(true);
+                        // Clean URL
+                        const newUrl = window.location.pathname;
+                        window.history.replaceState({}, '', newUrl);
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Error verifying share token:', err);
+                }
+            }
+
+            // 3. Check Local Storage (Lead Form Submission)
+            const unlocked = localStorage.getItem(`property_${params.id}_unlocked`) === 'true';
             setIsUnlocked(unlocked);
         }
+
+        checkUnlockStatus();
     }, [params.id])
 
     // Auto-open modal if not unlocked
@@ -178,6 +230,30 @@ export default function PropertyPage() {
             setIsSubmitting(false)
         }
     }
+    // Handle Share functionality
+    const handleShare = async () => {
+        if (isSharing) return;
+        setIsSharing(true);
+        try {
+            const response = await fetch('/api/share/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ propertyId: params.id })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setShareUrl(data.shareUrl);
+                // Copy to clipboard
+                await navigator.clipboard.writeText(data.shareUrl);
+                setIsCopied(true);
+                setTimeout(() => setIsCopied(false), 3000);
+            }
+        } catch (err) {
+            console.error('Error sharing property:', err);
+        } finally {
+            setIsSharing(false);
+        }
+    }
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-AU', {
@@ -251,14 +327,31 @@ export default function PropertyPage() {
                                 BACK TO MAIN SITE
                             </button>
 
-                            {/* DEBUG BUTTON - Show Error Modal */}
-                            {/* <button
-                                onClick={() => setIsPriceEstimateErrorModalOpen(true)}
-                                className="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md font-medium transition-colors"
-                                title="Debug: Open error modal"
-                            >
-                                🐛 Test Error Modal
-                            </button> */}
+                            {/* Share Button - Only show if unlocked */}
+                            {isUnlocked && (
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={handleShare}
+                                        disabled={isSharing}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${isCopied
+                                            ? 'bg-green-100 text-green-700 bg-[#48D98E]'
+                                            : 'bg-[#163331] text-white hover:bg-[#0d1f1e]'
+                                            }`}
+                                    >
+                                        {isCopied ? (
+                                            <>
+                                                <Check className="w-4 h-4" />
+                                                Copied!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Share2 className="w-4 h-4" />
+                                                {isSharing ? 'Generating...' : 'Share Property'}
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </ScrollReveal>
 

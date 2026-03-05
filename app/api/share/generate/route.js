@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken';
 async function POST(request) {
   try {
     const body = await request.json();
-    const { propertyId, type } = body;
+    const { propertyId, type, recipientEmail } = body;
 
     if (!propertyId) {
       return NextResponse.json({ success: false, message: 'Property ID is required' }, { status: 400 });
@@ -17,9 +17,10 @@ async function POST(request) {
 
     // Generate JWT token with 24-hour expiration
     const token = jwt.sign(
-      { 
-        propertyId, 
-        type: type || 'time-limited',
+      {
+        propertyId,
+        type: recipientEmail ? 'personal' : (type || 'time-limited'),
+        recipientEmail: recipientEmail || null,
         exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
       },
       process.env.JWT_SECRET || 'your-secret-key' // Use environment variable for production

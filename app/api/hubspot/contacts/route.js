@@ -95,6 +95,19 @@ export async function POST(request) {
     const searchResult = await searchResponse.json();
     console.log('🔍 Search result:', searchResult);
 
+    // IMPORTANT: Check if the search API call itself was successful
+    if (!searchResponse.ok) {
+        console.error('❌ HubSpot search API failed:', searchResult);
+        return NextResponse.json(
+          {
+            success: false,
+            message: searchResult.message || 'Failed to search for contact',
+            details: searchResult
+          },
+          { status: searchResponse.status }
+        );
+    }
+
     let contactId;
 
     // Step 2: Create or update contact

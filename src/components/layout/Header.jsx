@@ -20,6 +20,19 @@ function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Handle Kindred Group Special Link (Global Bypass)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('kindred_special_link') === 'true') {
+        sessionStorage.setItem('kindred_global_bypass', 'true');
+        // Clean up URL to keep it pretty
+        const newUrl = window.location.pathname + window.location.search.replace(/[?&]kindred_special_link=true/, '').replace(/^&/, '?');
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+  }, [])
+
   // Prevent body scroll when menu is open
   useEffect(() => {
     if (isMenuOpen) {

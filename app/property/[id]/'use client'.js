@@ -27,7 +27,10 @@ import {
     Ruler,
     ArrowRight,
     TrendingUp,
-    AlertCircle
+    AlertCircle,
+    Share2,
+    Copy,
+    Check
 } from 'lucide-react'
 import {
     LineChart,
@@ -152,41 +155,81 @@ export default function PropertyPage() {
 
     // Check if property is unlocked
     useEffect(() => {
-        const kindredAccess = sessionStorage.getItem('kindred_access') === 'true'
-        const unlockedByProperty = localStorage.getItem(`property_${params.id}_unlocked`) === 'true'
-        const shareToken = searchParams.get('share_token')
+        const checkUnlockStatus = async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const shareToken = urlParams.get('share_token');
+            const kindredToken = urlParams.get('k'); // Kindred group access token
 
-        if (unlockedByProperty || kindredAccess) {
-            setIsUnlocked(true)
-            return
-        }
+            // 1. Check if previously unlocked for this specific property (localStorage)
+            const unlockedByProperty = localStorage.getItem(`property_${params.id}_unlocked`) === 'true';
+            
+            // 2. Check if user has Kindred group bypass (sessionStorage flag set by middleware)
+            const kindredAccess = sessionStorage.getItem('kindred_access') === 'true';
 
-        if (shareToken) {
-            const verifyToken = async () => {
-                try {
-                    const response = await fetch('/api/share/verify', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ token: shareToken }),
-                    })
-
-                    const data = await response.json()
-
-                    if (data.success && data.propertyId === params.id) {
-                        setIsUnlocked(true)
-                    } else {
-                        console.warn('Invalid or expired share token.')
-                        // Redirect to remove the invalid token from the URL
-                        router.replace(`/property/${params.id}`, undefined, { shallow: true })
-                    }
-                } catch (error) {
-                    console.error('Error verifying share token:', error)
-                }
+            if (unlockedByProperty || kindredAccess) {
+                setIsUnlocked(true);
+                return;
             }
 
-            verifyToken()
-        }
-    }, [params.id, searchParams, router])
+            // 3. Check for Kindred access token in URL (k=kindred2026)
+            if (kindredToken === 'kindred2026') {
+                // Mark as session access and unlock
+                sessionStorage.setItem('kindred_access', 'true');
+                setIsUnlocked(true);
+                // Clean URL by removing the token
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, '', cleanUrl);
+                return;
+            }
+
+            // 4. Check session bypass via API (for users who used special link)
+            try {
+                const sessionResponse = await fetch('/api/session');
+                const sessionData = await sessionResponse.json();
+                if (sessionData.success && sessionData.bypass) {
+                    sessionStorage.setItem('kindred_access', 'true');
+                    setIsUnlocked(true);
+                    return;
+                }
+            } catch (error) {
+                console.error('Error checking session:', error);
+            }
+
+            // 5. Verify share token for single property access
+            if (shareToken) {
+                const verifyToken = async () => {
+                    try {
+                        const response = await fetch('/api/share/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ token: shareToken }),
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success && data.propertyId === params.id) {
+                            // Valid share token for this property - unlock only this property
+                            localStorage.setItem(`property_${params.id}_unlocked`, 'true');
+                            setIsUnlocked(true);
+                        } else if (data.expired) {
+                            console.warn('Share token has expired.');
+                            // Remove expired token from URL
+                            router.replace(`/property/${params.id}`, undefined, { shallow: true });
+                        } else {
+                            console.warn('Invalid share token.');
+                            router.replace(`/property/${params.id}`, undefined, { shallow: true });
+                        }
+                    } catch (error) {
+                        console.error('Error verifying share token:', error);
+                    }
+                };
+
+                verifyToken();
+            }
+        };
+
+        checkUnlockStatus();
+    }, [params.id, router]);
 
     // Auto-open modal if not unlocked
     useEffect(() => {
@@ -231,6 +274,65 @@ export default function PropertyPage() {
     const [userEmail, setUserEmail] = useState('')
     const [formError, setFormError] = useState('')
     const [isPriceEstimateErrorModalOpen, setIsPriceEstimateErrorModalOpen] = useState(false)
+    const [showShareButton, setShowShareButton] = useState(false)
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+    const [generatedShareUrl, setGeneratedShareUrl] = useState('')
+    const [isGeneratingShareLink, setIsGeneratingShareLink] = useState(false)
+    const [shareLinkCopied, setShareLinkCopied] = useState(false)
+
+    // Show share button after property is unlocked (either by form submit or by share token)
+    useEffect(() => {
+        if (isUnlocked) {
+            // Show share button if user has unlocked this property (by form or by share token)
+            // Both form submission and share token access set the localStorage unlock flag
+            const unlockedProperty = localStorage.getItem(`property_${params.id}_unlocked`) === 'true';
+            if (unlockedProperty) {
+                setShowShareButton(true);
+            }
+        }
+    }, [isUnlocked, params.id]);
+
+    // Function to generate share link
+    const handleGenerateShareLink = async () => {
+        if (!property) return;
+        
+        setIsGeneratingShareLink(true);
+        try {
+            const response = await fetch('/api/share/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    propertyId: params.id,
+                    type: 'time-limited'
+                }),
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                setGeneratedShareUrl(data.shareUrl);
+            } else {
+                console.error('Failed to generate share link:', data.message);
+            }
+        } catch (error) {
+            console.error('Error generating share link:', error);
+        } finally {
+            setIsGeneratingShareLink(false);
+        }
+    };
+
+    // Function to copy share link
+    const handleCopyShareLink = async () => {
+        if (!generatedShareUrl) return;
+        
+        try {
+            await navigator.clipboard.writeText(generatedShareUrl);
+            setShareLinkCopied(true);
+            setTimeout(() => setShareLinkCopied(false), 2000);
+        } catch (error) {
+            console.error('Failed to copy:', error);
+        }
+    };
 
     // Handle form submission
     const handleFormSubmit = async (formData) => {
@@ -241,6 +343,17 @@ export default function PropertyPage() {
 
             if (result.success) {
                 if (typeof window !== 'undefined') {
+                    localStorage.setItem(`property_${params.id}_unlocked`, 'true')
+            if (result.success) {
+                    // Save global user profile for auto-fill
+                if (typeof window !== 'undefined') {
+                }
+                setUserEmail(formData.email)
+                setShareUrl(result.shareUrl || '') // Set the share URL
+                setIsUnlocked(true)
+                setShowShareButton(true) // Show share button immediately after form submission
+                setIsModalOpen(false)     // Close the form modal
+                setIsSuccessModalOpen(true) // Open the success modal
                     localStorage.setItem(`property_${params.id}_unlocked`, 'true')
                     localStorage.setItem(`property_${params.id}_email`, formData.email)
                     // Save global user profile for auto-fill
@@ -337,6 +450,22 @@ export default function PropertyPage() {
                                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                                 BACK TO MAIN SITE
                             </button>
+
+                            {/* Share Button - Only show after user unlocks property */}
+                            {showShareButton && (
+                                <button
+                                    onClick={() => {
+                                        if (!generatedShareUrl) {
+                                            handleGenerateShareLink();
+                                        }
+                                        setIsShareModalOpen(true);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-[#163331] text-white text-sm font-medium rounded-lg hover:bg-[#0d1f1e] transition-colors"
+                                >
+                                    <Share2 className="w-4 h-4" />
+                                    Share Property
+                                </button>
+                            )}
 
                             {/* DEBUG BUTTON - Show Error Modal */}
                             {/* <button
@@ -1128,11 +1257,103 @@ export default function PropertyPage() {
                 />
 
                 <SuccessModal
-                isOpen={isSuccessModalOpen}
-                onClose={() => setIsSuccessModalOpen(false)}
-                email={userEmail}
-                shareUrl={shareUrl}
-            />
+                    isOpen={isSuccessModalOpen}
+                    onClose={() => setIsSuccessModalOpen(false)}
+                    email={userEmail}
+                    shareUrl={generatedShareUrl}
+                />
+
+                {/* Share Modal - For generating and copying share links */}
+                {isShareModalOpen && createPortal(
+                    <div
+                        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+                        style={{ top: 0, left: 0, right: 0, bottom: 0, height: '100vh', width: '100vw' }}
+                    >
+                        {/* Backdrop */}
+                        <div
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                            onClick={() => setIsShareModalOpen(false)}
+                        />
+
+                        {/* Modal */}
+                        <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6 md:p-8 z-10">
+                            {/* Close button */}
+                            <button
+                                onClick={() => setIsShareModalOpen(false)}
+                                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <X className="w-5 h-5" strokeWidth={2} />
+                            </button>
+
+                            {/* Content */}
+                            <div className="text-center">
+                                <div className="mb-4 flex justify-center">
+                                    <div className="w-12 h-12 bg-[#163331] rounded-full flex items-center justify-center">
+                                        <Share2 className="w-6 h-6 text-white" />
+                                    </div>
+                                </div>
+
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                    Share this Property
+                                </h3>
+
+                                <p className="text-gray-600 mb-6 text-sm">
+                                    Share this property with others. The link will be valid for 24 hours.
+                                </p>
+
+                                {/* Generated Link or Generate Button */}
+                                {generatedShareUrl ? (
+                                    <div className="my-6">
+                                        <label className="text-sm font-medium text-gray-700 mb-2 block text-left">Shareable Link:</label>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="text"
+                                                readOnly
+                                                value={generatedShareUrl}
+                                                className="w-full bg-gray-100 border border-gray-200 text-gray-700 text-sm rounded-lg p-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                            />
+                                            <button
+                                                onClick={handleCopyShareLink}
+                                                className={`p-2 rounded-lg transition-colors ${shareLinkCopied ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
+                                            >
+                                                {shareLinkCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                                            </button>
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-2 text-left">
+                                            Link expires in 24 hours
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={handleGenerateShareLink}
+                                        disabled={isGeneratingShareLink}
+                                        className="w-full bg-[#163331] text-white font-medium py-3 px-4 rounded-lg hover:bg-opacity-90 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        {isGeneratingShareLink ? (
+                                            <>
+                                                <span className="animate-spin">⏳</span>
+                                                Generating Link...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Share2 className="w-4 h-4" />
+                                                Generate Share Link
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={() => setIsShareModalOpen(false)}
+                                    className="w-full bg-gray-100 text-gray-700 font-medium py-3 px-4 rounded-lg hover:bg-gray-200 transition-all mt-4"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>,
+                    document.body
+                )}
 
                 {/* Full Screen Image Gallery Modal - Swipeable */}
                 {isImageGalleryOpen && propertyImages.length > 0 && createPortal(
