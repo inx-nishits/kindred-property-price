@@ -1,5 +1,3 @@
-'use client'
-
 import { submitLeadFormAndSendReport } from './emailService'
 import {
   isValidPropertyId,
@@ -1257,10 +1255,10 @@ export const getPropertyByAddressQuery = async (address) => {
  * @param {Object} property
  * @returns {Promise<Object>} Success response
  */
-export const submitLeadForm = async (formData, property = null) => {
+export const submitLeadForm = async (formData, property = null, shareUrl) => {
   // If property is provided, send the report
   if (property) {
-    return await submitLeadFormAndSendReport(formData, property)
+    return await submitLeadFormAndSendReport(formData, property, shareUrl)
   }
 
   return {

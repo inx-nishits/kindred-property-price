@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { createPortal } from 'react-dom'
 import { getPropertyDetails, submitLeadForm, fetchSchools, fetchSuburbPerformance } from '@/services/propertyService'
 import LeadCaptureModal from '@/components/property/LeadCaptureModal'
@@ -43,6 +43,7 @@ import {
 export default function PropertyPage() {
     const params = useParams()
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [property, setProperty] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
     const [isPriceEstimateLoading, setIsPriceEstimateLoading] = useState(true)
@@ -59,6 +60,7 @@ export default function PropertyPage() {
     const [isFetchingSchools, setIsFetchingSchools] = useState(false)
     const [suburbPerformance, setSuburbPerformance] = useState(null)
     const [isFetchingSuburbPerformance, setIsFetchingSuburbPerformance] = useState(false)
+    const [shareUrl, setShareUrl] = useState('')
 
     const propertyImages = property?.images || []
     console.log(property);
@@ -150,11 +152,41 @@ export default function PropertyPage() {
 
     // Check if property is unlocked
     useEffect(() => {
-        if (typeof window !== 'undefined' && params.id) {
-            const unlocked = localStorage.getItem(`property_${params.id}_unlocked`) === 'true'
-            setIsUnlocked(unlocked)
+        const kindredAccess = sessionStorage.getItem('kindred_access') === 'true'
+        const unlockedByProperty = localStorage.getItem(`property_${params.id}_unlocked`) === 'true'
+        const shareToken = searchParams.get('share_token')
+
+        if (unlockedByProperty || kindredAccess) {
+            setIsUnlocked(true)
+            return
         }
-    }, [params.id])
+
+        if (shareToken) {
+            const verifyToken = async () => {
+                try {
+                    const response = await fetch('/api/share/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: shareToken }),
+                    })
+
+                    const data = await response.json()
+
+                    if (data.success && data.propertyId === params.id) {
+                        setIsUnlocked(true)
+                    } else {
+                        console.warn('Invalid or expired share token.')
+                        // Redirect to remove the invalid token from the URL
+                        router.replace(`/property/${params.id}`, undefined, { shallow: true })
+                    }
+                } catch (error) {
+                    console.error('Error verifying share token:', error)
+                }
+            }
+
+            verifyToken()
+        }
+    }, [params.id, searchParams, router])
 
     // Auto-open modal if not unlocked
     useEffect(() => {
@@ -215,6 +247,7 @@ export default function PropertyPage() {
                     localStorage.setItem('kindred_user_details', JSON.stringify(formData))
                 }
                 setUserEmail(formData.email)
+                setShareUrl(result.shareUrl || '') // Set the share URL
                 setIsUnlocked(true)
                 setIsModalOpen(false)     // Close the form modal
                 setIsSuccessModalOpen(true) // Open the success modal
@@ -1095,10 +1128,11 @@ export default function PropertyPage() {
                 />
 
                 <SuccessModal
-                    isOpen={isSuccessModalOpen}
-                    onClose={() => setIsSuccessModalOpen(false)}
-                    email={userEmail}
-                />
+                isOpen={isSuccessModalOpen}
+                onClose={() => setIsSuccessModalOpen(false)}
+                email={userEmail}
+                shareUrl={shareUrl}
+            />
 
                 {/* Full Screen Image Gallery Modal - Swipeable */}
                 {isImageGalleryOpen && propertyImages.length > 0 && createPortal(

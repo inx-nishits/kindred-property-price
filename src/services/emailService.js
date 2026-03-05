@@ -117,7 +117,7 @@ const createHubSpotProperty = async (contactId, property, reportId) => {
  * @param {Object} formData - The user's form data
  * @returns {string} HTML string
  */
-const generatePropertyEmailHtml = (property, formData) => {
+const generatePropertyEmailHtml = (property, formData, shareUrl) => {
     const { address, beds, baths, cars, landSize, priceEstimate, rentalEstimate, propertyType, id, postcode, suburb, state, coordinates, buildingSize, shortAddress } = property;
     const { firstName } = formData;
 
@@ -231,6 +231,19 @@ const generatePropertyEmailHtml = (property, formData) => {
                                     <p style="margin: 0 0 30px 0; font-size: 16px; color: ${colors.textMuted}; line-height: 1.6;">
                                         Here is the property report you requested. This comprehensive overview includes valuation estimates, rental potential, and recent market activity for your property.
                                     </p>
+
+                                    <!-- CTA Button: View Online Report -->
+                                    ${shareUrl ? `
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
+                                        <tr>
+                                            <td align="center">
+                                                <a href="${shareUrl}?unlock=true" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: ${colors.primary}; border-radius: 8px; text-decoration: none; min-width: 200px;">
+                                                    View Full Report Online
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    ` : ''}
 
                                     <!-- Property Title Block -->
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
@@ -664,6 +677,8 @@ const generateLeadNotificationEmailHtml = (formData, property, reportId, utmData
  * Submit lead form and generate report
  * @param {Object} formData - { firstName, lastName, email, mobile }
  * @param {Object} property - Full property object
+ * @param {Object} utmData
+ * @param {string} shareUrl
  * @returns {Promise<Object>} Success response
  */
 export const submitLeadFormAndSendReport = async (formData, property, utmData = {}) => {
@@ -718,12 +733,33 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
         hubspotMessage = 'Contact and Deal created successfully';
 
         // ============================================================
+        // GENERATE SHARE URL
+        // ============================================================
+        let shareUrl = '';
+        try {
+            const shareResponse = await fetch('/api/share/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ propertyId: property.id }),
+            });
+            if (shareResponse.ok) {
+                const shareData = await shareResponse.json();
+                shareUrl = shareData.shareUrl;
+                console.log('✅ Share URL generated successfully:', shareUrl);
+            } else {
+                console.error('❌ Failed to generate share URL');
+            }
+        } catch (error) {
+            console.error('Error generating share URL:', error);
+        }
+
+        // ============================================================
         // EMAIL SENDING
         // ============================================================
         
         // 2. Generate and send report to CUSTOMER
         console.log('📋 Step 2: Sending report to customer...');
-        const customerHtml = generatePropertyEmailHtml(property, formData);
+        const customerHtml = generatePropertyEmailHtml(property, formData, shareUrl);
         const customerSubject = `Your Property Report: ${property.address}`;
 
         const customerResponse = await fetch('/api/send-email', {
@@ -782,6 +818,155 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
             propertyId: propertyId,
             hubspotSuccess: hubspotSuccess,
             hubspotMessage: hubspotMessage,
+        };
+
+    } catch (error) {
+        console.error('Error in property report service:', error);
+        return {
+            success: false,
+            message: 'Report generation failed',
+            reportId: `RPT-${Date.now()}`,
+            hubspotSuccess: false,
+            hubspotMessage: error.message,
+        };
+    }
+    try {
+        const reportId = `RPT-${Date.now()}`;
+        let hubspotSuccess = false;
+        let hubspotMessage = '';
+        let contactId = null;
+        let propertyId = null;
+
+        // ============================================================
+        // HUBSPOT CRM INTEGRATION
+        // ============================================================
+        
+        // Step 1: Upsert Contact (create or update)
+        console.log('📋 Step 1: Upserting contact in HubSpot...');
+        const hubspotContactResult = await createHubSpotContact(formData, property);
+        
+        if (!hubspotContactResult.success) {
+            console.error('❌ Failed to create/update contact in HubSpot');
+            return {
+                success: false,
+                message: hubspotContactResult.message || 'Failed to create contact in HubSpot',
+                reportId: reportId,
+            };
+        }
+        
+        contactId = hubspotContactResult.contactId;
+        console.log('✅ Contact upserted successfully. Contact ID:', contactId);
+
+        // Step 2: Create a NEW Property Custom Object (every time)
+        console.log('📋 Step 2: Creating new property in HubSpot...');
+        const hubspotPropertyResult = await createHubSpotProperty(contactId, property, reportId);
+        
+        if (!hubspotPropertyResult.success) {
+            console.error('❌ Failed to create property in HubSpot');
+            // Still consider it a success if contact was created
+            return {
+                success: true,
+                message: 'Contact created but failed to create property',
+                reportId: reportId,
+                contactId: contactId,
+                hubspotSuccess: true,
+            };
+        }
+        
+        propertyId = hubspotPropertyResult.dealId;
+        console.log('✅ Deal created successfully. Deal ID:', propertyId);
+        
+        // All steps completed successfully
+        hubspotSuccess = true;
+        hubspotMessage = 'Contact and Deal created successfully';
+
+        // ============================================================
+        // GENERATE SHARE URL
+        // ============================================================
+        let shareUrl = '';
+        try {
+            const shareResponse = await fetch('/api/share/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ propertyId: property.id }),
+            });
+            if (shareResponse.ok) {
+                const shareData = await shareResponse.json();
+                shareUrl = shareData.shareUrl;
+                console.log('✅ Share URL generated successfully:', shareUrl);
+            } else {
+                console.error('❌ Failed to generate share URL');
+            }
+        } catch (error) {
+            console.error('Error generating share URL:', error);
+        }
+
+        // ============================================================
+        // EMAIL SENDING
+        // ============================================================
+        
+        // 2. Generate and send report to CUSTOMER
+        console.log('📋 Step 2: Sending report to customer...');
+        const customerHtml = generatePropertyEmailHtml(property, formData, shareUrl);
+        const customerSubject = `Your Property Report: ${property.address}`;
+
+        const customerResponse = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: formData.email,
+                subject: customerSubject,
+                htmlContent: customerHtml,
+            }),
+        });
+
+        // 3. Generate and send lead notification to KINDRED TEAM
+        console.log('📋 Step 3: Sending lead notification to Kindred team...');
+        const teamHtml = generateLeadNotificationEmailHtml(formData, property, reportId, utmData);
+        const teamSubject = `🔥 NEW LEAD: ${property.address} - ${formData.firstName} ${formData.lastName}`;
+        const teamEmail = CONTACT_CONFIG.email || 'info@kindred.com.au';
+
+        console.log(`📤 Sending internal notification to: ${teamEmail}`);
+
+        // We fire this and don't strictly wait for it to block the UI, but we log the result
+        const teamResponse = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: teamEmail,
+                subject: teamSubject,
+                htmlContent: teamHtml,
+            }),
+        });
+
+        if (!customerResponse.ok) {
+            const result = await customerResponse.json();
+            return {
+                success: false,
+                message: result.message || 'Email delivery failed',
+                reportId: reportId,
+                hubspotSuccess: hubspotSuccess,
+                hubspotMessage: hubspotMessage,
+            };
+        }
+
+        // ============================================================
+        // END EMAIL SENDING
+        // ============================================================
+
+        console.log('✅ Lead processed successfully - HubSpot integration complete');
+        console.log('   Contact ID:', contactId);
+        console.log('   Deal ID:', propertyId);
+        
+        return {
+            success: true,
+            message: hubspotMessage,
+            reportId: reportId,
+            contactId: contactId,
+            propertyId: propertyId,
+            hubspotSuccess: hubspotSuccess,
+            hubspotMessage: hubspotMessage,
+            shareUrl: shareUrl, // Return the generated URL
         };
 
     } catch (error) {

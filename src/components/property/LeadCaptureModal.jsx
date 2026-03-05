@@ -130,6 +130,19 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, formError, 
       return
     }
 
+    // Save user details to localStorage
+    try {
+      const userDetails = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        mobile: formData.mobile,
+      };
+      localStorage.setItem('kindred_user_details', JSON.stringify(userDetails));
+    } catch (e) {
+      console.error('Failed to save user details', e);
+    }
+
     onSubmit(formData)
   }
 
@@ -355,4 +368,3 @@ function LeadCaptureModal({ isOpen, onClose, onSubmit, isSubmitting, formError, 
 }
 
 export default LeadCaptureModal
-

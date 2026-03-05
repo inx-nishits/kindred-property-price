@@ -1,11 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CheckCircle, X } from 'lucide-react';
+import { CheckCircle, X, Copy, Check } from 'lucide-react';
 
-export default function SuccessModal({ isOpen, onClose, email }) {
+export default function SuccessModal({ isOpen, onClose, email, shareUrl }) {
+    const [isCopied, setIsCopied] = useState(false);
+
     if (!isOpen) return null;
 
     if (typeof document === 'undefined') return null;
+
+    const handleCopy = async () => {
+        if (!shareUrl) return;
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+        } catch (error) {
+            console.error('Failed to copy:', error);
+            alert('Failed to copy link. Please try again.');
+        }
+    };
 
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -35,6 +49,26 @@ export default function SuccessModal({ isOpen, onClose, email }) {
                         We've unlocked the property details for you. <br />
                         A copy of the full report has also been sent to <span className="font-semibold text-gray-900">{email}</span>.
                     </p>
+
+                    {shareUrl && (
+                        <div className="my-6">
+                            <label className="text-sm font-medium text-gray-700 mb-2 block text-left">Share this report:</label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={shareUrl}
+                                    className="w-full bg-gray-100 border border-gray-200 text-gray-700 text-sm rounded-lg p-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                />
+                                <button
+                                    onClick={handleCopy}
+                                    className={`p-2 rounded-lg transition-colors ${isCopied ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
+                                >
+                                    {isCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     <button
                         onClick={onClose}

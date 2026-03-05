@@ -26,7 +26,7 @@ function getHubSpotApiBaseUrl() {
   }
   
   return 'https://api.hubapi.com';
-}
+}               
 
 /**
  * Safely converts a value to a numeric property for HubSpot.
@@ -237,11 +237,10 @@ export async function POST(request) {
       console.log('   Error details:', JSON.stringify(result, null, 2));
       
       // Check for specific errors
-      if (result.category === 'VALIDATION_ERRORS' || result.errors) {
+      if (result.category === 'VALIDATION_ERROR') {
         console.log('\n⚠️  Deal Validation Issues:');
-        const errorMessages = result.errors || result.details?.innerStatus?.[0]?.errors;
-        if (errorMessages) {
-          errorMessages.forEach(err => {
+        if (result.errors) {
+          result.errors.forEach(err => {
             console.log(`   ✗ ${err.message}`);
             
             // Check if it's an unknown property error
@@ -276,4 +275,3 @@ export async function POST(request) {
     );
   }
 }
-

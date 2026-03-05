@@ -71,89 +71,123 @@ export async function POST(request) {
 
     console.log('📤 Upserting contact to HubSpot:', contactProperties);
 
-    // Use createOrUpdate (UPSERT) by email
-    const hubspotApiUrl = `${hubspotApiBase}/crm/v3/objects/contacts`;
-    
-    const response = await fetch(hubspotApiUrl, {
+    // Step 1: Search for existing contact by email
+    console.log('🔍 Searching for existing contact with email:', formData.email);
+    const searchUrl = `${hubspotApiBase}/crm/v3/objects/contacts/search`;
+    const searchResponse = await fetch(searchUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${hubspotAccessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        properties: contactProperties,
+        filterGroups: [{
+          filters: [{
+            propertyName: 'email',
+            operator: 'EQ',
+            value: formData.email
+          }]
+        }],
+        properties: ['id']
       }),
     });
 
-    // Get response
-    const responseText = await response.text();
-    let result;
+    const searchResult = await searchResponse.json();
+    console.log('🔍 Search result:', searchResult);
 
-    try {
-      result = JSON.parse(responseText);
-    } catch {
-      result = { raw: responseText };
+    let contactId;
+
+    // Step 2: Create or update contact
+    if (searchResult.total === 0) {
+      // Contact doesn't exist, create new
+      console.log('➕ Creating new contact in HubSpot');
+      const createUrl = `${hubspotApiBase}/crm/v3/objects/contacts`;
+      const createResponse = await fetch(createUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${hubspotAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          properties: contactProperties,
+        }),
+      });
+
+      const createResult = await createResponse.json();
+      console.log('🔥 Create response:', {
+        status: createResponse.status,
+        ok: createResponse.ok,
+        result: createResult,
+      });
+
+      if (createResponse.ok) {
+        console.log('✅ HubSpot contact created successfully');
+        console.log('   Contact ID:', createResult.id);
+        contactId = createResult.id;
+      } else {
+        console.error('❌ HubSpot contact creation failed:', createResult);
+        return NextResponse.json(
+          {
+            success: false,
+            message: createResult.message || 'Failed to create contact',
+            details: createResult
+          },
+          { status: createResponse.status }
+        );
+      }
+    } else {
+      // Contact exists, update
+      contactId = searchResult.results[0].id;
+      console.log(`✏️ Updating existing contact (ID: ${contactId})`);
+      
+      const updateUrl = `${hubspotApiBase}/crm/v3/objects/contacts/${contactId}`;
+      const updateResponse = await fetch(updateUrl, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${hubspotAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          properties: contactProperties,
+        }),
+      });
+
+      const updateResult = await updateResponse.json();
+      console.log('🔥 Update response:', {
+        status: updateResponse.status,
+        ok: updateResponse.ok,
+        result: updateResult,
+      });
+
+      if (updateResponse.ok) {
+        console.log('✅ HubSpot contact updated successfully');
+      } else {
+        console.error('❌ HubSpot contact update failed:', updateResult);
+        return NextResponse.json(
+          {
+            success: false,
+            message: updateResult.message || 'Failed to update contact',
+            details: updateResult
+          },
+          { status: updateResponse.status }
+        );
+      }
     }
-    
-    console.log('🔥 HubSpot API Response:', {
-      status: response.status,
-      ok: response.ok,
-      result: result,
+
+    // Return success response
+    return NextResponse.json({
+      success: true,
+      message: 'Contact processed in HubSpot CRM',
+      contactId: contactId,
+      timestamp: new Date().toISOString(),
     });
 
-    if (response.ok) {
-      console.log('✅ HubSpot contact created successfully');
-      console.log('   Contact ID:', result.id);
-
-      return NextResponse.json({
-        success: true,
-        message: 'Contact created in HubSpot CRM',
-        contactId: result.id,
-        timestamp: new Date().toISOString(),
-      });
-    } else if (response.status === 409) {
-        // Contact already exists, extract ID and update
-        const existingContactId = result.errors[0].context.existingId;
-        console.log(`Contact already exists (ID: ${existingContactId}), attempting update...`);
-
-        const updateUrl = `${hubspotApiBase}/crm/v3/objects/contacts/${existingContactId}`;
-        const updateResponse = await fetch(updateUrl, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${hubspotAccessToken}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ properties: contactProperties }),
-        });
-
-        const updateResult = await updateResponse.json();
-
-        if (updateResponse.ok) {
-            console.log('✅ HubSpot contact updated successfully');
-            return NextResponse.json({
-                success: true,
-                message: 'Contact updated in HubSpot CRM',
-                contactId: updateResult.id,
-            });
-        } else {
-            console.error('❌ HubSpot contact update failed:', updateResult);
-            return NextResponse.json({ success: false, message: 'Failed to update contact' }, { status: 500 });
-        }
-    } else {
-      // Error
-      console.error('❌ HubSpot CRM API error:', response.status, result);
-      return NextResponse.json(
-        {
-          success: false,
-          message: result.message || `HubSpot API error: ${response.status}`,
-          details: result
-        },
-        { status: response.status }
-      );
-    }
-
   } catch (error) {
-    console.error('❌ Error in HubSpot contacts API:', error);
+    console.error('❌ Error in HubSpot contacts API:', {
+      message: error.message,
+      stack: error.stack,
+      body: request.body,
+    });
     return NextResponse.json(
       {
         success: false,
