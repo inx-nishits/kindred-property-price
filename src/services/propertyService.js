@@ -12,6 +12,21 @@ import {
 const DOMAIN_API_BASE_URL = process.env.NEXT_PUBLIC_DOMAIN_API_BASE_URL || 'https://api.domain.com.au/v1';
 const DOMAIN_API_V2_BASE_URL = process.env.NEXT_PUBLIC_DOMAIN_API_V2_BASE_URL || 'https://api.domain.com.au/v2';
 
+// Simple In-Memory Cache for Domain API requests
+// Key: cacheKey (string), Value: successful response data
+const apiCache = new Map();
+const pendingRequests = new Map();
+
+/**
+ * Helper to add environment headers
+ */
+const getHeaders = (apiKey) => ({
+  accept: 'application/json',
+  'X-Api-Key': apiKey,
+  'X-Api-Call-Source': 'kindred-app',
+  'X-Kindred-Env': process.env.NODE_ENV || 'development'
+});
+
 /**
  * Fetch price estimate for a property
  */
@@ -23,53 +38,40 @@ const DOMAIN_API_V2_BASE_URL = process.env.NEXT_PUBLIC_DOMAIN_API_V2_BASE_URL ||
  */
 export const fetchPriceEstimate = async (id) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
+  const cacheKey = `priceEstimate:${id}`
 
-  // Validate property ID to prevent 404 errors
-  if (!id) {
+  // 1. Check Cache
+  if (apiCache.has(cacheKey)) return apiCache.get(cacheKey)
+
+  // 2. Check Pending (Deduplication)
+  if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey)
+
+  if (!id || !isValidPropertyId(id) || isMockPropertyId(id) || !apiKey) {
     return null;
   }
 
-  if (!isValidPropertyId(id)) {
-    return null;
-  }
-
-  if (isMockPropertyId(id)) {
-    return null;
-  }
-
-  if (!apiKey) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(`${DOMAIN_API_BASE_URL}/properties/${id}/priceEstimate`, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        'X-Api-Key': apiKey,
-        'X-Api-Call-Source': 'live-api-browser',
-      },
-    })
-
-    if (!response.ok) return null
-
-    const responseText = await response.text();
-    if (!responseText || responseText.trim() === '') {
-      console.warn('Empty response from price estimate API');
-      return null;
-    }
-
+  const fetchPromise = (async () => {
     try {
-      return JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('Failed to parse JSON from price estimate API:', parseError);
-      console.error('Response text:', responseText);
-      return null;
+      const response = await fetch(`${DOMAIN_API_BASE_URL}/properties/${id}/priceEstimate`, {
+        method: 'GET',
+        headers: getHeaders(apiKey),
+      })
+
+      if (!response.ok) return null
+
+      const data = await response.json()
+      apiCache.set(cacheKey, data)
+      return data
+    } catch (error) {
+      console.error('Error fetching price estimate:', error)
+      return null
+    } finally {
+      pendingRequests.delete(cacheKey)
     }
-  } catch (error) {
-    console.error('Error fetching price estimate:', error)
-    return null
-  }
+  })()
+
+  pendingRequests.set(cacheKey, fetchPromise)
+  return fetchPromise
 }
 
 /**
@@ -77,58 +79,35 @@ export const fetchPriceEstimate = async (id) => {
  */
 export const fetchSchools = async (lat, lng) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
+  const cacheKey = `schools:${lat}:${lng}`
 
-  // Validate coordinates
-  if (!apiKey) {
-    return [];
-  }
+  if (apiCache.has(cacheKey)) return apiCache.get(cacheKey)
+  if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey)
 
-  if (!lat || !lng) {
-    return [];
-  }
+  if (!apiKey || !lat || !lng) return []
 
-  // Validate coordinate ranges
-  const latNum = Number(lat);
-  const lngNum = Number(lng);
-
-  if (isNaN(latNum) || latNum < -90 || latNum > 90) {
-    return [];
-  }
-
-  if (isNaN(lngNum) || lngNum < -180 || lngNum > 180) {
-    return [];
-  }
-
-  try {
-    const response = await fetch(`${DOMAIN_API_V2_BASE_URL}/schools/${lat}/${lng}`, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        'X-Api-Key': apiKey,
-        'X-Api-Call-Source': 'live-api-browser',
-      },
-    })
-
-    if (!response.ok) return []
-
-    const responseText = await response.text()
-    if (!responseText || responseText.trim() === '') {
-      console.warn('Empty response from schools API')
-      return []
-    }
-
+  const fetchPromise = (async () => {
     try {
-      const data = JSON.parse(responseText)
-      return data || []
-    } catch (parseError) {
-      console.error('Failed to parse JSON from schools API:', parseError)
-      console.error('Response text:', responseText)
+      const response = await fetch(`${DOMAIN_API_V2_BASE_URL}/schools/${lat}/${lng}`, {
+        method: 'GET',
+        headers: getHeaders(apiKey),
+      })
+
+      if (!response.ok) return []
+
+      const data = await response.json()
+      apiCache.set(cacheKey, data)
+      return data
+    } catch (error) {
+      console.error('Error fetching schools:', error)
       return []
+    } finally {
+      pendingRequests.delete(cacheKey)
     }
-  } catch (error) {
-    console.error('Error fetching schools:', error)
-    return []
-  }
+  })()
+
+  pendingRequests.set(cacheKey, fetchPromise)
+  return fetchPromise
 }
 
 /**
@@ -141,131 +120,110 @@ export const fetchComparables = async (state, suburb, postcode, propertyType, be
   if (!apiKey) return [];
   if (!suburb && !coordinates) return [];
 
-  try {
-    // Valid property types for Domain API
-    const VALID_PROPERTY_TYPES = [
-      'House', 'ApartmentUnitFlat', 'Townhouse', 'Villa', 'Semi-detached',
-      'Terrace', 'Duplex', 'Acreage', 'AcreageSemi-rural', 'Retirement',
-      'BlockOfUnits', 'Other'
-    ];
+  // Valid property types for Domain API
+  const VALID_PROPERTY_TYPES = [
+    'House', 'ApartmentUnitFlat', 'Townhouse', 'Villa', 'Semi-detached',
+    'Terrace', 'Duplex', 'Acreage', 'AcreageSemi-rural', 'Retirement',
+    'BlockOfUnits', 'Other'
+  ];
 
-    const validatePropertyType = (type) => {
-      if (!type) return null
-      const normalized = type.trim()
-      if (VALID_PROPERTY_TYPES.includes(normalized)) return normalized
+  const validatePropertyType = (type) => {
+    if (!type) return null
+    const normalized = type.trim()
+    if (VALID_PROPERTY_TYPES.includes(normalized)) return normalized
 
-      const mapping = {
-        'house': 'House', 'apartment': 'ApartmentUnitFlat', 'unit': 'ApartmentUnitFlat',
-        'flat': 'ApartmentUnitFlat', 'townhouse': 'Townhouse', 'villa': 'Villa',
-        'semidetached': 'Semi-detached', 'semi_detached': 'Semi-detached',
-        'terrace': 'Terrace', 'duplex': 'Duplex', 'acreage': 'Acreage',
-        'retirement': 'Retirement', 'blockofunits': 'BlockOfUnits', 'other': 'Other',
-        'ApartmentUnit': 'ApartmentUnitFlat', 'SemiDetached': 'Semi-detached',
-        'Semi_Detached': 'Semi-detached', 'AcreageSemiRural': 'AcreageSemi-rural',
-        'AcreageSemi_Rural': 'AcreageSemi-rural',
-      }
-
-      const lowerCaseType = normalized.toLowerCase().replace(/[^a-z]/g, '')
-      return mapping[lowerCaseType] || null
-    };
-
-    let propertyTypes = []
-    if (propertyType) {
-      const validatedType = validatePropertyType(propertyType)
-      if (validatedType) propertyTypes = [validatedType]
+    const mapping = {
+      'house': 'House', 'apartment': 'ApartmentUnitFlat', 'unit': 'ApartmentUnitFlat',
+      'flat': 'ApartmentUnitFlat', 'townhouse': 'Townhouse', 'villa': 'Villa',
+      'semidetached': 'Semi-detached', 'semi_detached': 'Semi-detached',
+      'terrace': 'Terrace', 'duplex': 'Duplex', 'acreage': 'Acreage',
+      'retirement': 'Retirement', 'blockofunits': 'BlockOfUnits', 'other': 'Other',
+      'ApartmentUnit': 'ApartmentUnitFlat', 'SemiDetached': 'Semi-detached',
+      'Semi_Detached': 'Semi-detached', 'AcreageSemiRural': 'AcreageSemi-rural',
+      'AcreageSemi_Rural': 'AcreageSemi-rural',
     }
 
-    // Calculate dates for 12 months period
-    const twelveMonthsAgo = new Date()
-    twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1)
-    const minSoldDate = twelveMonthsAgo.toISOString().split('T')[0]
+    const lowerCaseType = normalized.toLowerCase().replace(/[^a-z]/g, '')
+    return mapping[lowerCaseType] || null
+  };
 
-    const searchBody = {
-      listingType: 'Sold',
-      ...(propertyTypes.length > 0 ? { propertyTypes } : {}),
-      searchMode: 'exact',
-      locations: [
-        {
-          state: state,
-          suburb: suburb,
-          postcode: postcode,
-          includeSurroundingSuburbs: true
-        }
-      ],
-      // Property feature filters
-      ...(beds ? { minBedrooms: Math.max(0, beds - 1), maxBedrooms: beds + 1 } : {}),
-      ...(baths ? { minBathrooms: Math.max(0, baths - 1), maxBathrooms: baths + 1 } : {}),
-      ...(landSize ? { minLandArea: Math.round(landSize * 0.8), maxLandArea: Math.round(landSize * 1.2) } : {}),
-
-      // Period filter: Sold in last 12 months
-      minSoldDate: minSoldDate,
-
-      sort: {
-        sortKey: 'SoldDate',
-        direction: 'Descending'
-      },
-      pageNumber: 1,
-      pageSize: 12,
-    }
-
-    // Clean the body to avoid sending nulls or empty arrays which may cause 400s
-    const cleanedBody = JSON.parse(JSON.stringify(searchBody, (k, v) => {
-      if (v === null || v === undefined) return undefined
-      if (Array.isArray(v) && v.length === 0) return undefined
-      return v
-    }))
-
-    const requestUrl = `${DOMAIN_API_BASE_URL}/listings/residential/_search`
-    console.debug('Domain comparables request:', requestUrl, cleanedBody)
-
-    const response = await fetch(requestUrl, {
-      method: 'POST',
-      headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-        'X-Api-Key': apiKey,
-        'X-Api-Call-Source': 'live-api-browser',
-      },
-      body: JSON.stringify(cleanedBody)
-    })
-
-    try {
-      if (!response.ok) {
-        let respText = '<unreadable>'
-        try { respText = await response.text() } catch (e) { }
-        console.error('Domain comparables API error:', response.status, response.statusText, respText)
-        return []
-      }
-
-      const responseText = await response.text()
-      if (!responseText || responseText.trim() === '') {
-        console.warn('Empty response from comparables API')
-        return []
-      }
-
-      try {
-        const data = JSON.parse(responseText)
-        // console.log(`Fetched comparables: ${Array.isArray(data) ? data.length : 'unknown'}`)
-
-        // Debug: Log first comparable to understand structure
-        // if (Array.isArray(data) && data.length > 0) {
-        //   console.log('First comparable structure:', JSON.stringify(data[0], null, 2))
-        // }
-
-        return data || []
-      } catch (parseError) {
-        console.error('Failed to parse JSON from comparables API:', parseError)
-        console.error('Response text:', responseText)
-        return []
-      }
-    } catch (error) {
-      console.error('Error handling comparables response:', error)
-      return []
-    }
-  } catch (error) {
-    console.error('Error fetching comparables:', error)
-    return []
+  let propertyTypes = []
+  if (propertyType) {
+    const validatedType = validatePropertyType(propertyType)
+    if (validatedType) propertyTypes = [validatedType]
   }
+
+  // Calculate dates for 12 months period
+  const twelveMonthsAgo = new Date()
+  twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1)
+  const minSoldDate = twelveMonthsAgo.toISOString().split('T')[0]
+
+  const searchBody = {
+    listingType: 'Sold',
+    ...(propertyTypes.length > 0 ? { propertyTypes } : {}),
+    searchMode: 'exact',
+    locations: [
+      {
+        state: state,
+        suburb: suburb,
+        postcode: postcode,
+        includeSurroundingSuburbs: true
+      }
+    ],
+    // Property feature filters
+    ...(beds ? { minBedrooms: Math.max(0, beds - 1), maxBedrooms: beds + 1 } : {}),
+    ...(baths ? { minBathrooms: Math.max(0, baths - 1), maxBathrooms: baths + 1 } : {}),
+    ...(landSize ? { minLandArea: Math.round(landSize * 0.8), maxLandArea: Math.round(landSize * 1.2) } : {}),
+
+    // Period filter: Sold in last 12 months
+    minSoldDate: minSoldDate,
+
+    sort: {
+      sortKey: 'SoldDate',
+      direction: 'Descending'
+    },
+    pageNumber: 1,
+    pageSize: 12,
+  }
+
+  // Clean the body to avoid sending nulls or empty arrays which may cause 400s
+  const cleanedBody = JSON.parse(JSON.stringify(searchBody, (k, v) => {
+    if (v === null || v === undefined) return undefined
+    if (Array.isArray(v) && v.length === 0) return undefined
+    return v
+  }))
+
+  const cacheKey = `comparables:Sold:${JSON.stringify(cleanedBody)}`
+  if (apiCache.has(cacheKey)) return apiCache.get(cacheKey)
+  if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey)
+
+  const fetchPromise = (async () => {
+    try {
+      const requestUrl = `${DOMAIN_API_BASE_URL}/listings/residential/_search`
+      const response = await fetch(requestUrl, {
+        method: 'POST',
+        headers: {
+          ...getHeaders(apiKey),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cleanedBody)
+      })
+
+      if (!response.ok) return []
+
+      const data = await response.json()
+      apiCache.set(cacheKey, data)
+      return data
+    } catch (error) {
+      console.error('Error fetching comparables:', error)
+      return []
+    } finally {
+      pendingRequests.delete(cacheKey)
+    }
+  })()
+
+  pendingRequests.set(cacheKey, fetchPromise)
+  return fetchPromise
 }
 
 /**
@@ -277,91 +235,93 @@ export const fetchForSaleComparables = async (state, suburb, postcode, propertyT
   if (!apiKey) return [];
   if (!suburb && !coordinates) return [];
 
-  try {
-    const VALID_PROPERTY_TYPES = [
-      'House', 'ApartmentUnitFlat', 'Townhouse', 'Villa', 'Semi-detached',
-      'Terrace', 'Duplex', 'Acreage', 'AcreageSemi-rural', 'Retirement',
-      'BlockOfUnits', 'Other'
-    ];
+  // Valid property types
+  const VALID_PROPERTY_TYPES = [
+    'House', 'ApartmentUnitFlat', 'Townhouse', 'Villa', 'Semi-detached',
+    'Terrace', 'Duplex', 'Acreage', 'AcreageSemi-rural', 'Retirement',
+    'BlockOfUnits', 'Other'
+  ];
 
-    const validatePropertyType = (type) => {
-      if (!type) return null
-      const normalized = type.trim()
-      if (VALID_PROPERTY_TYPES.includes(normalized)) return normalized
+  const validatePropertyType = (type) => {
+    if (!type) return null
+    const normalized = type.trim()
+    if (VALID_PROPERTY_TYPES.includes(normalized)) return normalized
 
-      const mapping = {
-        'house': 'House', 'apartment': 'ApartmentUnitFlat', 'unit': 'ApartmentUnitFlat',
-        'flat': 'ApartmentUnitFlat', 'townhouse': 'Townhouse', 'villa': 'Villa',
-        'semidetached': 'Semi-detached', 'semi_detached': 'Semi-detached',
-        'terrace': 'Terrace', 'duplex': 'Duplex', 'acreage': 'Acreage',
-        'retirement': 'Retirement', 'blockofunits': 'BlockOfUnits', 'other': 'Other'
-      }
-
-      return mapping[normalized.toLowerCase().replace(/[^a-z]/g, '')] || null
-    };
-
-    let propertyTypes = []
-    if (propertyType) {
-      const validatedType = validatePropertyType(propertyType)
-      if (validatedType) propertyTypes = [validatedType]
+    const mapping = {
+      'house': 'House', 'apartment': 'ApartmentUnitFlat', 'unit': 'ApartmentUnitFlat',
+      'flat': 'ApartmentUnitFlat', 'townhouse': 'Townhouse', 'villa': 'Villa',
+      'semidetached': 'Semi-detached', 'semi_detached': 'Semi-detached',
+      'terrace': 'Terrace', 'duplex': 'Duplex', 'acreage': 'Acreage',
+      'retirement': 'Retirement', 'blockofunits': 'BlockOfUnits', 'other': 'Other'
     }
 
-    const searchBody = {
-      listingType: 'Sale',
-      ...(propertyTypes.length > 0 ? { propertyTypes } : {}),
-      searchMode: 'exact',
-      locations: [
-        {
-          state: state,
-          suburb: suburb,
-          postcode: postcode,
-          includeSurroundingSuburbs: true
-        }
-      ],
-      // Property feature filters
-      ...(beds ? { minBedrooms: Math.max(0, beds - 1), maxBedrooms: beds + 1 } : {}),
-      ...(baths ? { minBathrooms: Math.max(0, baths - 1), maxBathrooms: baths + 1 } : {}),
-      ...(landSize ? { minLandArea: Math.round(landSize * 0.8), maxLandArea: Math.round(landSize * 1.2) } : {}),
+    return mapping[normalized.toLowerCase().replace(/[^a-z]/g, '')] || null
+  };
 
-      sort: { sortKey: 'DateListed', direction: 'Descending' },
-      pageNumber: 1,
-      pageSize: 12,
-    }
-
-    const cleanedBody = JSON.parse(JSON.stringify(searchBody, (k, v) => {
-      if (v === null || v === undefined) return undefined
-      if (Array.isArray(v) && v.length === 0) return undefined
-      return v
-    }))
-
-    const response = await fetch(`${DOMAIN_API_BASE_URL}/listings/residential/_search`, {
-      method: 'POST',
-      headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-        'X-Api-Key': apiKey,
-        'X-Api-Call-Source': 'live-api-browser',
-      },
-      body: JSON.stringify(cleanedBody)
-    })
-
-    if (!response.ok) {
-      console.error('Domain for-sale comparables API error:', response.status)
-      return []
-    }
-
-    const responseText = await response.text()
-    if (!responseText || responseText.trim() === '') {
-      return []
-    }
-
-    const data = JSON.parse(responseText)
-    console.log(`Fetched for-sale comparables: ${Array.isArray(data) ? data.length : 'unknown'}`)
-    return data || []
-  } catch (error) {
-    console.error('Error fetching for-sale comparables:', error)
-    return []
+  let propertyTypes = []
+  if (propertyType) {
+    const validatedType = validatePropertyType(propertyType)
+    if (validatedType) propertyTypes = [validatedType]
   }
+
+  const searchBody = {
+    listingType: 'Sale',
+    ...(propertyTypes.length > 0 ? { propertyTypes } : {}),
+    searchMode: 'exact',
+    locations: [
+      {
+        state: state,
+        suburb: suburb,
+        postcode: postcode,
+        includeSurroundingSuburbs: true
+      }
+    ],
+    // Property feature filters
+    ...(beds ? { minBedrooms: Math.max(0, beds - 1), maxBedrooms: beds + 1 } : {}),
+    ...(baths ? { minBathrooms: Math.max(0, baths - 1), maxBathrooms: baths + 1 } : {}),
+    ...(landSize ? { minLandArea: Math.round(landSize * 0.8), maxLandArea: Math.round(landSize * 1.2) } : {}),
+
+    sort: { sortKey: 'DateListed', direction: 'Descending' },
+    pageNumber: 1,
+    pageSize: 12,
+  }
+
+  const cleanedBody = JSON.parse(JSON.stringify(searchBody, (k, v) => {
+    if (v === null || v === undefined) return undefined
+    if (Array.isArray(v) && v.length === 0) return undefined
+    return v
+  }))
+
+  const cacheKey = `comparables:Sale:${JSON.stringify(cleanedBody)}`
+  if (apiCache.has(cacheKey)) return apiCache.get(cacheKey)
+  if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey)
+
+  const fetchPromise = (async () => {
+    try {
+      const response = await fetch(`${DOMAIN_API_BASE_URL}/listings/residential/_search`, {
+        method: 'POST',
+        headers: {
+          ...getHeaders(apiKey),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cleanedBody)
+      })
+
+      if (!response.ok) return []
+
+      const data = await response.json()
+      apiCache.set(cacheKey, data)
+      return data
+    } catch (error) {
+      console.error('Error fetching for-sale comparables:', error)
+      return []
+    } finally {
+      pendingRequests.delete(cacheKey)
+    }
+  })()
+
+  pendingRequests.set(cacheKey, fetchPromise)
+  return fetchPromise
 }
 
 
@@ -373,68 +333,59 @@ export const fetchForSaleComparables = async (state, suburb, postcode, propertyT
  * @returns {Promise<Array>} Array of matching properties
  */
 export const searchPropertiesByQuery = async (query) => {
-  // Validate query: ensure it's a non-empty string
-  if (typeof query !== 'string' || query.trim().length === 0) {
-    return [];
-  }
-
-  const trimmedQuery = query.trim();
-
+  if (typeof query !== 'string' || query.trim().length === 0) return []
+  const trimmedQuery = query.trim()
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
+  const cacheKey = `suggest:${trimmedQuery}`
 
-  if (!apiKey) {
-    return []
-  }
+  if (apiCache.has(cacheKey)) return apiCache.get(cacheKey)
+  if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey)
 
-  try {
-    const params = new URLSearchParams({
-      terms: trimmedQuery,
-      channel: 'All',
-    })
+  if (!apiKey) return []
 
-    const response = await fetch(
-      `${DOMAIN_API_BASE_URL}/properties/_suggest?${params.toString()}`,
-      {
-        method: 'GET',
-        headers: {
-          accept: 'application/json',
-          'X-Api-Key': apiKey,
-          'X-Api-Call-Source': 'live-api-browser',
-        },
+  const fetchPromise = (async () => {
+    try {
+      const params = new URLSearchParams({
+        terms: trimmedQuery,
+        channel: 'All',
       })
 
-    if (!response.ok) {
+      const response = await fetch(`${DOMAIN_API_BASE_URL}/properties/_suggest?${params.toString()}`, {
+        method: 'GET',
+        headers: getHeaders(apiKey),
+      })
+
+      if (!response.ok) return []
+
+      const data = await response.json()
+      if (!Array.isArray(data)) return []
+
+      const mappedResults = data.map((item) => {
+        const components = item.addressComponents || {}
+        const address = item.address || ''
+        return {
+          id: item.id,
+          address,
+          shortAddress: address.split(',')[0] || address,
+          suburb: components.suburb || '',
+          state: components.state || '',
+          postcode: components.postCode || '',
+          relativeScore: item.relativeScore,
+        }
+      })
+
+      apiCache.set(cacheKey, mappedResults)
+      return mappedResults
+    } catch (error) {
+      console.error('Error calling Domain suggest API:', error)
       return []
+    } finally {
+      pendingRequests.delete(cacheKey)
     }
+  })()
 
-    const data = await response.json()
-
-    if (!Array.isArray(data)) {
-      return []
-    }
-
-    // Map Domain response into the shape expected by the UI
-    const mappedResults = data.map((item) => {
-      const components = item.addressComponents || {}
-      const address = item.address || ''
-      const shortAddress = address.split(',')[0] || address
-
-      return {
-        id: item.id,
-        address,
-        shortAddress,
-        suburb: components.suburb || '',
-        state: components.state || '',
-        postcode: components.postCode || '',
-        relativeScore: item.relativeScore,
-      }
-    })
-
-    return mappedResults
-  } catch (error) {
-    console.error('Error calling Domain suggest API:', error)
-    return []
-  }
+  pendingRequests.set(cacheKey, fetchPromise)
+  return fetchPromise
 }
 
 /**
@@ -467,185 +418,176 @@ export const fetchSuburbPerformance = async (state, suburb, postcode) => {
     return null;
   }
 
-  try {
-    // Fetch 5 years of data (60 months)
-    const response = await fetch(
-      `${DOMAIN_API_V2_BASE_URL}/suburbPerformanceStatistics/${state}/${suburb}/${postcode}?propertyCategory=House&chronologicalSpan=60&tPeriod=1`,
-      {
-        method: 'GET',
-        headers: {
-          accept: 'application/json',
-          'X-Api-Key': apiKey,
-          'X-Api-Call-Source': 'live-api-browser',
-        },
-      }
-    )
+  const cacheKey = `suburbPerf:${state}:${suburb}:${postcode}`
+  if (apiCache.has(cacheKey)) return apiCache.get(cacheKey)
+  if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey)
 
-    if (!response.ok) return null
-
-    // Check if response has content before parsing JSON
-    const responseText = await response.text()
-    if (!responseText || responseText.trim() === '') {
-      console.warn('Empty response from suburb performance API')
-      return null
-    }
-
-    // Try to parse JSON, handle parsing errors
-    let data
+  const fetchPromise = (async () => {
     try {
-      data = JSON.parse(responseText)
-    } catch (parseError) {
-      console.error('Failed to parse JSON from suburb performance API:', parseError)
-      console.error('Response text:', responseText)
-      return null
-    }
-
-    const series = data?.series?.seriesInfo || []
-
-    // Process historical data for charts
-    // API structure: seriesInfo array with { year, month, values }
-    const historicalData = series
-      .map((stat) => {
-        const v = stat?.values || {}
-        // Support both flat and nested period structures (different Domain API versions)
-        const year = stat.year || stat.period?.year
-        const month = stat.month || stat.period?.month
-
-        // Get median price with better fallback logic
-        let medianPrice = v.medianSoldPrice
-        if (!medianPrice || medianPrice === 0) {
-          medianPrice = v.medianSaleListingPrice
+      // Fetch 5 years of data (60 months)
+      const response = await fetch(
+        `${DOMAIN_API_V2_BASE_URL}/suburbPerformanceStatistics/${state}/${suburb}/${postcode}?propertyCategory=House&chronologicalSpan=60&tPeriod=1`,
+        {
+          method: 'GET',
+          headers: getHeaders(apiKey),
         }
-        // If still no median, calculate from highest/lowest sold prices
-        if ((!medianPrice || medianPrice === 0) && v.lowestSoldPrice && v.highestSoldPrice) {
-          medianPrice = Math.round((v.lowestSoldPrice + v.highestSoldPrice) / 2)
-        }
-        // Last resort: use listing price range
-        if ((!medianPrice || medianPrice === 0) && v.lowestSaleListingPrice && v.highestSaleListingPrice) {
-          medianPrice = Math.round((v.lowestSaleListingPrice + v.highestSaleListingPrice) / 2)
-        }
+      )
 
-        // Get median rent (if available)
-        let medianRent = v.medianRentListingPrice || v.medianRent || null
-        // Calculate median rent from range if available
-        if (!medianRent && v.lowestRentListingPrice && v.highestRentListingPrice) {
-          medianRent = Math.round((v.lowestRentListingPrice + v.highestRentListingPrice) / 2)
-        }
+      if (!response.ok) return null
 
-        // Include data even if only one metric is available
-        if (medianPrice > 0 || medianRent > 0) {
-          return {
-            period: year && month
-              ? `${year}-${String(month).padStart(2, '0')}`
-              : year
-                ? `${year}`
-                : null,
-            year: year,
-            month: month,
-            medianPrice: medianPrice > 0 ? medianPrice : null,
-            medianRent: medianRent > 0 ? medianRent : null,
-            growthPercent: v.annualGrowth || null,
-          }
-        }
+      // Check if response has content before parsing JSON
+      const responseText = await response.text()
+      if (!responseText || responseText.trim() === '') {
+        console.warn('Empty response from suburb performance API')
         return null
+      }
+
+      // Try to parse JSON, handle parsing errors
+      let data
+      try {
+        data = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error('Failed to parse JSON from suburb performance API:', parseError)
+        console.error('Response text:', responseText)
+        return null
+      }
+
+      const series = data?.series?.seriesInfo || []
+
+      // Process historical data for charts
+      // API structure: seriesInfo array with { year, month, values }
+      const historicalData = series
+        .map((stat) => {
+          const v = stat?.values || {}
+          // Support both flat and nested period structures (different Domain API versions)
+          const year = stat.year || stat.period?.year
+          const month = stat.month || stat.period?.month
+
+          // Get median price with better fallback logic
+          let medianPrice = v.medianSoldPrice
+          if (!medianPrice || medianPrice === 0) {
+            medianPrice = v.medianSaleListingPrice
+          }
+          // If still no median, calculate from highest/lowest sold prices
+          if ((!medianPrice || medianPrice === 0) && v.lowestSoldPrice && v.highestSoldPrice) {
+            medianPrice = Math.round((v.lowestSoldPrice + v.highestSoldPrice) / 2)
+          }
+          // Last resort: use listing price range
+          if ((!medianPrice || medianPrice === 0) && v.lowestSaleListingPrice && v.highestSaleListingPrice) {
+            medianPrice = Math.round((v.lowestSaleListingPrice + v.highestSaleListingPrice) / 2)
+          }
+
+          // Get median rent (if available)
+          let medianRent = v.medianRentListingPrice || v.medianRent || null
+          // Calculate median rent from range if available
+          if (!medianRent && v.lowestRentListingPrice && v.highestRentListingPrice) {
+            medianRent = Math.round((v.lowestRentListingPrice + v.highestRentListingPrice) / 2)
+          }
+
+          // Include data even if only one metric is available
+          if (medianPrice > 0 || medianRent > 0) {
+            return {
+              period: year && month
+                ? `${year}-${String(month).padStart(2, '0')}`
+                : year
+                  ? `${year}`
+                  : null,
+              year: year,
+              month: month,
+              medianPrice: medianPrice > 0 ? medianPrice : null,
+              medianRent: medianRent > 0 ? medianRent : null,
+              growthPercent: v.annualGrowth || null,
+            }
+          }
+          return null
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+          // Sort by year, then month
+          if (a.year !== b.year) return a.year - b.year
+          return (a.month || 0) - (b.month || 0)
+        })
+
+      // Reverse to find the most recent valid data first
+      const validStat = [...series].reverse().find(stat => {
+        const v = stat?.values
+        return v && (v.medianSoldPrice > 0 || v.medianSaleListingPrice > 0 || v.highestSoldPrice > 0)
       })
-      .filter(Boolean)
-      .sort((a, b) => {
-        // Sort by year, then month
-        if (a.year !== b.year) return a.year - b.year
-        return (a.month || 0) - (b.month || 0)
+
+      const latestStat = validStat || series[series.length - 1] || {}
+      const values = latestStat.values || {}
+
+      // Calculate generic auction clearance rate if not provided
+      let clearanceRate = values.auctionClearanceRate
+      if (!clearanceRate && values.auctionNumberAuctioned > 0) {
+        const sold = values.auctionNumberSold || 0
+        const total = values.auctionNumberAuctioned
+        clearanceRate = Math.round((sold / total) * 100)
+      }
+
+      // Median price fallback logic
+      let medianPrice = values.medianSoldPrice
+      if (!medianPrice) medianPrice = values.medianSaleListingPrice
+      if (!medianPrice && values.lowestSoldPrice && values.highestSoldPrice) {
+        medianPrice = Math.round((values.lowestSoldPrice + values.highestSoldPrice) / 2)
+      }
+
+      // Calculate aggregated statistics across the series
+      let totalMedianPrice = 0
+      let countMedianPrice = 0
+      let totalDaysOnMarket = 0
+      let countDaysOnMarket = 0
+      let totalNumberSold = 0
+      let countNumberSold = 0
+      let totalAuctionsAuctioned = 0
+      let totalAuctionsSold = 0
+
+      series.forEach(stat => {
+        const v = stat.values || {}
+        if (v.medianSoldPrice > 0) {
+          totalMedianPrice += v.medianSoldPrice
+          countMedianPrice++
+        }
+        if (v.daysOnMarket > 0) {
+          totalDaysOnMarket += v.daysOnMarket
+          countDaysOnMarket++
+        }
+        if (v.numberSold > 0) {
+          totalNumberSold += v.numberSold
+          countNumberSold++
+        }
+        if (v.auctionNumberAuctioned > 0) {
+          totalAuctionsAuctioned += v.auctionNumberAuctioned
+          totalAuctionsSold += (v.auctionNumberSold || 0)
+        }
       })
 
-    // Reverse to find the most recent valid data first
-    const validStat = [...series].reverse().find(stat => {
-      const v = stat?.values
-      return v && (v.medianSoldPrice > 0 || v.medianSaleListingPrice > 0 || v.highestSoldPrice > 0)
-    })
+      const avgMedianSoldPrice = countMedianPrice > 0 ? Math.round(totalMedianPrice / countMedianPrice) : 0
+      const avgDaysOnMarket = countDaysOnMarket > 0 ? totalDaysOnMarket / countDaysOnMarket : 0
+      const avgNumberSold = countNumberSold > 0 ? Math.round(totalNumberSold / countNumberSold) : 0
+      const overallClearanceRate = totalAuctionsAuctioned > 0 ? (totalAuctionsSold / totalAuctionsAuctioned) * 100 : 0
 
-    const latestStat = validStat || series[series.length - 1] || {}
-    const values = latestStat.values || {}
-
-    // Calculate generic auction clearance rate if not provided
-    let clearanceRate = values.auctionClearanceRate
-    if (!clearanceRate && values.auctionNumberAuctioned > 0) {
-      const sold = values.auctionNumberSold || 0
-      const total = values.auctionNumberAuctioned
-      clearanceRate = Math.round((sold / total) * 100)
-    }
-
-    // Median price fallback logic
-    let medianPrice = values.medianSoldPrice
-    if (!medianPrice) medianPrice = values.medianSaleListingPrice
-    if (!medianPrice && values.lowestSoldPrice && values.highestSoldPrice) {
-      medianPrice = Math.round((values.lowestSoldPrice + values.highestSoldPrice) / 2)
-    }
-
-    // Calculate aggregated statistics across the series
-    let totalMedianPrice = 0
-    let countMedianPrice = 0
-    let totalDaysOnMarket = 0
-    let countDaysOnMarket = 0
-    let totalNumberSold = 0
-    let countNumberSold = 0
-    let totalAuctionsAuctioned = 0
-    let totalAuctionsSold = 0
-
-    series.forEach(stat => {
-      const v = stat.values || {}
-      if (v.medianSoldPrice > 0) {
-        totalMedianPrice += v.medianSoldPrice
-        countMedianPrice++
+      // Determine period range
+      let periodRange = ''
+      if (historicalData.length > 0) {
+        const first = historicalData[0]
+        const last = historicalData[historicalData.length - 1]
+        periodRange = `${String(first.month).padStart(2, '0')}-${first.year} to ${String(last.month).padStart(2, '0')}-${last.year}`
       }
-      if (v.daysOnMarket > 0) {
-        totalDaysOnMarket += v.daysOnMarket
-        countDaysOnMarket++
-      }
-      if (v.numberSold > 0) {
-        totalNumberSold += v.numberSold
-        countNumberSold++
-      }
-      if (v.auctionNumberAuctioned > 0) {
-        totalAuctionsAuctioned += v.auctionNumberAuctioned
-        totalAuctionsSold += (v.auctionNumberSold || 0)
-      }
-    })
 
-    const avgMedianSoldPrice = countMedianPrice > 0 ? Math.round(totalMedianPrice / countMedianPrice) : 0
-    const avgDaysOnMarket = countDaysOnMarket > 0 ? totalDaysOnMarket / countDaysOnMarket : 0
-    const avgNumberSold = countNumberSold > 0 ? Math.round(totalNumberSold / countNumberSold) : 0
-    const overallClearanceRate = totalAuctionsAuctioned > 0 ? (totalAuctionsSold / totalAuctionsAuctioned) * 100 : 0
+      apiCache.set(cacheKey, result)
+      return result
 
-    // Determine period range
-    let periodRange = ''
-    if (historicalData.length > 0) {
-      const first = historicalData[0]
-      const last = historicalData[historicalData.length - 1]
-      periodRange = `${String(first.month).padStart(2, '0')}-${first.year} to ${String(last.month).padStart(2, '0')}-${last.year}`
+    } catch (error) {
+      console.error('Error fetching suburb performance:', error)
+      return null
+    } finally {
+      pendingRequests.delete(cacheKey)
     }
+  })()
 
-    return {
-      ...data,
-      medianPrice: medianPrice || 0,
-      growthPercent: values.annualGrowth || 0,
-      demand: 'Medium',
-      population: 0,
-      averageDaysOnMarket: values.daysOnMarket || 0,
-      auctionClearanceRate: clearanceRate || 0,
-      historicalData, // Add historical data for charts
-      // Added aggregated statistics
-      avgMedianSoldPrice,
-      avgDaysOnMarket,
-      avgNumberSold,
-      overallClearanceRate,
-      periodRange,
-      totalAuctionsAuctioned,
-      totalAuctionsSold
-    }
-
-  } catch (error) {
-    console.error('Error fetching suburb performance:', error)
-    return null
-  }
+  pendingRequests.set(cacheKey, fetchPromise)
+  return fetchPromise
 }
 
 /**
@@ -653,53 +595,37 @@ export const fetchSuburbPerformance = async (state, suburb, postcode) => {
  */
 export const fetchRentalEstimate = async (id) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
+  const cacheKey = `rentalEstimate:${id}`
 
-  // Validate property ID to prevent 404 errors
-  if (!id) {
+  if (apiCache.has(cacheKey)) return apiCache.get(cacheKey)
+  if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey)
+
+  if (!id || !isValidPropertyId(id) || isMockPropertyId(id) || !apiKey) {
     return null;
   }
 
-  if (!isValidPropertyId(id)) {
-    return null;
-  }
-
-  if (isMockPropertyId(id)) {
-    return null;
-  }
-
-  if (!apiKey) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(`${DOMAIN_API_BASE_URL}/properties/${id}/rentalEstimate`, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        'X-Api-Key': apiKey,
-        'X-Api-Call-Source': 'live-api-browser',
-      },
-    })
-
-    if (!response.ok) return null
-
-    const responseText = await response.text();
-    if (!responseText || responseText.trim() === '') {
-      console.warn('Empty response from rental estimate API');
-      return null;
-    }
-
+  const fetchPromise = (async () => {
     try {
-      return JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('Failed to parse JSON from rental estimate API:', parseError);
-      console.error('Response text:', responseText);
-      return null;
+      const response = await fetch(`${DOMAIN_API_BASE_URL}/properties/${id}/rentalEstimate`, {
+        method: 'GET',
+        headers: getHeaders(apiKey),
+      })
+
+      if (!response.ok) return null
+
+      const data = await response.json()
+      apiCache.set(cacheKey, data)
+      return data
+    } catch (error) {
+      console.error('Error fetching rental estimate:', error)
+      return null
+    } finally {
+      pendingRequests.delete(cacheKey)
     }
-  } catch (error) {
-    console.error('Error fetching rental estimate:', error)
-    return null
-  }
+  })()
+
+  pendingRequests.set(cacheKey, fetchPromise)
+  return fetchPromise
 }
 
 /**
@@ -1126,152 +1052,154 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
  */
 export const getPropertyDetails = async (id) => {
   const apiKey = process.env.NEXT_PUBLIC_DOMAIN_API_KEY
+  const cacheKey = `propertyDetails:${id}`
 
-  // Validate property ID to prevent 404 errors
-  if (!id) {
-    throw createApiError(400, 'Property ID is required');
+  // 1. Check Cache
+  if (apiCache.has(cacheKey)) return apiCache.get(cacheKey)
+
+  // 2. Check Pending
+  if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey)
+
+  if (!id || !isValidPropertyId(id) || isMockPropertyId(id) || !apiKey) {
+    if (!id) throw createApiError(400, 'Property ID is required');
+    if (!isValidPropertyId(id)) throw createApiError(400, `Invalid property ID format: ${id}`);
+    if (isMockPropertyId(id)) throw createApiError(404, `Property not found: ${id}`);
+    throw new Error("API Key configuration missing");
   }
 
-  if (!isValidPropertyId(id)) {
-    throw createApiError(400, `Invalid property ID format: ${id}`);
-  }
-
-  if (isMockPropertyId(id)) {
-    throw createApiError(404, `Property not found: ${id}`);
-  }
-
-  if (!apiKey) {
-    throw new Error("API Key configuration missing")
-  }
-
-  try {
-    const response = await fetch(`${DOMAIN_API_BASE_URL}/properties/${id}`, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        'X-Api-Key': apiKey,
-        'X-Api-Call-Source': 'live-api-browser',
-      },
-    })
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw createApiError(404, `Property not found: ${id}`);
-      }
-      throw createApiError(response.status, `Domain API error: ${response.status}`);
-    }
-
-    const responseText = await response.text()
-    if (!responseText || responseText.trim() === '') {
-      throw createApiError(500, 'Empty response from Domain API')
-    }
-
-    let domainProperty
+  const fetchPromise = (async () => {
     try {
-      domainProperty = JSON.parse(responseText)
-    } catch (parseError) {
-      console.error('Failed to parse JSON from Domain API:', parseError)
-      console.error('Response text:', responseText)
-      throw createApiError(500, 'Invalid JSON response from Domain API')
-    }
+      const response = await fetch(`${DOMAIN_API_BASE_URL}/properties/${id}`, {
+        method: 'GET',
+        headers: getHeaders(apiKey),
+      })
 
-    // Fetch insights, price estimate, schools, and comparables concurrently
-    const promises = []
-
-    // 1. Suburb Performance
-    if (domainProperty.suburb && domainProperty.state && domainProperty.postcode) {
-      promises.push(
-        fetchSuburbPerformance(domainProperty.state, domainProperty.suburb, domainProperty.postcode)
-          .then(res => ({ type: 'suburbInsights', data: res }))
-      )
-    }
-
-    // 2. Price Estimate
-    promises.push(
-      fetchPriceEstimate(id)
-        .then(res => ({ type: 'priceEstimate', data: res }))
-    )
-
-    // 3. Schools (if coords available)
-    if (domainProperty.addressCoordinate?.lat && domainProperty.addressCoordinate?.lon) {
-      promises.push(
-        fetchSchools(domainProperty.addressCoordinate.lat, domainProperty.addressCoordinate.lon)
-          .then(res => ({ type: 'schools', data: res }))
-      )
-    }
-
-    // 4. Sold Comparables
-    const locationDataAvailable = (domainProperty.suburb && domainProperty.postcode) || domainProperty.addressCoordinate;
-    if (locationDataAvailable) {
-      promises.push(
-        fetchComparables(
-          domainProperty.state,
-          domainProperty.suburb,
-          domainProperty.postcode,
-          domainProperty.propertyCategory,
-          domainProperty.bedrooms,
-          domainProperty.bathrooms,
-          domainProperty.areaSize || domainProperty.internalArea,
-          domainProperty.addressCoordinate ? {
-            lat: domainProperty.addressCoordinate.lat,
-            lng: domainProperty.addressCoordinate.lon
-          } : null
-        ).then(res => ({ type: 'comparables', data: res }))
-      )
-
-      // 4b. For-Sale Comparables
-      promises.push(
-        fetchForSaleComparables(
-          domainProperty.state,
-          domainProperty.suburb,
-          domainProperty.postcode,
-          domainProperty.propertyCategory,
-          domainProperty.bedrooms,
-          domainProperty.bathrooms,
-          domainProperty.areaSize || domainProperty.internalArea,
-          domainProperty.addressCoordinate ? {
-            lat: domainProperty.addressCoordinate.lat,
-            lng: domainProperty.addressCoordinate.lon
-          } : null
-        ).then(res => ({ type: 'forSaleComparables', data: res }))
-      )
-    }
-
-
-    // 5. Rental Estimate
-    promises.push(
-      fetchRentalEstimate(id)
-        .then(res => ({ type: 'rentalEstimate', data: res }))
-    )
-
-    const results = await Promise.allSettled(promises)
-
-    let suburbInsights = null
-    let apiPriceEstimate = null
-    let schools = []
-    let comparables = []
-    let forSaleComparables = []
-    let apiRentalEstimate = null
-
-    results.forEach(result => {
-      if (result.status === 'fulfilled') {
-        const { type, data } = result.value
-        if (type === 'suburbInsights') suburbInsights = data
-        if (type === 'priceEstimate') apiPriceEstimate = data
-        if (type === 'schools') schools = data
-        if (type === 'comparables') comparables = data
-        if (type === 'forSaleComparables') forSaleComparables = data
-        if (type === 'rentalEstimate') apiRentalEstimate = data
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw createApiError(404, `Property not found: ${id}`);
+        }
+        throw createApiError(response.status, `Domain API error: ${response.status}`);
       }
-    })
 
-    const mapped = mapDomainPropertyToAppModel(domainProperty, suburbInsights, apiPriceEstimate, schools, comparables, forSaleComparables, apiRentalEstimate)
-    return mapped
+      const responseText = await response.text()
+      if (!responseText || responseText.trim() === '') {
+        throw createApiError(500, 'Empty response from Domain API')
+      }
 
-  } catch (error) {
-    console.error('Error calling Domain property detail API:', error)
-    throw error
-  }
+      let domainProperty
+      try {
+        domainProperty = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error('Failed to parse JSON from Domain API:', parseError)
+        console.error('Response text:', responseText)
+        throw createApiError(500, 'Invalid JSON response from Domain API')
+      }
+
+      // Fetch insights, price estimate, schools, and comparables concurrently
+      const promises = []
+
+      // 1. Suburb Performance
+      if (domainProperty.suburb && domainProperty.state && domainProperty.postcode) {
+        promises.push(
+          fetchSuburbPerformance(domainProperty.state, domainProperty.suburb, domainProperty.postcode)
+            .then(res => ({ type: 'suburbInsights', data: res }))
+        )
+      }
+
+      // 2. Price Estimate
+      promises.push(
+        fetchPriceEstimate(id)
+          .then(res => ({ type: 'priceEstimate', data: res }))
+      )
+
+      // 3. Schools (if coords available)
+      if (domainProperty.addressCoordinate?.lat && domainProperty.addressCoordinate?.lon) {
+        promises.push(
+          fetchSchools(domainProperty.addressCoordinate.lat, domainProperty.addressCoordinate.lon)
+            .then(res => ({ type: 'schools', data: res }))
+        )
+      }
+
+      // 4. Sold Comparables
+      const locationDataAvailable = (domainProperty.suburb && domainProperty.postcode) || domainProperty.addressCoordinate;
+      if (locationDataAvailable) {
+        promises.push(
+          fetchComparables(
+            domainProperty.state,
+            domainProperty.suburb,
+            domainProperty.postcode,
+            domainProperty.propertyCategory,
+            domainProperty.bedrooms,
+            domainProperty.bathrooms,
+            domainProperty.areaSize || domainProperty.internalArea,
+            domainProperty.addressCoordinate ? {
+              lat: domainProperty.addressCoordinate.lat,
+              lng: domainProperty.addressCoordinate.lon
+            } : null
+          ).then(res => ({ type: 'comparables', data: res }))
+        )
+
+        // 4b. For-Sale Comparables
+        promises.push(
+          fetchForSaleComparables(
+            domainProperty.state,
+            domainProperty.suburb,
+            domainProperty.postcode,
+            domainProperty.propertyCategory,
+            domainProperty.bedrooms,
+            domainProperty.bathrooms,
+            domainProperty.areaSize || domainProperty.internalArea,
+            domainProperty.addressCoordinate ? {
+              lat: domainProperty.addressCoordinate.lat,
+              lng: domainProperty.addressCoordinate.lon
+            } : null
+          ).then(res => ({ type: 'forSaleComparables', data: res }))
+        )
+      }
+
+
+      // 5. Rental Estimate
+      promises.push(
+        fetchRentalEstimate(id)
+          .then(res => ({ type: 'rentalEstimate', data: res }))
+      )
+
+      const results = await Promise.allSettled(promises)
+
+      let suburbInsights = null
+      let apiPriceEstimate = null
+      let schools = []
+      let comparables = []
+      let forSaleComparables = []
+      let apiRentalEstimate = null
+
+      results.forEach(result => {
+        if (result.status === 'fulfilled') {
+          const { type, data } = result.value
+          if (type === 'suburbInsights') suburbInsights = data
+          if (type === 'priceEstimate') apiPriceEstimate = data
+          if (type === 'schools') schools = data
+          if (type === 'comparables') comparables = data
+          if (type === 'forSaleComparables') forSaleComparables = data
+          if (type === 'rentalEstimate') apiRentalEstimate = data
+        }
+      })
+
+      const mapped = mapDomainPropertyToAppModel(domainProperty, suburbInsights, apiPriceEstimate, schools, comparables, forSaleComparables, apiRentalEstimate)
+
+      apiCache.set(cacheKey, mapped)
+      return mapped
+
+    } catch (error) {
+      console.error('Error calling Domain property detail API:', error)
+      throw error
+    } finally {
+      pendingRequests.delete(cacheKey)
+    }
+  })()
+
+  pendingRequests.set(cacheKey, fetchPromise)
+  return fetchPromise
 }
 
 /**

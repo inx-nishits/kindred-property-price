@@ -20,14 +20,17 @@ function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Handle Kindred Group Special Link (Global Bypass)
+  // Handle Team Special Link (Global Bypass - Secure Token)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('kindred_special_link') === 'true') {
+      const teamAuthToken = urlParams.get('team_auth');
+      const secretToken = process.env.NEXT_PUBLIC_TEAM_BYPASS_TOKEN;
+
+      if (teamAuthToken && secretToken && teamAuthToken === secretToken) {
         sessionStorage.setItem('kindred_global_bypass', 'true');
-        // Clean up URL to keep it pretty
-        const newUrl = window.location.pathname + window.location.search.replace(/[?&]kindred_special_link=true/, '').replace(/^&/, '?');
+        // Clean up URL to keep it pretty and hidden
+        const newUrl = window.location.pathname + window.location.search.replace(/[?&]team_auth=[^&]+/, '').replace(/^&/, '?');
         window.history.replaceState({}, '', newUrl);
       }
     }
