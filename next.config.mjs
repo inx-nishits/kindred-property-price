@@ -36,6 +36,14 @@ const nextConfig = {
             },
             {
                 protocol: 'https',
+                hostname: '*.domainstatic.com.au',
+            },
+            {
+                protocol: 'http',
+                hostname: '*.domainstatic.com.au',
+            },
+            {
+                protocol: 'https',
                 hostname: '*.akamai.net',
             },
             {

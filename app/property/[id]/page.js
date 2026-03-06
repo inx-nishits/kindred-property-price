@@ -64,6 +64,7 @@ export default function PropertyPage() {
     const [isSharing, setIsSharing] = useState(false)
     const [shareUrl, setShareUrl] = useState('')
     const [isCopied, setIsCopied] = useState(false)
+    const [mainImageError, setMainImageError] = useState(false)
     const [utmData, setUtmData] = useState({
         utm_source: '',
         utm_medium: '',
@@ -109,10 +110,11 @@ export default function PropertyPage() {
 
     // Check if property is unlocked
     useEffect(() => {
-        async function checkUnlockStatus() {
-            if (typeof window === 'undefined' || !params.id) return;
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
 
-            const urlParams = new URLSearchParams(window.location.search);
+        async function checkUnlockStatus() {
+            if (!urlParams || !params.id) return;
+
             const shareToken = urlParams.get('share_token');
             const globalBypass = sessionStorage.getItem('kindred_global_bypass') === 'true';
 
@@ -162,6 +164,7 @@ export default function PropertyPage() {
         }
 
         checkUnlockStatus();
+        if (!urlParams) return;
 
         // Capture UTM parameters
         const utmSource = urlParams.get('utm_source');
@@ -551,19 +554,20 @@ export default function PropertyPage() {
                                         onClick={() => propertyImages.length > 0 && setIsImageGalleryOpen(true)}
                                     >
                                         <div className="aspect-[4/3] relative">
-                                            {propertyImages && propertyImages.length > 0 ? (
+                                            {propertyImages && propertyImages.length > 0 && !mainImageError ? (
                                                 <img
                                                     src={propertyImages[0].url}
                                                     alt={propertyImages[0].alt || property.address}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    onError={() => setMainImageError(true)}
                                                 />
                                             ) : (
-                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                                                     <div className="text-center relative z-10">
                                                         <div className="mb-4">
-                                                            <ImageOff className="w-20 h-20 text-white/80 mx-auto drop-shadow-sm" strokeWidth={1} />
+                                                            <ImageOff className="w-20 h-20 text-gray-300 mx-auto drop-shadow-sm" strokeWidth={1} />
                                                         </div>
-                                                        <div className="text-white text-base font-semibold tracking-wide">No Image Available</div>
+                                                        <div className="text-gray-400 text-base font-semibold tracking-wide">No Image Available</div>
                                                     </div>
                                                 </div>
                                             )}

@@ -954,13 +954,53 @@ const mapDomainPropertyToAppModel = (domainProperty, suburbInsights = null, apiP
       }
     })
 
-  // Basic photo gallery from Domain photos
-  const propertyImages =
-    photos?.filter((p) => p.imageType === 'Property').map((p) => ({
-      id: `${p.advertId}-${p.rank}`,
-      url: p.fullUrl,
-      alt: `${address || streetAddress || 'Property image'}`,
-    })) || []
+  // Helper to ensure URLs are valid strings with protocols
+  const cleanImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    let clean = url.trim();
+    if (clean.startsWith('//')) return `https:${clean}`;
+    if (clean.startsWith('http')) return clean;
+    return null; // Skip invalid formats
+  };
+
+  // Basic photo gallery - include all valid images, sorted by rank
+  const propertyImages = (photos || [])
+    .sort((a, b) => (a.rank || 99) - (b.rank || 99))
+    .map((p) => {
+      const url = cleanImageUrl(p.fullUrl || p.url);
+      if (!url) return null;
+      return {
+        id: `${p.advertId || 'img'}-${p.rank || Math.random().toString(36).substr(2, 9)}`,
+        url,
+        alt: `${address || streetAddress || 'Property image'}`,
+      };
+    })
+    .filter(Boolean);
+
+  // Fallback to media array if propertyImages is empty
+  if (propertyImages.length === 0 && domainProperty.media) {
+    const mediaImages = domainProperty.media
+      .filter(m => m.category === 'Image')
+      .map((m, idx) => {
+        const url = cleanImageUrl(m.url);
+        if (!url) return null;
+        return {
+          id: `media-${idx}`,
+          url,
+          alt: address || 'Property image'
+        };
+      })
+      .filter(Boolean);
+
+    if (mediaImages.length > 0) {
+      propertyImages.push(...mediaImages);
+    }
+  }
+
+  console.log(`📸 Mapped ${propertyImages.length} images for property ${id}`);
+  if (propertyImages.length > 0) {
+    console.log(`   Sample URL: ${propertyImages[0].url}`);
+  }
 
   return {
     ...domainProperty,

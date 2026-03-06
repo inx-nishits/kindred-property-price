@@ -243,18 +243,6 @@ const generatePropertyEmailHtml = (property, formData, shareUrl) => {
                                         Here is the property report you requested. This comprehensive overview includes valuation estimates, rental potential, and recent market activity for your property.
                                     </p>
 
-                                    <!-- CTA Button: View Online Report -->
-                                    ${shareUrl ? `
-                                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
-                                        <tr>
-                                            <td align="center">
-                                              <a href="${shareUrl}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: ${colors.primary}; border-radius: 8px; text-decoration: none; min-width: 200px;">
-                                                View Full Report Online
-                                            </a>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                    ` : ''}
 
                                     <!-- Property Title Block -->
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
@@ -596,7 +584,7 @@ const generatePropertyEmailHtml = (property, formData, shareUrl) => {
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 10px; margin-bottom: 5px;">
                                         <tr>
                                             <td align="center">
-                                                <a href="${baseUrl}/property/${property.id}" style="display: inline-block; background-color: ${colors.brandDark}; color: ${colors.white}; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-align: center; mso-padding-alt: 0;">
+                                                <a href="${shareUrl || `${baseUrl}/property/${property.id}`}" style="display: inline-block; background-color: ${colors.brandDark}; color: ${colors.white}; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-align: center; mso-padding-alt: 0;">
                                                     <!--[if mso]><i style="letter-spacing: 40px; mso-font-width: -100%; mso-text-raise: 30pt">&nbsp;</i><![endif]-->
                                                     <span style="mso-text-raise: 15pt;">View full report</span>
                                                     <!--[if mso]><i style="letter-spacing: 40px; mso-font-width: -100%">&nbsp;</i><![endif]-->
