@@ -20,13 +20,13 @@ import { NextResponse } from 'next/server';
  */
 function getHubSpotApiBaseUrl() {
   const hubspotAccountRegion = process.env.HUBSPOT_ACCOUNT_REGION?.toLowerCase() || 'us';
-  
+
   if (hubspotAccountRegion === 'eu' || hubspotAccountRegion === 'eu1') {
     return 'https://api.eu1.hubapi.com';
   }
-  
+
   return 'https://api.hubapi.com';
-}               
+}
 
 /**
  * Safely converts a value to a numeric property for HubSpot.
@@ -48,7 +48,7 @@ function safeNumericProperty(value) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { contactId, property, reportId } = body;
+    const { contactId, property, reportId, shareUrl } = body;
 
     // Validate required fields
     if (!contactId) {
@@ -91,6 +91,7 @@ export async function POST(request) {
     const dealProperties = {
       dealname: `Property Report - ${property.address}`,
       property_address: property.address,
+      property_link: shareUrl,
     };
 
     // Property ID
@@ -141,6 +142,7 @@ export async function POST(request) {
     const priceEstimateMid = safeNumericProperty(property.priceEstimate?.mid);
     if (priceEstimateMid !== undefined) {
       dealProperties.amount = priceEstimateMid;  // Use built-in 'amount' field for price
+      dealProperties.price_estimate_mid = priceEstimateMid;
     }
     const priceEstimateLow = safeNumericProperty(property.priceEstimate?.low);
     if (priceEstimateLow !== undefined) {
@@ -198,14 +200,14 @@ export async function POST(request) {
     console.log('🔥 HUBSPOT DEAL API RESPONSE');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`📊 Status: ${response.status} ${response.ok ? '✓' : '✗'}`);
-    
+
     if (response.ok) {
       console.log('✅ Deal created successfully!');
       console.log(`   Deal ID: ${result.id}`);
-      
+
       // Now associate with contact
       console.log('📋 Associating deal with contact...');
-      
+
       const associationResponse = await fetch(
         `${hubspotApiBase}/crm/v3/objects/deals/${result.id}/associations/contacts/${contactId}/deal_to_contact`,
         {
@@ -218,7 +220,7 @@ export async function POST(request) {
       );
 
       const assocResult = await associationResponse.json();
-      
+
       if (associationResponse.ok) {
         console.log('✅ Deal associated with contact successfully!');
       } else {
@@ -235,14 +237,14 @@ export async function POST(request) {
     } else {
       console.log('❌ Deal creation failed!');
       console.log('   Error details:', JSON.stringify(result, null, 2));
-      
+
       // Check for specific errors
       if (result.category === 'VALIDATION_ERROR') {
         console.log('\n⚠️  Deal Validation Issues:');
         if (result.errors) {
           result.errors.forEach(err => {
             console.log(`   ✗ ${err.message}`);
-            
+
             // Check if it's an unknown property error
             if (err.message?.includes('unknown') || err.message?.includes('does not exist')) {
               const propMatch = err.message.match(/property '(\w+)'/i);
@@ -253,7 +255,7 @@ export async function POST(request) {
           });
         }
       }
-      
+
       return NextResponse.json(
         {
           success: false,

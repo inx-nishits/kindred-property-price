@@ -575,6 +575,18 @@ export const fetchSuburbPerformance = async (state, suburb, postcode) => {
         periodRange = `${String(first.month).padStart(2, '0')}-${first.year} to ${String(last.month).padStart(2, '0')}-${last.year}`
       }
 
+      const result = {
+        medianPrice,
+        clearanceRate,
+        avgMedianSoldPrice,
+        avgDaysOnMarket,
+        avgNumberSold,
+        overallClearanceRate,
+        periodRange,
+        series,
+        historicalData
+      }
+
       apiCache.set(cacheKey, result)
       return result
 

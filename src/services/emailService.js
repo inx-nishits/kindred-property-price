@@ -78,12 +78,13 @@ const createHubSpotContact = async (formData, property) => {
  * @param {string} reportId - The unique report ID
  * @returns {Promise<Object>} HubSpot response with success status and propertyId
  */
-const createHubSpotProperty = async (contactId, property, reportId) => {
+const createHubSpotProperty = async (contactId, property, reportId, shareUrl = '') => {
     try {
         console.log('📤 Creating property in HubSpot CRM:', {
             contactId: contactId,
             propertyAddress: property?.address,
-            reportId: reportId
+            reportId: reportId,
+            shareUrl: shareUrl
         });
 
         // Call the server-side API route
@@ -96,6 +97,7 @@ const createHubSpotProperty = async (contactId, property, reportId) => {
                 contactId,
                 property,
                 reportId,
+                shareUrl,
             }),
         });
 
@@ -689,6 +691,30 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
         let propertyId = null;
 
         // ============================================================
+        // GENERATE SHARE URL EARLY (for HubSpot enrichment)
+        // ============================================================
+        let shareUrl = '';
+        try {
+            const shareResponse = await fetch('/api/share/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    propertyId: property.id,
+                    recipientEmail: formData.email
+                }),
+            });
+            if (shareResponse.ok) {
+                const shareData = await shareResponse.json();
+                shareUrl = shareData.shareUrl;
+                console.log('✅ Share URL generated successfully for HubSpot:', shareUrl);
+            } else {
+                console.error('❌ Failed to generate share URL early');
+            }
+        } catch (error) {
+            console.error('Error generating share URL early:', error);
+        }
+
+        // ============================================================
         // HUBSPOT CRM INTEGRATION
         // ============================================================
 
@@ -710,7 +736,7 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
 
         // Step 2: Create a NEW Property Custom Object (every time)
         console.log('📋 Step 2: Creating new property in HubSpot...');
-        const hubspotPropertyResult = await createHubSpotProperty(contactId, property, reportId);
+        const hubspotPropertyResult = await createHubSpotProperty(contactId, property, reportId, shareUrl);
 
         if (!hubspotPropertyResult.success) {
             console.error('❌ Failed to create property in HubSpot');
@@ -731,31 +757,6 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
         hubspotSuccess = true;
         hubspotMessage = 'Contact and Deal created successfully';
 
-        // ============================================================
-        // GENERATE SHARE URL
-        // ============================================================
-        let shareUrl = '';
-        try {
-            const shareResponse = await fetch('/api/share/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    propertyId: property.id,
-                    recipientEmail: formData.email
-                }),
-            });
-            if (shareResponse.ok) {
-                const shareData = await shareResponse.json();
-                shareUrl = shareData.shareUrl;
-                console.log('✅ Share URL generated successfully:', shareUrl);
-            } else {
-                console.error('❌ Failed to generate share URL');
-            }
-        } catch (error) {
-            console.error('Error generating share URL:', error);
-        }
-
-        // ============================================================
         // EMAIL SENDING
         // ============================================================
 
@@ -861,7 +862,8 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
 
         // Step 2: Create a NEW Property Custom Object (every time)
         console.log('📋 Step 2: Creating new property in HubSpot...');
-        const hubspotPropertyResult = await createHubSpotProperty(contactId, property, reportId);
+        console.log('📋 Step 2: Creating new property in HubSpot with link...');
+        const hubspotPropertyResult = await createHubSpotProperty(contactId, property, reportId, shareUrl);
 
         if (!hubspotPropertyResult.success) {
             console.error('❌ Failed to create property in HubSpot');
