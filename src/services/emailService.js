@@ -78,13 +78,14 @@ const createHubSpotContact = async (formData, property) => {
  * @param {string} reportId - The unique report ID
  * @returns {Promise<Object>} HubSpot response with success status and propertyId
  */
-const createHubSpotProperty = async (contactId, property, reportId, shareUrl = '') => {
+const createHubSpotProperty = async (contactId, property, reportId, shareUrl = '', utmData = {}) => {
     try {
         console.log('📤 Creating property in HubSpot CRM:', {
             contactId: contactId,
             propertyAddress: property?.address,
             reportId: reportId,
-            shareUrl: shareUrl
+            shareUrl: shareUrl,
+            utmData: utmData
         });
 
         // Call the server-side API route
@@ -98,6 +99,7 @@ const createHubSpotProperty = async (contactId, property, reportId, shareUrl = '
                 property,
                 reportId,
                 shareUrl,
+                utmData,
             }),
         });
 
@@ -736,7 +738,7 @@ export const submitLeadFormAndSendReport = async (formData, property, utmData = 
 
         // Step 2: Create a NEW Property Custom Object (every time)
         console.log('📋 Step 2: Creating new property in HubSpot...');
-        const hubspotPropertyResult = await createHubSpotProperty(contactId, property, reportId, shareUrl);
+        const hubspotPropertyResult = await createHubSpotProperty(contactId, property, reportId, shareUrl, utmData);
 
         if (!hubspotPropertyResult.success) {
             console.error('❌ Failed to create property in HubSpot');

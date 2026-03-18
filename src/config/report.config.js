@@ -13,8 +13,8 @@ export const BRAND_CONFIG = {
   // Footer logo URL for emails
   footerLogoUrl: "https://kindred-property.s3.ap-southeast-2.amazonaws.com/logos/kindred-email-logo-footer.png",
   email: {
-    headerImage:"https://kindred-property.s3.ap-southeast-2.amazonaws.com/logos/kindred-logo.png",
-    footerImage:"https://kindred-property.s3.ap-southeast-2.amazonaws.com/logos/kindred-light-logo.png",
+    headerImage: "https://kindred-property.s3.ap-southeast-2.amazonaws.com/logos/kindred-logo.png",
+    footerImage: "https://kindred-property.s3.ap-southeast-2.amazonaws.com/logos/kindred-light-logo.png",
   },
 
 

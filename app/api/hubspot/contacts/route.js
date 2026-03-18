@@ -23,11 +23,11 @@ function getHubSpotApiBaseUrl() {
   // EU accounts use api.eu1.hubapi.com
   // US accounts use api.hubapi.com
   const hubspotAccountRegion = process.env.HUBSPOT_ACCOUNT_REGION?.toLowerCase() || 'us';
-  
+
   if (hubspotAccountRegion === 'eu' || hubspotAccountRegion === 'eu1') {
     return 'https://api.eu1.hubapi.com';
   }
-  
+
   // Default to US
   return 'https://api.hubapi.com';
 }
@@ -59,6 +59,8 @@ export async function POST(request) {
     // Get the correct API base URL
     const hubspotApiBase = getHubSpotApiBaseUrl();
     console.log('🌐 HubSpot API Base URL:', hubspotApiBase);
+    console.log(`🔐 Token Check: Length=${hubspotAccessToken.length}, StartsWith=${hubspotAccessToken.substring(0, 8)}`);
+    console.log(`🔐 Contact Info: Email=${formData.email}`);
 
     // Build properties object - ONLY include contact-specific fields (no property data)
     // Property data will be stored in the Custom Object, not the Contact
@@ -97,15 +99,15 @@ export async function POST(request) {
 
     // IMPORTANT: Check if the search API call itself was successful
     if (!searchResponse.ok) {
-        console.error('❌ HubSpot search API failed:', searchResult);
-        return NextResponse.json(
-          {
-            success: false,
-            message: searchResult.message || 'Failed to search for contact',
-            details: searchResult
-          },
-          { status: searchResponse.status }
-        );
+      console.error('❌ HubSpot search API failed:', searchResult);
+      return NextResponse.json(
+        {
+          success: false,
+          message: searchResult.message || 'Failed to search for contact',
+          details: searchResult
+        },
+        { status: searchResponse.status }
+      );
     }
 
     let contactId;
@@ -152,7 +154,7 @@ export async function POST(request) {
       // Contact exists, update
       contactId = searchResult.results[0].id;
       console.log(`✏️ Updating existing contact (ID: ${contactId})`);
-      
+
       const updateUrl = `${hubspotApiBase}/crm/v3/objects/contacts/${contactId}`;
       const updateResponse = await fetch(updateUrl, {
         method: 'PATCH',

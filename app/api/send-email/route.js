@@ -36,7 +36,7 @@ export async function POST(request) {
 
     // BREVO SMTP CONFIGURATION
     const brevoApiKey = process.env.SMTP_PASS || process.env.BREVO_API_KEY;
-    const senderEmail = process.env.SENDER_EMAIL || 'aarif.r@inheritx.com';
+    const senderEmail = process.env.SENDER_EMAIL;
     const senderName = process.env.SENDER_NAME || 'Kindred Property';
     const smtpUser = 'a12dc9001@smtp-brevo.com';
 

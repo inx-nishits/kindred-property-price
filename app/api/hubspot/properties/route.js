@@ -48,7 +48,7 @@ function safeNumericProperty(value) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { contactId, property, reportId, shareUrl } = body;
+    const { contactId, property, reportId, shareUrl, utmData } = body;
 
     // Validate required fields
     if (!contactId) {
@@ -160,6 +160,15 @@ export async function POST(request) {
     // Pipeline and Stage (required)
     dealProperties.pipeline = '874236271';
     dealProperties.dealstage = '1310030426';
+
+    // UTM Attribution
+    if (utmData) {
+      if (utmData.utm_source) dealProperties.utm_source = utmData.utm_source;
+      if (utmData.utm_medium) dealProperties.utm_medium = utmData.utm_medium;
+      if (utmData.utm_campaign) dealProperties.utm_campaign = utmData.utm_campaign;
+      if (utmData.utm_term) dealProperties.utm_term = utmData.utm_term;
+      if (utmData.utm_content) dealProperties.utm_content = utmData.utm_content;
+    }
 
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('📤 HUBSPOT DEAL - CREATING NEW RECORD');

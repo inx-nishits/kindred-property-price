@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createPortal } from 'react-dom'
-import { getPropertyDetails, submitLeadForm } from '@/services/propertyService'
+import { getPropertyDetails, submitLeadForm, fetchSchools, fetchSuburbPerformance } from '@/services/propertyService'
 import LeadCaptureModal from '@/components/property/LeadCaptureModal'
 import { PropertyCardSkeleton } from '@/components/common/SkeletonLoader'
 import ScrollReveal from '@/components/animations/ScrollReveal'
@@ -35,16 +35,12 @@ import {
     Copy,
     ExternalLink
 } from 'lucide-react'
-import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer
-} from 'recharts'
+import PropertyHeader from '@/components/property/PropertyHeader'
+import PriceEstimateCard from '@/components/property/PriceEstimateCard'
+import SuburbStats from '@/components/property/SuburbStats'
+import HistoryCharts from '@/components/property/HistoryCharts'
+import SchoolsModal from '@/components/property/SchoolsModal'
+import ComparablesModal from '@/components/property/ComparablesModal'
 
 export default function PropertyPage() {
     const params = useParams()
@@ -65,6 +61,14 @@ export default function PropertyPage() {
     const [shareUrl, setShareUrl] = useState('')
     const [isCopied, setIsCopied] = useState(false)
     const [mainImageError, setMainImageError] = useState(false)
+    const [schools, setSchools] = useState([])
+    const [isFetchingSchools, setIsFetchingSchools] = useState(false)
+    const [suburbPerformance, setSuburbPerformance] = useState(null)
+    const [isFetchingSuburbPerformance, setIsFetchingSuburbPerformance] = useState(false)
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
+    const [userEmail, setUserEmail] = useState('')
+    const [formError, setFormError] = useState('')
+    const [isPriceEstimateErrorModalOpen, setIsPriceEstimateErrorModalOpen] = useState(false)
     const [utmData, setUtmData] = useState({
         utm_source: '',
         utm_medium: '',
@@ -75,6 +79,57 @@ export default function PropertyPage() {
 
     const propertyImages = property?.images || []
     console.log(property);
+
+    const openSchoolsModal = async () => {
+        setIsSchoolsModalOpen(true)
+        if (schools.length === 0 && property) {
+            setIsFetchingSchools(true)
+            try {
+                // Use data from property object if available, otherwise fetch
+                if (property.schools && property.schools.length > 0) {
+                    setSchools(property.schools)
+                } else {
+                    const lat = property.coordinates?.lat || property.latitude
+                    const lng = property.coordinates?.lng || property.longitude
+                    if (lat && lng) {
+                        const schoolsData = await fetchSchools(lat, lng)
+                        setSchools(schoolsData || [])
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching schools", err)
+            } finally {
+                setIsFetchingSchools(false)
+            }
+        }
+    }
+
+    const viewSuburbInsights = async () => {
+        if (!suburbPerformance && property) {
+            const state = property.addressComponents?.state || property.state
+            const suburb = property.addressComponents?.suburb || property.suburb
+            const postcode = property.addressComponents?.postCode || property.postcode
+
+            if (state && suburb && postcode) {
+                setIsFetchingSuburbPerformance(true);
+                try {
+                    const performanceData = await fetchSuburbPerformance(state, suburb, postcode);
+                    setSuburbPerformance(performanceData);
+                } catch (error) {
+                    console.error('Error fetching suburb performance:', error);
+                } finally {
+                    setIsFetchingSuburbPerformance(false);
+                }
+            }
+        }
+    };
+
+    // When property data is loaded, and it's unlocked, fetch suburb performance
+    useEffect(() => {
+        if (property && isUnlocked) {
+            viewSuburbInsights();
+        }
+    }, [property, isUnlocked]);
 
     // Fetch property details
     useEffect(() => {
@@ -134,17 +189,13 @@ export default function PropertyPage() {
                     });
                     const data = await response.json();
                     if (data.success) {
-                        // If it's a personalized link, check if it matches the current user
-                        if (data.type === 'personal') {
-                            const savedDetails = localStorage.getItem('kindred_user_details');
-                            const userEmail = savedDetails ? JSON.parse(savedDetails).email : localStorage.getItem(`property_${params.id}_email`);
-
-                            if (userEmail !== data.recipientEmail) {
-                                console.warn('Personalized link mismatch. Access denied.');
-                                // Keep locked and maybe show a message
-                                setFormError('This personalized report link is restricted to the original recipient. Please fill out the form to request your own report.');
-                                return;
+                        // If it's a personalized link, we can prefill their email if they don't have it
+                        if (data.type === 'personal' && data.recipientEmail) {
+                            if (!localStorage.getItem('kindred_user_details')) {
+                                localStorage.setItem('kindred_user_details', JSON.stringify({ email: data.recipientEmail }));
                             }
+                            // Save property-specific email
+                            localStorage.setItem(`property_${params.id}_email`, data.recipientEmail);
                         }
 
                         setIsUnlocked(true);
@@ -223,10 +274,6 @@ export default function PropertyPage() {
         }
     }, [property?.apiFailedError, property?.apiFailureReason])
 
-    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
-    const [userEmail, setUserEmail] = useState('')
-    const [formError, setFormError] = useState('')
-    const [isPriceEstimateErrorModalOpen, setIsPriceEstimateErrorModalOpen] = useState(false)
 
     // Handle form submission
     const handleFormSubmit = async (formData) => {
@@ -414,139 +461,22 @@ export default function PropertyPage() {
                         {/* Property Overview Section */}
                         <ScrollReveal>
                             <div className="mb-12">
-                                <div className="mb-6">
-                                    <p className="text-sm text-gray-600 mb-2 flex items-center gap-1.5">
-                                        <MapPin className="w-4 h-4 text-primary-500" />
-                                        Property report for
-                                    </p>
-                                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-[#163331] mb-6">
-                                        {property.address}
-                                    </h1>
-                                    <div className={`flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-700 ${!isUnlocked ? 'blur-sm select-none opacity-60' : ''}`}>
-                                        {property.beds > 0 && (
-                                            <div className="flex items-center gap-2" title="Bedrooms">
-                                                <Bed className="w-5 h-5 text-gray-400" strokeWidth={1.5} />
-                                                <span className="font-medium">{property.beds} Bed</span>
-                                            </div>
-                                        )}
-                                        {property.baths > 0 && (
-                                            <div className="flex items-center gap-2" title="Bathrooms">
-                                                <Bath className="w-5 h-5 text-gray-400" strokeWidth={1.5} />
-                                                <span className="font-medium">{property.baths} Bath</span>
-                                            </div>
-                                        )}
-                                        {(property.parking > 0 || property.cars > 0) && (
-                                            <div className="flex items-center gap-2" title="Car Spaces">
-                                                <Car className="w-5 h-5 text-gray-400" strokeWidth={1.5} />
-                                                <span className="font-medium">{property.parking || property.cars} Car</span>
-                                            </div>
-                                        )}
-                                        {property.propertyType && (
-                                            <div className="flex items-center gap-2 hidden sm:flex">
-                                                <Home className="w-4 h-4 text-gray-400" strokeWidth={1.5} />
-                                                <span>{property.propertyType}</span>
-                                            </div>
-                                        )}
-                                        {property.landSize > 0 && (
-                                            <div className="flex items-center gap-2 hidden sm:flex">
-                                                <Maximize className="w-4 h-4 text-gray-400" strokeWidth={1.5} />
-                                                <span>{formatLandSize(property.landSize)}</span>
-                                            </div>
-                                        )}
-                                        {property.buildingSize > 0 && (
-                                            <div className="flex items-center gap-2 hidden sm:flex">
-                                                <Building2 className="w-4 h-4 text-gray-400" strokeWidth={1.5} />
-                                                <span>{property.buildingSize} m²</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                <PropertyHeader
+                                    property={property}
+                                    isUnlocked={isUnlocked}
+                                    formatLandSize={formatLandSize}
+                                />
 
                                 {/* Estimated Value and Property Image */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                                    {/* Estimated Value Card - Blurred if locked */}
-                                    <div className={`bg-[#163331] text-white rounded-xl p-8 md:p-10 relative overflow-hidden shadow-2xl ${!isUnlocked ? 'blur-md select-none pointer-events-none opacity-80' : ''}`}>
-                                        <div className="absolute inset-0 bg-gradient-to-br from-[#163331] via-[#163331] to-[#0d1f1e] opacity-90"></div>
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
-                                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
-
-                                        <div className="relative z-10">
-                                            {isPriceEstimateLoading ? (
-                                                // Loading skeleton for price estimate
-                                                <div className="space-y-6 animate-pulse">
-                                                    <div>
-                                                        <div className="h-10 bg-white/20 rounded-lg w-3/4 mb-3"></div>
-                                                        <div className="h-6 bg-white/15 rounded-full w-32"></div>
-                                                    </div>
-                                                    <div className="pt-6 border-t border-white/25">
-                                                        <div className="h-12 bg-white/10 rounded-lg"></div>
-                                                    </div>
-                                                </div>
-                                            ) : property.priceEstimate && property.priceEstimate.mid > 0 ? (
-                                                <div className="space-y-6">
-                                                    <div>
-                                                        <h2 className="text-2xl md:text-3xl font-heading font-semibold text-white/95 uppercase tracking-wider flex items-center gap-2 mb-4">
-                                                            <ArrowUpRight className="w-5 h-5 text-[#48D98E]" />
-                                                            <span className="text-lg md:text-xl">Estimated Value:</span> {formatCurrency(property.priceEstimate.mid)}
-                                                        </h2>
-                                                        <div className="text-xl md:text-xl text-white/80">
-                                                            {formatCurrency(property.priceEstimate.low)} - {formatCurrency(property.priceEstimate.high)}
-                                                        </div>
-                                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/15 backdrop-blur-sm rounded-full mt-4">
-                                                            <div className="w-2 h-2 bg-[#48D98E] rounded-full animate-pulse"></div>
-                                                            <span className="text-sm font-medium text-white/90">
-                                                                {(property.priceEstimate.priceConfidence || 'Medium').charAt(0).toUpperCase() + (property.priceEstimate.priceConfidence || 'Medium').slice(1)} Confidence
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="pt-6 border-t border-white/25">
-                                                        <a
-                                                            href="https://www.kindred.com.au/sales-property-appraisal"
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="inline-block w-full text-center bg-[#48D98E] text-[#163331] font-semibold py-3 px-6 rounded-lg hover:bg-[#3bc57d] transition-colors duration-200 shadow-lg"
-                                                        >
-                                                            Book your appraisal today
-                                                        </a>
-                                                    </div>
-
-                                                    <p className="text-xs text-white/70 leading-relaxed pt-2">
-                                                        {/* This estimate may not include recent renovations or improvements.
-                                                        For a personal appraisal, please contact us. */}
-                                                        This estimate may not have factored in your current home condition or any recent renovations. For a more accurate sale price contact Town for a personal appraisal.
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-6">
-                                                    <div>
-                                                        <h2 className="text-2xl md:text-3xl font-heading font-semibold text-white/95 uppercase tracking-wider flex items-center gap-2 mb-4">
-                                                            <ArrowUpRight className="w-5 h-5 text-[#48D98E]" />
-                                                            <span className="text-lg md:text-xl">Estimated Value:</span> $0
-                                                        </h2>
-                                                        <div className="text-xl md:text-xl text-white/80">
-                                                            $0 - $0
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="pt-6 border-t border-white/25">
-                                                        <a
-                                                            href="https://www.kindred.com.au/sales-property-appraisal"
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="inline-block w-full text-center bg-[#48D98E] text-[#163331] font-semibold py-3 px-6 rounded-lg hover:bg-[#3bc57d] transition-colors duration-200 shadow-lg"
-                                                        >
-                                                            Book your appraisal today
-                                                        </a>
-                                                    </div>
-
-                                                    <p className="text-xs text-white/70 leading-relaxed pt-2">
-                                                        This estimate may not have factored in your current home condition or any recent renovations. For a more accurate sale price contact Town for a personal appraisal.
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                    <PriceEstimateCard
+                                        property={property}
+                                        isUnlocked={isUnlocked}
+                                        isPriceEstimateLoading={isPriceEstimateLoading}
+                                        formatCurrency={formatCurrency}
+                                        generateShareableLink={handleShare}
+                                        isGeneratingShareUrl={isSharing}
+                                    />
 
                                     {/* Property Image - Always Visible */}
                                     <div
@@ -702,247 +632,24 @@ export default function PropertyPage() {
                             )} */}
 
                             {/* Suburb Sales Statistics */}
-                            {property.suburbInsights && (
+                            {(suburbPerformance || property.suburbInsights) && (
                                 <ScrollReveal delay={0.2}>
-                                    <div className="mb-16">
-                                        <div className="text-center mb-10">
-                                            <h2 className="text-3xl md:text-4xl font-heading font-bold text-[#163331] mb-2 leading-tight">
-                                                {property.suburb} Sales Statistics
-                                            </h2>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                                            {/* Auction Clearance Rate */}
-                                            <div className="flex flex-col h-full bg-[#f8f9f9] rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden transform transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-                                                <div className="flex-1 p-6 md:p-8 flex flex-col items-center justify-center text-center">
-                                                    <div className="text-4xl md:text-5xl font-heading font-bold text-[#163331] mb-4">
-                                                        {property.suburbInsights.overallClearanceRate?.toFixed(2)}%
-                                                    </div>
-                                                    <div className="text-[11px] md:text-xs font-bold text-[#163331]/60 uppercase tracking-[0.1em] leading-relaxed">
-                                                        AUCTION CLEARANCE RATE
-                                                    </div>
-                                                </div>
-                                                <div className="bg-[#ecedee] py-3 px-4 text-center">
-                                                    <span className="text-[10px] md:text-[11px] font-bold text-[#163331]/40 uppercase tracking-wider">
-                                                        {property.suburbInsights.periodRange}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Average Days on Market */}
-                                            <div className="flex flex-col h-full bg-[#f8f9f9] rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden transform transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-                                                <div className="flex-1 p-6 md:p-8 flex flex-col items-center justify-center text-center">
-                                                    <div className="text-4xl md:text-5xl font-heading font-bold text-[#163331] mb-4">
-                                                        {property.suburbInsights.avgDaysOnMarket?.toFixed(2)}
-                                                    </div>
-                                                    <div className="text-[11px] md:text-xs font-bold text-[#163331]/60 uppercase tracking-[0.1em] leading-relaxed">
-                                                        AVERAGE DAYS ON MARKET
-                                                    </div>
-                                                </div>
-                                                <div className="bg-[#ecedee] py-3 px-4 text-center">
-                                                    <span className="text-[10px] md:text-[11px] font-bold text-[#163331]/40 uppercase tracking-wider">
-                                                        {property.suburbInsights.periodRange}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Median Sold Price */}
-                                            <div className="flex flex-col h-full bg-[#f8f9f9] rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden transform transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-                                                <div className="flex-1 p-6 md:p-8 flex flex-col items-center justify-center text-center">
-                                                    <div className="text-3xl md:text-4xl lg:text-4xl font-heading font-bold text-[#163331] mb-4 lg:whitespace-nowrap">
-                                                        {formatCurrency(property.suburbInsights.avgMedianSoldPrice || property.suburbInsights.medianPrice)}
-                                                    </div>
-                                                    <div className="text-[11px] md:text-xs font-bold text-[#163331]/60 uppercase tracking-[0.1em] leading-relaxed">
-                                                        MEDIAN SOLD PRICE
-                                                    </div>
-                                                </div>
-                                                <div className="bg-[#ecedee] py-3 px-4 text-center">
-                                                    <span className="text-[10px] md:text-[11px] font-bold text-[#163331]/40 uppercase tracking-wider">
-                                                        {property.suburbInsights.periodRange}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Average Number of Sales */}
-                                            <div className="flex flex-col h-full bg-[#f8f9f9] rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden transform transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-                                                <div className="flex-1 p-6 md:p-8 flex flex-col items-center justify-center text-center">
-                                                    <div className="text-4xl md:text-5xl font-heading font-bold text-[#163331] mb-4">
-                                                        {property.suburbInsights.avgNumberSold}
-                                                    </div>
-                                                    <div className="text-[11px] md:text-xs font-bold text-[#163331]/60 uppercase tracking-[0.1em] leading-relaxed">
-                                                        AVERAGE NUMBER OF SALES<br />PER QUARTER
-                                                    </div>
-                                                </div>
-                                                <div className="bg-[#ecedee] py-3 px-4 text-center">
-                                                    <span className="text-[10px] md:text-[11px] font-bold text-[#163331]/40 uppercase tracking-wider">
-                                                        {property.suburbInsights.periodRange}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <SuburbStats
+                                        suburbInsights={suburbPerformance || property.suburbInsights}
+                                        suburb={property.suburb}
+                                        formatCurrency={formatCurrency}
+                                    />
                                 </ScrollReveal>
                             )}
 
                             {/* Historical Performance Charts */}
-                            {property.suburbInsights?.historicalData && property.suburbInsights.historicalData.length > 0 && (
+                            {(suburbPerformance?.historicalData || property.suburbInsights?.historicalData) && (suburbPerformance?.historicalData?.length > 0 || property.suburbInsights?.historicalData?.length > 0) && (
                                 <ScrollReveal delay={0.25}>
-                                    <div className="mb-12">
-                                        <h2 className="text-2xl md:text-3xl font-heading font-bold text-[#163331] mb-6 flex items-center gap-3">
-                                            <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-primary-500" strokeWidth={1.5} />
-                                            5-Year Suburb Performance - {property.suburb}
-                                        </h2>
-
-                                        {(() => {
-                                            const rawData = property.suburbInsights.historicalData || [];
-
-                                            // Process data: Group by year if possible, otherwise show monthly/detailed points
-                                            const processChartData = (items) => {
-                                                if (!items || items.length === 0) return [];
-
-                                                // Try yearly grouping
-                                                const years = [...new Set(items.filter(d => d.year).map(d => Number(d.year)))].sort();
-                                                const yearly = [];
-
-                                                years.forEach(year => {
-                                                    const yearData = items.filter(d => Number(d.year) === year && d.medianPrice > 0);
-                                                    if (yearData.length > 0) {
-                                                        const latest = yearData.sort((a, b) => (b.month || 0) - (a.month || 0))[0];
-                                                        yearly.push({
-                                                            ...latest,
-                                                            name: latest.year.toString()
-                                                        });
-                                                    }
-                                                });
-
-                                                // If we have 3+ years, yearly is good
-                                                if (yearly.length >= 3) return yearly.slice(-10);
-
-                                                // Fallback to monthly/quarterly to show more detail than a single point
-                                                return items
-                                                    .filter(d => d.medianPrice > 0)
-                                                    .map(d => ({
-                                                        ...d,
-                                                        name: d.period || d.year?.toString()
-                                                    }))
-                                                    .slice(-24);
-                                            };
-
-                                            const chartData = processChartData(rawData);
-
-                                            return (
-                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                                    {/* Median Value Chart */}
-                                                    <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                                                        <h3 className="text-lg font-semibold text-[#163331] mb-4 flex items-center gap-2">
-                                                            <Home className="w-5 h-5 text-primary-500" />
-                                                            Median Property Value
-                                                        </h3>
-                                                        <ResponsiveContainer width="100%" height={300}>
-                                                            <LineChart data={chartData}>
-                                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                                <XAxis
-                                                                    dataKey="name"
-                                                                    stroke="#6b7280"
-                                                                    fontSize={12}
-                                                                    tick={{ fill: '#6b7280' }}
-                                                                    angle={-45}
-                                                                    textAnchor="end"
-                                                                    height={60}
-                                                                />
-                                                                <YAxis
-                                                                    stroke="#6b7280"
-                                                                    fontSize={12}
-                                                                    tick={{ fill: '#6b7280' }}
-                                                                    tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                                                                />
-                                                                <Tooltip
-                                                                    contentStyle={{
-                                                                        backgroundColor: '#fff',
-                                                                        border: '1px solid #e5e7eb',
-                                                                        borderRadius: '8px',
-                                                                        padding: '8px'
-                                                                    }}
-                                                                    formatter={(value) => formatCurrency(value)}
-                                                                    labelStyle={{ color: '#163331', fontWeight: 'bold' }}
-                                                                />
-                                                                <Legend />
-                                                                <Line
-                                                                    type="monotone"
-                                                                    dataKey="medianPrice"
-                                                                    stroke="#163331"
-                                                                    strokeWidth={2}
-                                                                    dot={{ fill: '#163331', r: 3 }}
-                                                                    activeDot={{ r: 5 }}
-                                                                    name="Median Value"
-                                                                    connectNulls={false}
-                                                                />
-                                                            </LineChart>
-                                                        </ResponsiveContainer>
-                                                    </div>
-
-                                                    {/* Median Rent Chart */}
-                                                    {chartData.some(d => d.medianRent && d.medianRent > 0) && (
-                                                        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                                                            <h3 className="text-lg font-semibold text-[#163331] mb-4 flex items-center gap-2">
-                                                                <Calendar className="w-5 h-5 text-primary-500" />
-                                                                Median Weekly Rent
-                                                            </h3>
-                                                            <ResponsiveContainer width="100%" height={300}>
-                                                                <LineChart data={chartData}>
-                                                                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                                    <XAxis
-                                                                        dataKey="name"
-                                                                        stroke="#6b7280"
-                                                                        fontSize={12}
-                                                                        tick={{ fill: '#6b7280' }}
-                                                                        angle={-45}
-                                                                        textAnchor="end"
-                                                                        height={60}
-                                                                    />
-                                                                    <YAxis
-                                                                        stroke="#6b7280"
-                                                                        fontSize={12}
-                                                                        tick={{ fill: '#6b7280' }}
-                                                                        tickFormatter={(value) => `$${value}/wk`}
-                                                                    />
-                                                                    <Tooltip
-                                                                        contentStyle={{
-                                                                            backgroundColor: '#fff',
-                                                                            border: '1px solid #e5e7eb',
-                                                                            borderRadius: '8px',
-                                                                            padding: '8px'
-                                                                        }}
-                                                                        formatter={(value) => value ? `$${value}/week` : 'N/A'}
-                                                                        labelStyle={{ color: '#163331', fontWeight: 'bold' }}
-                                                                    />
-                                                                    <Legend />
-                                                                    <Line
-                                                                        type="monotone"
-                                                                        dataKey="medianRent"
-                                                                        stroke="#48D98E"
-                                                                        strokeWidth={2}
-                                                                        dot={{ fill: '#48D98E', r: 3 }}
-                                                                        activeDot={{ r: 5 }}
-                                                                        name="Median Rent"
-                                                                        connectNulls={false}
-                                                                    />
-                                                                </LineChart>
-                                                            </ResponsiveContainer>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
-
-                                        {!property.suburbInsights.historicalData.some(d => d.medianRent > 0) && (
-                                            <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                                                <p className="text-sm text-gray-600 text-center">
-                                                    Rental data is not available for this suburb at this time.
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
+                                    <HistoryCharts
+                                        historicalData={suburbPerformance?.historicalData || property.suburbInsights.historicalData}
+                                        suburb={property.suburb}
+                                        formatCurrency={formatCurrency}
+                                    />
                                 </ScrollReveal>
                             )}
 
@@ -1094,7 +801,7 @@ export default function PropertyPage() {
                                             </h2>
                                             {property.schools.length > 5 && (
                                                 <button
-                                                    onClick={() => setIsSchoolsModalOpen(true)}
+                                                    onClick={openSchoolsModal}
                                                     className="text-primary-600 hover:text-primary-700 font-semibold text-sm flex items-center gap-1 transition-colors group"
                                                 >
                                                     View all {property.schools.length} schools
@@ -1241,180 +948,20 @@ export default function PropertyPage() {
                     document.body
                 )}
 
-                {/* All Schools Modal */}
-                {isSchoolsModalOpen && createPortal(
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6"
-                        role="dialog"
-                        aria-modal="true"
-                    >
-                        {/* Backdrop */}
-                        <div
-                            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-                            onClick={() => setIsSchoolsModalOpen(false)}
-                        ></div>
+                <SchoolsModal
+                    isOpen={isSchoolsModalOpen}
+                    onClose={() => setIsSchoolsModalOpen(false)}
+                    schools={schools.length > 0 ? schools : (property?.schools || [])}
+                />
 
-                        {/* Modal Content */}
-                        <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col animate-scaleIn overflow-hidden">
-                            {/* Header */}
-                            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                                <h3 className="text-2xl font-heading font-bold text-[#163331] flex items-center gap-2">
-                                    <School className="w-6 h-6 text-primary-500" />
-                                    All Local Schools ({property.schools.length})
-                                </h3>
-                                <button
-                                    onClick={() => setIsSchoolsModalOpen(false)}
-                                    className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
-                                >
-                                    <X className="w-6 h-6" />
-                                </button>
-                            </div>
-
-                            {/* Scrollable List */}
-                            <div className="flex-1 overflow-y-auto p-0">
-                                <div className="divide-y divide-gray-100">
-                                    {property.schools.map((school, index) => (
-                                        <div key={index} className="p-5 hover:bg-gray-50 transition-colors">
-                                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                                                <div>
-                                                    <h4 className="font-semibold text-[#163331] text-base mb-1.5">{school.name}</h4>
-                                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
-                                                            {school.type}
-                                                        </span>
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 text-xs font-medium">
-                                                            {school.sector}
-                                                        </span>
-                                                        {school.yearRange && (
-                                                            <span className="text-gray-500 text-xs">
-                                                                Years {school.yearRange}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-sm font-medium text-[#163331]">
-                                                    <MapPin className="w-4 h-4 text-gray-400" />
-                                                    {school.distance < 1000
-                                                        ? `${Math.round(school.distance)}m`
-                                                        : `${(school.distance / 1000).toFixed(1)}km`}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>,
-                    document.body
-                )}
-
-                {/* All Comparable Sales Modal */}
-                {isComparablesModalOpen && createPortal(
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6"
-                        role="dialog"
-                        aria-modal="true"
-                    >
-                        {/* Backdrop */}
-                        <div
-                            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-                            onClick={() => setIsComparablesModalOpen(false)}
-                        ></div>
-
-                        {/* Modal Content */}
-                        <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col animate-scaleIn overflow-hidden">
-                            {/* Header */}
-                            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                                <h3 className="text-2xl font-heading font-bold text-[#163331] flex items-center gap-2">
-                                    <Ruler className="w-6 h-6 text-primary-500" />
-                                    Comparable Sales ({property.comparables.length})
-                                </h3>
-                                <button
-                                    onClick={() => setIsComparablesModalOpen(false)}
-                                    className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
-                                >
-                                    <X className="w-6 h-6" />
-                                </button>
-                            </div>
-
-                            {/* Scrollable List */}
-                            <div className="flex-1 overflow-y-auto p-0">
-                                <div className="divide-y divide-gray-100">
-                                    {property.comparables.map((sale, index) => (
-                                        <div key={index} className="p-5 hover:bg-gray-50 transition-colors">
-                                            <div className="flex gap-5">
-                                                {/* Image */}
-                                                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg flex-shrink-0 overflow-hidden bg-gray-200 relative">
-                                                    {sale.images && sale.images.length > 0 && sale.images[0]?.url ? (
-                                                        <img
-                                                            src={sale.images[0].url}
-                                                            alt={sale.address || 'Property image'}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => {
-                                                                e.target.onerror = null;
-                                                                e.target.style.display = 'none';
-                                                                if (e.target.nextSibling) {
-                                                                    e.target.nextSibling.style.display = 'flex';
-                                                                }
-                                                            }}
-                                                        />
-                                                    ) : null}
-                                                    {/* Fallback */}
-                                                    <div className="w-full h-full flex items-center justify-center bg-gray-100"
-                                                        style={{ display: (sale.images && sale.images.length > 0 && sale.images[0]?.url) ? 'none' : 'flex' }}>
-                                                        <ImageOff className="w-8 h-8 text-gray-300" />
-                                                    </div>
-                                                </div>
-
-                                                {/* Details */}
-                                                <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
-                                                    <div>
-                                                        <div className="flex items-start justify-between gap-4">
-                                                            <h4 className="font-bold text-[#163331] text-lg sm:text-xl line-clamp-1">
-                                                                {sale.address}
-                                                            </h4>
-                                                            <div className="text-right flex-shrink-0">
-                                                                <div className="text-xl sm:text-2xl font-bold text-[#163331]">
-                                                                    {formatCurrency(sale.salePrice)}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="text-sm text-gray-600 mt-1 mb-3">
-                                                            Sold on {formatDate(sale.saleDate)}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-700">
-                                                        {sale.beds > 0 && (
-                                                            <div className="flex items-center gap-2">
-                                                                <Bed className="w-4 h-4 text-gray-400" />
-                                                                <span className="font-medium">{sale.beds} Bed</span>
-                                                            </div>
-                                                        )}
-                                                        {sale.baths > 0 && (
-                                                            <div className="flex items-center gap-2">
-                                                                <Bath className="w-4 h-4 text-gray-400" />
-                                                                <span className="font-medium">{sale.baths} Bath</span>
-                                                            </div>
-                                                        )}
-                                                        {(sale.parking > 0 || sale.cars > 0) && (
-                                                            <div className="flex items-center gap-2">
-                                                                <Car className="w-4 h-4 text-gray-400" />
-                                                                <span className="font-medium">{sale.parking || sale.cars} Car</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>,
-                    document.body
-                )}
+                <ComparablesModal
+                    isOpen={isComparablesModalOpen}
+                    onClose={() => setIsComparablesModalOpen(false)}
+                    comparables={property?.comparables || []}
+                    suburb={property?.suburb}
+                    formatCurrency={formatCurrency}
+                    formatDate={formatDate}
+                />
 
                 {/* ═════════════════════════════════════════════════════════════════════════════════════════ */}
                 {/* RETRY MODAL: Price Estimate API Failed */}
